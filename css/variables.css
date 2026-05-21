@@ -1,0 +1,171 @@
+/* =============================================
+   ClicKet — CSS Variables & Global Reset
+   ============================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* Brand Colors */
+  --red-primary:    #E8162B;
+  --red-dark:       #B5101F;
+  --red-light:      #FF3347;
+  --white:          #FFFFFF;
+  --off-white:      #F7F7F7;
+  --gray-100:       #F5F5F5;
+  --gray-200:       #E8E8E8;
+  --gray-300:       #C4C4C4;
+  --gray-400:       #9A9A9A;
+  --gray-500:       #6B6B6B;
+  --gray-600:       #444444;
+  --gray-900:       #111111;
+  --dark-bg:        #141414;
+  --dark-card:      #1E1E1E;
+  --dark-surface:   #252525;
+
+  /* Light mode surface (used for sections with white bg) */
+  --light-bg:       #FFFFFF;
+  --light-surface:  #F7F7F7;
+  --light-card:     #FFFFFF;
+  --light-border:   rgba(0,0,0,.08);
+  --text-primary:   #111111;
+  --text-secondary: #555555;
+  --text-muted:     #888888;
+
+  /* Typography */
+  --font-display:   'Bebas Neue', sans-serif;
+  --font-body:      'Outfit', sans-serif;
+
+  /* Spacing */
+  --section-gap:    80px;
+  --card-radius:    14px;
+  --btn-radius:     50px;
+
+  /* Shadows */
+  --shadow-sm:      0 2px 8px rgba(0,0,0,.08);
+  --shadow-md:      0 6px 24px rgba(0,0,0,.12);
+  --shadow-lg:      0 16px 48px rgba(0,0,0,.16);
+  --shadow-card:    0 4px 20px rgba(0,0,0,.1);
+  --glow-red:       0 0 24px rgba(232,22,43,.3);
+
+  /* Transitions */
+  --ease:           cubic-bezier(.25,.46,.45,.94);
+  --dur-fast:       .18s;
+  --dur-mid:        .32s;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--light-bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; }
+img { display: block; max-width: 100%; }
+button { cursor: pointer; border: none; background: none; font-family: var(--font-body); }
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 44px);
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.section-title span { color: var(--red-primary); }
+
+.section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.see-all-btn {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--red-primary);
+  border: 1.5px solid var(--red-primary);
+  padding: 8px 22px;
+  border-radius: var(--btn-radius);
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast);
+  white-space: nowrap;
+}
+
+.see-all-btn:hover {
+  background: var(--red-primary);
+  color: var(--white);
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--red-primary);
+  color: var(--white);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: .5px;
+  padding: 12px 28px;
+  border-radius: var(--btn-radius);
+  transition: background var(--dur-fast) var(--ease), transform var(--dur-fast), box-shadow var(--dur-fast);
+}
+
+.btn-primary:hover {
+  background: var(--red-light);
+  transform: translateY(-2px);
+  box-shadow: var(--glow-red);
+  color: var(--white);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid rgba(255,255,255,.45);
+  color: var(--white);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 11px 26px;
+  border-radius: var(--btn-radius);
+  transition: border-color var(--dur-fast), background var(--dur-fast), transform var(--dur-fast);
+  backdrop-filter: blur(6px);
+}
+
+.btn-outline:hover {
+  border-color: var(--white);
+  background: rgba(255,255,255,.15);
+  transform: translateY(-2px);
+  color: var(--white);
+}
+
+/* Badge */
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 4px;
+}
+.badge-red   { background: var(--red-primary); color: #fff; }
+.badge-gray  { background: var(--gray-200); color: var(--gray-600); }
+.badge-dark  { background: rgba(0,0,0,.08); color: var(--text-primary); }
