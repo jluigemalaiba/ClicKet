@@ -2,6 +2,7 @@
 // index.php — ClicKet Main Homepage
 require_once __DIR__ . '/includes/data.php';
 require_once __DIR__ . '/includes/partials.php';
+require_once __DIR__ . '/includes/log.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -81,8 +82,8 @@ require_once __DIR__ . '/includes/partials.php';
   <a href="#">Venues</a>
   <a href="#">My Tickets</a>
   <div style="margin-top:28px;display:flex;gap:12px;">
-    <a href="login.php" class="nav-btn-login" style="border:1.5px solid #ddd;padding:10px 24px;border-radius:50px;font-size:14px;color:#444;font-weight:600;">Log In</a>
-    <a href="register.php" class="nav-btn-signup" style="background:var(--red-primary);color:#fff;padding:10px 24px;border-radius:50px;font-size:14px;font-weight:700;">Sign Up</a>
+    <a href="auth.php?mode=login" class="nav-btn-login" style="border:1.5px solid #ddd;padding:10px 24px;border-radius:50px;font-size:14px;color:#444;font-weight:600;">Log In</a>
+    <a href="auth.php?mode=signup" class="nav-btn-signup" style="background:var(--red-primary);color:#fff;padding:10px 24px;border-radius:50px;font-size:14px;font-weight:700;">Sign Up</a>
   </div>
 </div>
 

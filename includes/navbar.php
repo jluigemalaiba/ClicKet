@@ -1,5 +1,8 @@
 <?php
 // includes/navbar.php — ClicKet Top Navigation
+require_once __DIR__ . '/log.php';
+$navUser = currentUser();
+$navUserLabel = userDisplayName($navUser);
 ?>
 <nav class="navbar-clicket">
   <div class="navbar-inner">
@@ -24,7 +27,7 @@
       <li><a href="#">Theater Plays</a></li>
       <li><a href="#">Sports Events</a></li>
       <li><a href="#">Venues</a></li>
-      <li><a href="#">My Tickets</a></li>
+      <li><a href="auth.php?mode=account">My Tickets</a></li>
     </ul>
 
     <!-- Actions -->
@@ -34,8 +37,13 @@
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
       </button>
-      <a href="login.php" class="nav-btn-login">Log In</a>
-      <a href="register.php" class="nav-btn-signup">Sign Up</a>
+      <?php if ($navUser): ?>
+        <a href="auth.php?mode=account" class="nav-btn-login nav-user-pill" title="<?= htmlspecialchars($navUser['name']) ?>"><?= htmlspecialchars($navUserLabel) ?></a>
+        <a href="auth.php?logout=1" class="nav-btn-signup">Log Out</a>
+      <?php else: ?>
+        <a href="auth.php?mode=login" class="nav-btn-login">Log In</a>
+        <a href="auth.php?mode=signup" class="nav-btn-signup">Sign Up</a>
+      <?php endif; ?>
       <button class="nav-hamburger d-lg-none" aria-label="Menu" id="navHamburger">
         <span></span><span></span><span></span>
       </button>

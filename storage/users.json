@@ -1,0 +1,51 @@
+[
+    {
+        "id": "0f622147d75d845e",
+        "name": "Chrizyl Abella",
+        "email": "abellachrizyl@gmail.com",
+        "password": "$2y$10$TPBipcKUT1j1o8UQgE6LdO0SeQ227QCFEVD1m2SvcNCSHBU.4QQRi",
+        "created_at": "2026-05-22T17:52:20+02:00"
+    },
+    {
+        "id": "850d2ef68b2d2266",
+        "name": "Chrizyl",
+        "email": "abella@gmail.com",
+        "password": "$2y$10$TlaavkC\/4vT8blNxJvrZWOwS4t3SYbhvSUFr3DRERrs6di77mMKSe",
+        "created_at": "2026-05-22T18:09:47+02:00"
+    },
+    {
+        "id": "295e3d7d87693831",
+        "name": "Joshua",
+        "email": "joshua@gmail.com",
+        "password": "$2y$10$duYkrGVXnAb.QVLvisLrQeEsXgtAuNnaZeV51gqboJqTXePjnUiO.",
+        "created_at": "2026-05-22T18:13:35+02:00"
+    },
+    {
+        "id": "4134e20d13d03c3b",
+        "name": "Maria",
+        "email": "maria@gmail.com",
+        "password": "$2y$10$naUZ0sj\/ph50GrBUbs0KVOefTy7Yfte9z\/qxSenk95366XQv80VCm",
+        "created_at": "2026-05-22T18:23:43+02:00"
+    },
+    {
+        "id": "c868b9201594584e",
+        "name": "Chrizyl Abella",
+        "email": "chrizyl@gmail.com",
+        "password": "$2y$10$tNyRQPhY48oB3obWzCWENunf\/AdU2\/jtfZTxr1hw87drvq7qIpQSe",
+        "created_at": "2026-05-22T18:36:26+02:00"
+    },
+    {
+        "id": "60e03ce83dff33d8",
+        "name": "Jeonghan Jeon",
+        "email": "hannie@gmail.com",
+        "password": "$2y$10$kfj9jQ1Ws5doNUMQ1XdJ2uQ8Tpb0dHp8FZQOP0YePLhz7UYtL3pkm",
+        "created_at": "2026-05-22T18:42:57+02:00"
+    },
+    {
+        "id": "ed8c343a1f63ded6",
+        "name": "Hannie Hae",
+        "email": "jeonghan@gmail.com",
+        "password": "$2y$10$sxkiXDfqBsrTtZV0SDvKP.kGXh2x49FPAPKHI6f\/dYwc4sMj0uS5e",
+        "created_at": "2026-05-22T18:47:15+02:00"
+    }
+]

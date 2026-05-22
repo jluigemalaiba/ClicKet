@@ -125,6 +125,7 @@
   align-items: center;
   justify-self: end;
   gap: 12px;
+  min-width: 0;
 }
 
 .nav-search-btn {
@@ -143,6 +144,8 @@
 .nav-search-btn svg { width: 16px; height: 16px; stroke: currentColor; }
 
 .nav-btn-login {
+  display: inline-flex;
+  align-items: center;
   font-size: 13px;
   font-weight: 600;
   color: var(--gray-600);
@@ -150,10 +153,19 @@
   border-radius: var(--btn-radius);
   border: 1.5px solid var(--gray-200);
   transition: border-color var(--dur-fast), color var(--dur-fast), background var(--dur-fast);
+  white-space: nowrap;
 }
 .nav-btn-login:hover { border-color: var(--gray-600); color: var(--text-primary); background: var(--gray-100); }
 
+.nav-user-pill {
+  max-width: 136px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 1;
+}
+
 .nav-btn-signup {
+  flex-shrink: 0;
   font-size: 13px;
   font-weight: 700;
   color: var(--white);
