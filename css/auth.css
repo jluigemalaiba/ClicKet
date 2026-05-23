@@ -211,8 +211,9 @@
   );
 }
 
-/* Badge */
-.bg-card__badge {
+/* Labels hidden — cards act as pure visual texture on white bg */
+.bg-card__info,
+.bg-card__badge { display: none; }
   position: absolute;
   top: 12px; left: 12px;
   z-index: 2;
