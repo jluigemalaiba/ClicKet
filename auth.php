@@ -64,13 +64,13 @@ if (!$user && $mode === 'account') {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="css/variables.css">
-  <link rel="stylesheet" href="css/navbar.css">
-  <link rel="stylesheet" href="css/partners-footer.css">
   <link rel="stylesheet" href="css/auth.css">
 </head>
-<body>
-<?php require_once __DIR__ . '/includes/navbar.php'; ?>
+<body class="auth-body">
 
+<!-- ============================================================
+     FLASH NOTIFICATION BAR
+     ============================================================ -->
 <?php if ($notif): ?>
 <div class="ck-notif-bar ck-notif-bar--<?= htmlspecialchars($notif['type']) ?>" id="ckNotifBar" role="status" aria-live="polite">
   <span class="ck-notif-bar__dot"></span>
@@ -78,96 +78,412 @@ if (!$user && $mode === 'account') {
 </div>
 <?php endif; ?>
 
-<div class="mobile-nav-drawer" id="mobileDrawer">
-  <button class="mobile-drawer-close" id="drawerClose" aria-label="Close menu">
-    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-  </button>
-  <a href="index.php">Home</a>
-  <a href="index.php#concerts">Concerts</a>
-  <a href="index.php#theater">Theater Plays</a>
-  <a href="index.php#sports">Sports Events</a>
-  <a href="#">Venues</a>
-  <a href="auth.php?mode=account">My Tickets</a>
-  <?php if ($user): ?>
-    <a href="auth.php?logout=1">Log Out</a>
-  <?php else: ?>
-    <a href="auth.php?mode=login">Log In</a>
-    <a href="auth.php?mode=signup">Sign Up</a>
-  <?php endif; ?>
-</div>
+<!-- ============================================================
+     FULL-SCREEN ANIMATED BACKGROUND CARD GRID
+     All columns animate continuously behind the glass form panel.
+     Replace the `background-image` URLs below with your own photos.
+     Each card slot is labelled with a comment for easy swapping.
+     ============================================================ -->
+<div class="bg-stage" aria-hidden="true">
 
-<main class="auth-page">
-  <section class="auth-wrap">
-    <div class="auth-visual">
-      <div class="auth-logo" aria-label="ClicKet">
-        <div class="auth-logo-mark">
-          <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1.5" y="5" width="19" height="12" rx="2.5" stroke="#0f0f0f" stroke-width="1.6"/>
-            <path d="M7.5 5V4a2 2 0 0 1 4 0v1" stroke="#e8162b" stroke-width="1.6" stroke-linecap="round"/>
-            <path d="M14.5 5V4a1.5 1.5 0 0 1 3 0v1" stroke="#e8162b" stroke-width="1.6" stroke-linecap="round"/>
-            <line x1="7" y1="11" x2="15" y2="11" stroke="#0f0f0f" stroke-width="1.4" stroke-linecap="round"/>
-            <line x1="7" y1="14" x2="11" y2="14" stroke="#0f0f0f" stroke-width="1.4" stroke-linecap="round"/>
-          </svg>
+  <!-- Tinted global overlay — dims the cards so glass panel pops -->
+  <div class="bg-stage__scrim"></div>
+
+  <div class="bg-grid">
+
+    <!-- ── COLUMN 1 — drifts upward slowly ────────────────── -->
+    <div class="bg-col bg-col--1">
+
+      <!-- [BG IMAGE SLOT 1 — e.g. Concert crowd wide shot] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=600&q=80')">
+        <div class="bg-card__badge">Live</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">Rock Arena</span>
+          <span class="bg-card__meta">Manila · Tonight</span>
         </div>
-        <span class="auth-logo-name">ClicKet</span>
       </div>
 
-      <div class="auth-badge" aria-hidden="true">
-        <span class="auth-badge-dot"></span>
-        Events Live
+      <!-- [BG IMAGE SLOT 2 — e.g. Theater stage with dramatic lighting] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">West Side Story</span>
+          <span class="bg-card__meta">CCP · Jun 14</span>
+        </div>
       </div>
 
-      <div class="auth-visual-body">
-        <p class="auth-kicker">ClicKet</p>
-        <h1>
-          <?php if ($mode === 'signup'): ?>
-            Your seat <em>awaits</em> you.
-          <?php elseif ($mode === 'account'): ?>
-            Your ticket <em>hub.</em>
-          <?php else: ?>
-            Every great show<br><em>starts</em> here.
-          <?php endif; ?>
-        </h1>
-        <p>Book concerts, theater plays, and sports events with secure checkout, instant e-tickets, and one clean place to manage your account.</p>
+      <!-- [BG IMAGE SLOT 3 — e.g. Basketball arena overhead] -->
+      <div class="bg-card bg-card--tall" style="background-image:url('https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">PBA Finals</span>
+          <span class="bg-card__meta">Araneta · Jun 20</span>
+        </div>
       </div>
-    </div>
 
-    <div class="auth-panel">
+      <!-- [BG IMAGE SLOT 4 — e.g. DJ / electronic music festival] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=600&q=80')">
+        <div class="bg-card__badge bg-card__badge--red">Hot</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">Electric Fest</span>
+          <span class="bg-card__meta">BGC · Jul 5</span>
+        </div>
+      </div>
+
+      <!-- Duplicates below for seamless infinite scroll loop -->
+      <!-- [BG IMAGE SLOT 1 — duplicate] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=600&q=80')">
+        <div class="bg-card__badge">Live</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">Rock Arena</span>
+          <span class="bg-card__meta">Manila · Tonight</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 2 — duplicate] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">West Side Story</span>
+          <span class="bg-card__meta">CCP · Jun 14</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 3 — duplicate] -->
+      <div class="bg-card bg-card--tall" style="background-image:url('https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">PBA Finals</span>
+          <span class="bg-card__meta">Araneta · Jun 20</span>
+        </div>
+      </div>
+
+    </div><!-- /bg-col--1 -->
+
+    <!-- ── COLUMN 2 — drifts downward (opposite direction) ─ -->
+    <div class="bg-col bg-col--2">
+
+      <!-- [BG IMAGE SLOT 5 — e.g. Ballet or classical performance] -->
+      <div class="bg-card bg-card--tall" style="background-image:url('https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">Swan Lake</span>
+          <span class="bg-card__meta">RCBC · Jun 28</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 6 — e.g. Boxing / MMA fight night] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1555597673-b21d5c935865?w=600&q=80')">
+        <div class="bg-card__badge bg-card__badge--red">Sold Out</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">Fight Night</span>
+          <span class="bg-card__meta">SM Mall · Jul 12</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 7 — e.g. Acoustic / indie artist performing] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">Indie Night</span>
+          <span class="bg-card__meta">Saguijo · Jun 30</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 8 — e.g. Outdoor stadium / fireworks] -->
+      <div class="bg-card bg-card--tall" style="background-image:url('https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">Grand Finale</span>
+          <span class="bg-card__meta">MOA Arena · Aug 1</span>
+        </div>
+      </div>
+
+      <!-- Duplicates for seamless loop -->
+      <!-- [BG IMAGE SLOT 5 — duplicate] -->
+      <div class="bg-card bg-card--tall" style="background-image:url('https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">Swan Lake</span>
+          <span class="bg-card__meta">RCBC · Jun 28</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 6 — duplicate] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1555597673-b21d5c935865?w=600&q=80')">
+        <div class="bg-card__badge bg-card__badge--red">Sold Out</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">Fight Night</span>
+          <span class="bg-card__meta">SM Mall · Jul 12</span>
+        </div>
+      </div>
+
+    </div><!-- /bg-col--2 -->
+
+    <!-- ── COLUMN 3 — drifts upward, slightly faster ───────── -->
+    <div class="bg-col bg-col--3">
+
+      <!-- [BG IMAGE SLOT 9 — e.g. K-pop / pop concert with stage lights] -->
+      <div class="bg-card bg-card--tall" style="background-image:url('https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&q=80')">
+        <div class="bg-card__badge">New</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">Pop Spectacular</span>
+          <span class="bg-card__meta">Araneta · Jul 19</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 10 — e.g. Comedy stand-up performer] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1527224538127-2104bb71c51b?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">Laugh Factory</span>
+          <span class="bg-card__meta">Meralco · Jul 3</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 11 — e.g. Orchestra / symphony hall interior] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">PhilOrchestra</span>
+          <span class="bg-card__meta">CCP · Jun 22</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 12 — e.g. Volleyball / football match] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600&q=80')">
+        <div class="bg-card__badge bg-card__badge--red">Hot</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">V-League Finals</span>
+          <span class="bg-card__meta">FilOil · Aug 8</span>
+        </div>
+      </div>
+
+      <!-- Duplicates for seamless loop -->
+      <!-- [BG IMAGE SLOT 9 — duplicate] -->
+      <div class="bg-card bg-card--tall" style="background-image:url('https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&q=80')">
+        <div class="bg-card__badge">New</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">Pop Spectacular</span>
+          <span class="bg-card__meta">Araneta · Jul 19</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 10 — duplicate] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1527224538127-2104bb71c51b?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">Laugh Factory</span>
+          <span class="bg-card__meta">Meralco · Jul 3</span>
+        </div>
+      </div>
+
+    </div><!-- /bg-col--3 -->
+
+    <!-- ── COLUMN 4 — drifts downward, slowest ─────────────── -->
+    <div class="bg-col bg-col--4">
+
+      <!-- [BG IMAGE SLOT 13 — e.g. Broadway / musical theater cast bow] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1503095396549-807759245b35?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">Hamilton PH</span>
+          <span class="bg-card__meta">RCBC · Jul 26</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 14 — e.g. Surfing / extreme sports event] -->
+      <div class="bg-card bg-card--tall" style="background-image:url('https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=600&q=80')">
+        <div class="bg-card__badge">New</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">Surf Open</span>
+          <span class="bg-card__meta">Siargao · Aug 15</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 15 — e.g. Jazz or blues bar performer] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">Jazz at Midnight</span>
+          <span class="bg-card__meta">B-Side · Jun 27</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 16 — e.g. Marathon / running race start line] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?w=600&q=80')">
+        <div class="bg-card__badge bg-card__badge--red">Soon</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">BGC Run Fest</span>
+          <span class="bg-card__meta">BGC · Sep 7</span>
+        </div>
+      </div>
+
+      <!-- Duplicates for seamless loop -->
+      <!-- [BG IMAGE SLOT 13 — duplicate] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1503095396549-807759245b35?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">Hamilton PH</span>
+          <span class="bg-card__meta">RCBC · Jul 26</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 14 — duplicate] -->
+      <div class="bg-card bg-card--tall" style="background-image:url('https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=600&q=80')">
+        <div class="bg-card__badge">New</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">Surf Open</span>
+          <span class="bg-card__meta">Siargao · Aug 15</span>
+        </div>
+      </div>
+
+    </div><!-- /bg-col--4 -->
+
+    <!-- ── COLUMN 5 — drifts upward, medium speed ──────────── -->
+    <div class="bg-col bg-col--5">
+
+      <!-- [BG IMAGE SLOT 17 — e.g. Hip-hop / rap concert crowd] -->
+      <div class="bg-card bg-card--tall" style="background-image:url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80')">
+        <div class="bg-card__badge">Live</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">Rap Summit</span>
+          <span class="bg-card__meta">Araneta · Jul 8</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 18 — e.g. Circus or acrobatics show] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">Cirque Manila</span>
+          <span class="bg-card__meta">MOA · Jul 22</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 19 — e.g. Swimming / aquatics competition] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1530549387789-4c1017266635?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">Aquatics Open</span>
+          <span class="bg-card__meta">PhilSports · Aug 3</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 20 — e.g. Art fair or gallery opening] -->
+      <div class="bg-card bg-card--tall" style="background-image:url('https://images.unsplash.com/photo-1531058020387-3be344556be6?w=600&q=80')">
+        <div class="bg-card__badge bg-card__badge--red">Hot</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">Art Fair PH</span>
+          <span class="bg-card__meta">The Link · Mar 2027</span>
+        </div>
+      </div>
+
+      <!-- Duplicates for seamless loop -->
+      <!-- [BG IMAGE SLOT 17 — duplicate] -->
+      <div class="bg-card bg-card--tall" style="background-image:url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&q=80')">
+        <div class="bg-card__badge">Live</div>
+        <div class="bg-card__info">
+          <span class="bg-card__title">Rap Summit</span>
+          <span class="bg-card__meta">Araneta · Jul 8</span>
+        </div>
+      </div>
+
+      <!-- [BG IMAGE SLOT 18 — duplicate] -->
+      <div class="bg-card" style="background-image:url('https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80')">
+        <div class="bg-card__info">
+          <span class="bg-card__title">Cirque Manila</span>
+          <span class="bg-card__meta">MOA · Jul 22</span>
+        </div>
+      </div>
+
+    </div><!-- /bg-col--5 -->
+
+  </div><!-- /bg-grid -->
+</div><!-- /bg-stage -->
+
+<!-- ============================================================
+     CENTERED PAGE WRAPPER
+     ============================================================ -->
+<div class="auth-page">
+
+  <!-- Top bar: logo left, back button right — sits above glass card -->
+  <header class="auth-topbar">
+    <a href="index.php" class="auth-brand" aria-label="ClicKet — home">
+      <!-- ClicKet SVG logo mark -->
+      <div class="auth-brand__mark">
+        <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="1.5" y="5" width="19" height="12" rx="2.5" stroke="#0f0f0f" stroke-width="1.6"/>
+          <path d="M7.5 5V4a2 2 0 0 1 4 0v1" stroke="#e8162b" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M14.5 5V4a1.5 1.5 0 0 1 3 0v1" stroke="#e8162b" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="7" y1="11" x2="15" y2="11" stroke="#0f0f0f" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="7" y1="14" x2="11" y2="14" stroke="#0f0f0f" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="auth-brand__name">ClicKet</span>
+    </a>
+
+    <a href="index.php" class="auth-back-btn">
+      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Back to Home
+    </a>
+  </header>
+
+  <!-- ============================================================
+       GLASSMORPHIC FORM PANEL — centered on screen
+       ============================================================ -->
+  <main class="glass-wrap">
+    <div class="glass-card">
+
       <?php if ($mode === 'account' && $user): ?>
-        <div class="auth-panel-header">
-          <p class="auth-eyebrow">My Account</p>
-          <h2>Hello, <?= htmlspecialchars($user['name']) ?></h2>
-          <p class="auth-copy">You are signed in and ready to continue booking. Your ticket activity and saved events can be surfaced here next.</p>
+        <!-- ====================================================
+             ACCOUNT VIEW
+             ==================================================== -->
+        <div class="gc-header">
+          <p class="gc-eyebrow">My Account</p>
+          <h2 class="gc-title">Hello, <?= htmlspecialchars($user['name']) ?></h2>
+          <p class="gc-copy">You are signed in and ready to continue booking. Your ticket activity is available below.</p>
         </div>
 
         <div class="account-summary">
           <div class="account-summary-item">
             <span class="account-summary-label">Account Status</span>
-            <strong>Active</strong>
+            <strong class="account-summary-value account-summary-value--active">Active</strong>
           </div>
           <div class="account-summary-item">
             <span class="account-summary-label">Email</span>
-            <strong><?= htmlspecialchars($user['email']) ?></strong>
+            <strong class="account-summary-value"><?= htmlspecialchars($user['email']) ?></strong>
           </div>
         </div>
 
-        <div class="auth-actions">
-          <a href="index.php#concerts" class="auth-button-primary">Browse Events</a>
-          <a href="auth.php?logout=1" class="auth-secondary">Log Out</a>
+        <div class="gc-actions">
+          <a href="index.php#concerts" class="btn-primary">Browse Events</a>
+          <a href="auth.php?logout=1" class="btn-ghost">Log Out</a>
         </div>
+
       <?php else: ?>
-        <div class="auth-panel-header">
-          <p class="auth-eyebrow"><?= $mode === 'signup' ? 'Create Account' : 'Account Access' ?></p>
-          <h2><?= $mode === 'signup' ? 'Create your ClicKet account' : 'Welcome back' ?></h2>
-          <p class="auth-copy">
+        <!-- ====================================================
+             LOGIN / SIGNUP FORM
+             ==================================================== -->
+        <div class="gc-header">
+          <p class="gc-eyebrow"><?= $mode === 'signup' ? 'Create Account' : 'Welcome Back' ?></p>
+          <h2 class="gc-title"><?= $mode === 'signup' ? 'Join ClicKet' : 'Sign in to continue' ?></h2>
+          <p class="gc-copy">
             <?= $mode === 'signup'
               ? 'Set up your account to book events faster and keep all your tickets in one place.'
-              : 'Sign in to continue to your tickets, event activity, and booking details.' ?>
+              : 'Access your tickets, event history, and booking details.' ?>
           </p>
+        </div>
+
+        <!-- Mode toggle tabs -->
+        <div class="mode-tabs" role="tablist">
+          <a href="auth.php?mode=login"
+             class="mode-tab <?= $mode !== 'signup' ? 'mode-tab--active' : '' ?>"
+             role="tab"
+             aria-selected="<?= $mode !== 'signup' ? 'true' : 'false' ?>">
+            Log In
+          </a>
+          <a href="auth.php?mode=signup"
+             class="mode-tab <?= $mode === 'signup' ? 'mode-tab--active' : '' ?>"
+             role="tab"
+             aria-selected="<?= $mode === 'signup' ? 'true' : 'false' ?>">
+            Sign Up
+          </a>
         </div>
 
         <?php if ($errors): ?>
           <div class="auth-alert" role="alert">
+            <svg class="auth-alert__icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/>
+              <line x1="8" y1="5" x2="8" y2="8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+              <circle cx="8" cy="11" r=".7" fill="currentColor"/>
+            </svg>
             <ul>
               <?php foreach ($errors as $error): ?>
                 <li><?= htmlspecialchars($error) ?></li>
@@ -180,35 +496,40 @@ if (!$user && $mode === 'account') {
           <input type="hidden" name="mode" value="<?= $mode === 'signup' ? 'signup' : 'login' ?>">
 
           <?php if ($mode === 'signup'): ?>
-            <label>
-              Full Name
+            <div class="field-group">
+              <label class="field-label" for="nameField">Full Name</label>
               <input
+                class="field-input"
                 type="text"
+                id="nameField"
                 name="name"
                 value="<?= oldInput('name') ?>"
                 placeholder="e.g. Maria Santos"
                 autocomplete="name"
                 required
               >
-            </label>
+            </div>
           <?php endif; ?>
 
-          <label>
-            Email Address
+          <div class="field-group">
+            <label class="field-label" for="emailField">Email Address</label>
             <input
+              class="field-input"
               type="email"
+              id="emailField"
               name="email"
               value="<?= oldInput('email') ?>"
               placeholder="you@email.com"
               autocomplete="email"
               required
             >
-          </label>
+          </div>
 
-          <label>
-            Password
-            <div class="auth-input-wrap">
+          <div class="field-group">
+            <label class="field-label" for="pwField">Password</label>
+            <div class="field-wrap">
               <input
+                class="field-input"
                 type="password"
                 name="password"
                 id="pwField"
@@ -227,13 +548,14 @@ if (!$user && $mode === 'account') {
                 </svg>
               </button>
             </div>
-          </label>
+          </div>
 
           <?php if ($mode === 'signup'): ?>
-            <label>
-              Confirm Password
-              <div class="auth-input-wrap">
+            <div class="field-group">
+              <label class="field-label" for="pwConfirmField">Confirm Password</label>
+              <div class="field-wrap">
                 <input
+                  class="field-input"
                   type="password"
                   name="confirm_password"
                   id="pwConfirmField"
@@ -252,7 +574,7 @@ if (!$user && $mode === 'account') {
                   </svg>
                 </button>
               </div>
-            </label>
+            </div>
           <?php endif; ?>
 
           <button type="submit" class="auth-submit" id="authSubmit">
@@ -260,37 +582,26 @@ if (!$user && $mode === 'account') {
             <span class="spinner" aria-hidden="true"></span>
           </button>
         </form>
-      <?php endif; ?>
-    </div>
-  </section>
-</main>
 
-<?php require_once __DIR__ . '/includes/footer.php'; ?>
+        <p class="gc-footer-note">
+          By continuing, you agree to ClicKet's <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.
+        </p>
+
+      <?php endif; ?>
+
+    </div><!-- /glass-card -->
+  </main>
+
+</div><!-- /auth-page -->
 
 <script>
 (function () {
-  const nav = document.querySelector('.navbar-clicket');
-  const hamburger = document.getElementById('navHamburger');
-  const drawer = document.getElementById('mobileDrawer');
-  const close = document.getElementById('drawerClose');
 
-  function onScroll() {
-    if (nav) nav.classList.toggle('scrolled', window.scrollY > 20);
-  }
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-
-  if (hamburger && drawer) hamburger.addEventListener('click', () => drawer.classList.add('open'));
-  if (close && drawer) close.addEventListener('click', () => drawer.classList.remove('open'));
-
+  /* ── Password visibility toggles ──────────────────── */
   function bindToggle(toggleId, fieldId) {
-    const btn = document.getElementById(toggleId);
+    const btn   = document.getElementById(toggleId);
     const field = document.getElementById(fieldId);
-
-    if (!btn || !field) {
-      return;
-    }
+    if (!btn || !field) return;
 
     btn.addEventListener('click', function () {
       const isHidden = field.type === 'password';
@@ -300,10 +611,11 @@ if (!$user && $mode === 'account') {
     });
   }
 
-  bindToggle('pwToggle', 'pwField');
+  bindToggle('pwToggle',        'pwField');
   bindToggle('pwConfirmToggle', 'pwConfirmField');
 
-  const form = document.getElementById('authForm');
+  /* ── Submit loading state ──────────────────────────── */
+  const form   = document.getElementById('authForm');
   const submit = document.getElementById('authSubmit');
 
   if (form && submit) {
@@ -313,6 +625,7 @@ if (!$user && $mode === 'account') {
     });
   }
 
+  /* ── Flash notification bar ────────────────────────── */
   const notifBar = document.getElementById('ckNotifBar');
 
   if (notifBar) {
@@ -325,6 +638,7 @@ if (!$user && $mode === 'account') {
       setTimeout(() => notifBar.remove(), 450);
     }, 4200);
   }
+
 })();
 </script>
 </body>

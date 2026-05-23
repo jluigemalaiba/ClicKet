@@ -47,5 +47,12 @@
         "email": "jeonghan@gmail.com",
         "password": "$2y$10$sxkiXDfqBsrTtZV0SDvKP.kGXh2x49FPAPKHI6f\/dYwc4sMj0uS5e",
         "created_at": "2026-05-22T18:47:15+02:00"
+    },
+    {
+        "id": "993498680c2ca7b6",
+        "name": "Abella",
+        "email": "jun@gmail.com",
+        "password": "$2y$10$631pzTGZ5c4hA.judDRIf.gnER3R49wOgfF7bA0y7VWdaXOMrIH3q",
+        "created_at": "2026-05-23T06:25:51+02:00"
     }
 ]
