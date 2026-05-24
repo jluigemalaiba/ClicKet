@@ -23,7 +23,7 @@
 
 .showcase-stage {
   position: relative;
-  min-height: 430px;
+  height: clamp(390px, 36vw, 430px);
   border-radius: 18px;
   overflow: hidden;
   background-image:
@@ -32,11 +32,16 @@
   background-size: cover;
   background-position: center;
   box-shadow: 0 24px 70px rgba(0,0,0,.16);
-  transition: background-image .35s ease;
+  transition: opacity .28s ease, transform .32s var(--ease);
+}
+
+.showcase-stage.is-switching {
+  opacity: .88;
+  transform: scale(.996);
 }
 
 .showcase-copy {
-  min-height: 430px;
+  height: 100%;
   max-width: 520px;
   padding: 42px;
   display: flex;
@@ -68,11 +73,16 @@
 
 .showcase-title {
   font-family: var(--font-display);
-  font-size: clamp(44px, 7vw, 78px);
+  font-size: clamp(44px, 7vw, 68px);
   line-height: .95;
   letter-spacing: 1px;
   margin: 0 0 12px;
   max-width: 520px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 .showcase-stars {
@@ -268,21 +278,6 @@
   line-height: 1.7;
   margin-bottom: 20px;
 }
-
-.netflix-count-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--gray-600);
-  background: var(--gray-100);
-  border: 1px solid var(--gray-200);
-  padding: 5px 12px;
-  border-radius: 20px;
-  margin-bottom: 24px;
-}
-.netflix-count-badge svg { width: 13px; height: 13px; stroke: var(--red-primary); }
 
 .netflix-meta-panel .see-all-btn {
   display: block;
@@ -526,8 +521,8 @@
 
 /* ── Responsive ───────────────────────────────────────── */
 @media (max-width: 991px) {
-  .showcase-stage { min-height: 380px; }
-  .showcase-copy { min-height: 380px; padding: 30px; }
+  .showcase-stage { height: 380px; }
+  .showcase-copy { padding: 30px; }
   .showcase-bottom { grid-template-columns: 1fr; gap: 16px; }
   .showcase-summary {
     display: flex;
@@ -540,14 +535,13 @@
   .netflix-meta-panel { position: static; flex: none; width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
   .netflix-big-title { font-size: 32px; margin-bottom: 0; }
   .netflix-description { display: none; }
-  .netflix-count-badge { margin-bottom: 0; }
   .netflix-meta-panel .see-all-btn { width: auto; }
   .netflix-scroll-nav { margin-top: 0; }
 }
 
 @media (max-width: 576px) {
-  .showcase-stage { min-height: 430px; border-radius: 14px; }
-  .showcase-copy { min-height: 430px; padding: 24px; justify-content: flex-end; }
+  .showcase-stage { height: 430px; border-radius: 14px; }
+  .showcase-copy { padding: 24px; justify-content: flex-end; }
   .showcase-title { font-size: 42px; }
   .showcase-card { flex-basis: 118px; height: 176px; }
   .showcase-nav { display: none; }
