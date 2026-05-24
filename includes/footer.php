@@ -85,6 +85,7 @@
       <div>
         <h4 class="footer-col-title">Explore</h4>
         <ul class="footer-links-list">
+          <li><a href="about.php">About ClicKet</a></li>
           <li><a href="#">Concerts</a></li>
           <li><a href="#">Theater Plays</a></li>
           <li><a href="#">Sports Events</a></li>

@@ -1,0 +1,735 @@
+/* =====================================================
+   ClicKet — About Page Styles (Refined Edition)
+   ===================================================== */
+
+/* ───── HERO SECTION ─────────────────────────────── */
+.about-hero {
+  position: relative;
+  min-height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-top: 68px;
+}
+
+.about-hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.about-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(15, 15, 15, 0.88) 0%, rgba(15, 15, 15, 0.92) 100%);
+  mix-blend-mode: multiply;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.about-hero-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: var(--white);
+}
+
+.about-hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 6vw, 72px);
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  line-height: 1.1;
+}
+
+.about-breadcrumbs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.about-breadcrumbs a {
+  color: rgba(255, 255, 255, 0.8);
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.about-breadcrumbs a:hover {
+  color: var(--red-primary);
+}
+
+.breadcrumb-sep {
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0 4px;
+}
+
+.breadcrumb-current {
+  color: var(--red-primary);
+  font-weight: 600;
+}
+
+/* ───── COMPANY INTRO SECTION ──────────────────── */
+.company-intro-section {
+  padding: 80px 0;
+  background: var(--light-bg);
+}
+
+.intro-image-container {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  aspect-ratio: 4 / 3;
+}
+
+.intro-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s var(--ease);
+}
+
+.intro-image-container:hover .intro-image {
+  transform: scale(1.05);
+}
+
+.intro-label {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--red-primary);
+  margin-bottom: 12px;
+}
+
+.intro-title {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.intro-description {
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  max-width: 95%;
+}
+
+.intro-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.highlight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.highlight-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  background: rgba(232, 22, 43, 0.1);
+  color: var(--red-primary);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 3px;
+}
+
+.highlight-item p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* ───── STATS & SKILLS SECTION ────────────────── */
+.stats-skills-section {
+  padding: 80px 0;
+  background: var(--white);
+  border-top: 1px solid var(--gray-200);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.skills-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3.5vw, 44px);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.skills-description {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  max-width: 95%;
+}
+
+.progress-bar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.progress-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.3px;
+}
+
+.progress-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--red-primary);
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--red-primary), var(--red-light));
+  border-radius: 4px;
+  animation: fillProgress 1.2s var(--ease) forwards;
+}
+
+@keyframes fillProgress {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px 24px;
+  background: var(--light-surface);
+  border-radius: 12px;
+  border: 1px solid var(--gray-200);
+  transition: all var(--dur-mid) var(--ease);
+}
+
+.stat-card:hover {
+  border-color: var(--red-primary);
+  box-shadow: 0 8px 24px rgba(232, 22, 43, 0.08);
+  transform: translateY(-4px);
+}
+
+.stat-number {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 700;
+  color: var(--red-primary);
+  line-height: 1.1;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.stat-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+}
+
+/* ═══════════════════════════════════════════════════
+   WOW FACTOR SECTION: THE CLICKET EXPERIENCE
+   ═══════════════════════════════════════════════════ */
+
+.experience-section {
+  padding: 80px 0;
+  background: linear-gradient(180deg, var(--white) 0%, var(--light-surface) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.section-subtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.experience-card {
+  position: relative;
+  padding: 40px 28px;
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: 14px;
+  text-align: center;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+  height: 100%;
+}
+
+.experience-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(232, 22, 43, 0.05) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.4s var(--ease);
+  pointer-events: none;
+}
+
+.experience-card:hover {
+  border-color: var(--red-primary);
+  box-shadow: 0 20px 48px rgba(232, 22, 43, 0.12);
+  transform: translateY(-8px);
+  background: linear-gradient(135deg, var(--white) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.experience-card:hover::before {
+  opacity: 1;
+}
+
+.experience-icon-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.experience-icon {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(232, 22, 43, 0.1) 0%, rgba(232, 22, 43, 0.05) 100%);
+  border-radius: 12px;
+  color: var(--red-primary);
+  transition: all 0.4s var(--ease);
+}
+
+.experience-card:hover .experience-icon {
+  background: linear-gradient(135deg, rgba(232, 22, 43, 0.2) 0%, rgba(232, 22, 43, 0.1) 100%);
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.experience-card:hover .experience-icon svg {
+  stroke-width: 2.5;
+}
+
+.experience-icon svg {
+  width: 32px;
+  height: 32px;
+  transition: stroke-width 0.4s var(--ease);
+}
+
+.experience-step-number {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 700;
+  color: rgba(232, 22, 43, 0.15);
+  line-height: 1;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.experience-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+  line-height: 1.2;
+  position: relative;
+  z-index: 2;
+}
+
+.experience-description {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.experience-cta {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--red-primary);
+  text-transform: uppercase;
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s var(--ease);
+}
+
+.experience-card:hover .experience-cta {
+  transform: translateX(4px);
+}
+
+/* ───── CTA BANNER SECTION ─────────────────────── */
+.about-cta-banner {
+  position: relative;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 60px 20px;
+}
+
+.cta-background {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.cta-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.45) 100%);
+  z-index: 1;
+  backdrop-filter: blur(2px);
+}
+
+.cta-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: var(--white);
+  max-width: 600px;
+}
+
+.cta-label {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 16px;
+  opacity: 0.95;
+}
+
+.cta-title {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  margin-bottom: 28px;
+  line-height: 1.2;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.cta-content .btn-primary {
+  animation: slideUp 0.6s var(--ease) forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ───── RESPONSIVE DESIGN ───────────────────────── */
+@media (max-width: 991.98px) {
+  .about-hero {
+    min-height: 300px;
+  }
+
+  .about-hero-title {
+    font-size: clamp(40px, 5vw, 56px);
+  }
+
+  .intro-image-container {
+    margin-bottom: 24px;
+  }
+
+  .intro-title {
+    font-size: clamp(28px, 3.5vw, 42px);
+  }
+
+  .skills-title {
+    font-size: clamp(24px, 3vw, 36px);
+  }
+
+  .experience-section {
+    padding: 60px 0;
+  }
+
+  .experience-card {
+    padding: 32px 24px;
+  }
+
+  .experience-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .experience-icon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .experience-step-number {
+    font-size: 40px;
+  }
+
+  .experience-title {
+    font-size: 20px;
+  }
+
+  .about-cta-banner {
+    min-height: 320px;
+    padding: 40px 20px;
+  }
+
+  .cta-title {
+    font-size: clamp(28px, 4vw, 40px);
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .about-hero {
+    min-height: 240px;
+    padding: 40px 20px;
+  }
+
+  .about-hero-title {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  .about-breadcrumbs {
+    font-size: 12px;
+  }
+
+  .company-intro-section {
+    padding: 60px 0;
+  }
+
+  .intro-image-container {
+    aspect-ratio: 16 / 12;
+  }
+
+  .intro-title {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .intro-description {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  .stats-skills-section {
+    padding: 60px 0;
+  }
+
+  .progress-bar-group {
+    gap: 24px;
+  }
+
+  .stat-card {
+    padding: 20px 16px;
+  }
+
+  .stat-number {
+    font-size: 36px;
+  }
+
+  .skills-description {
+    font-size: 13px;
+  }
+
+  .experience-section {
+    padding: 48px 0;
+  }
+
+  .section-title {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  .section-subtitle {
+    font-size: 14px;
+  }
+
+  .experience-card {
+    padding: 28px 20px;
+  }
+
+  .experience-icon {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 20px;
+  }
+
+  .experience-icon svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .experience-step-number {
+    font-size: 36px;
+    margin-bottom: 4px;
+  }
+
+  .experience-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .experience-description {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  .about-cta-banner {
+    min-height: 280px;
+    padding: 30px 16px;
+  }
+
+  .cta-title {
+    font-size: 24px;
+    margin-bottom: 16px;
+  }
+
+  .cta-label {
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+
+  .intro-highlights {
+    gap: 14px;
+  }
+
+  .highlight-item p {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .about-hero {
+    min-height: 200px;
+  }
+
+  .about-hero-title {
+    font-size: 28px;
+  }
+
+  .company-intro-section {
+    padding: 48px 0;
+  }
+
+  .intro-title {
+    font-size: 24px;
+  }
+
+  .stats-skills-section {
+    padding: 48px 0;
+  }
+
+  .experience-section {
+    padding: 40px 0;
+  }
+
+  .section-title {
+    font-size: 24px;
+  }
+
+  .experience-card {
+    padding: 24px 18px;
+  }
+
+  .about-cta-banner {
+    min-height: 240px;
+  }
+
+  .cta-title {
+    font-size: 20px;
+  }
+}
+
+/* ───── ACCESSIBILITY ───────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .intro-image,
+  .progress-fill,
+  .stat-card,
+  .cta-content .btn-primary,
+  .experience-card,
+  .experience-icon,
+  .experience-cta,
+  .about-hero-bg {
+    animation: none;
+    transition: none;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .about-breadcrumbs a {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .about-breadcrumbs a:hover {
+    color: var(--red-light);
+  }
+}
