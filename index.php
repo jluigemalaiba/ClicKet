@@ -123,10 +123,6 @@ require_once __DIR__ . '/includes/log.php';
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         Browse Events
       </a>
-      <a href="#how-it-works" class="btn-outline">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-        How It Works
-      </a>
     </div>
 
     <div class="hero-stats">
@@ -227,10 +223,6 @@ require_once __DIR__ . '/includes/log.php';
       <div class="netflix-meta-panel">
         <div class="netflix-big-title">Live<br>Music</div>
         <p class="netflix-description">From K-Pop megastars to Eraserheads reunion shows—catch the biggest acts performing live on Philippine stages.</p>
-        <div class="netflix-count-badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/></svg>
-          <?= count($concert_events) ?> Events
-        </div>
         <a href="concerts.php" class="see-all-btn">See All Concerts</a>
         <div class="netflix-scroll-nav">
           <button class="scroll-nav-btn" onclick="scrollTrack('concertsTrack',-1)" aria-label="Prev">
@@ -293,10 +285,6 @@ require_once __DIR__ . '/includes/log.php';
       <div class="netflix-meta-panel">
         <div class="netflix-big-title">Stage<br>Magic</div>
         <p class="netflix-description">Broadway hits, beloved Filipino musicals, and world-class operas gracing the grandest stages in Manila.</p>
-        <div class="netflix-count-badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          <?= count($theater_events) ?> Shows
-        </div>
         <a href="theater.php" class="see-all-btn">See All Theater</a>
         <div class="netflix-scroll-nav">
           <button class="scroll-nav-btn" onclick="scrollTrack('theaterTrack',-1)" aria-label="Prev">
@@ -360,10 +348,6 @@ require_once __DIR__ . '/includes/log.php';
       <div class="netflix-meta-panel">
         <div class="netflix-big-title">Sports<br>Action</div>
         <p class="netflix-description">Court battles, boxing bouts, football derbies, and volleyball championships—feel the energy live in the arena.</p>
-        <div class="netflix-count-badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-          <?= count($sports_events) ?> Events
-        </div>
         <a href="sports.php" class="see-all-btn">See All Sports</a>
         <div class="netflix-scroll-nav">
           <button class="scroll-nav-btn" onclick="scrollTrack('sportsTrack',-1)" aria-label="Prev">
@@ -399,7 +383,7 @@ require_once __DIR__ . '/includes/log.php';
       <h2 class="cta-title">Ready to Get Your <span>Tickets?</span></h2>
       <p class="cta-sub">Join thousands of Filipinos who trust ClicKet for a seamless, fair, and exciting live event experience.</p>
       <div class="d-flex gap-3 justify-content-center flex-wrap">
-        <a href="register.php" class="btn-primary" style="font-size:15px;padding:14px 36px;">Create Free Account</a>
+        <a href="auth.php?mode=signup" class="btn-primary" style="font-size:15px;padding:14px 36px;">Create Free Account</a>
         <a href="events.php" class="btn-outline" style="font-size:15px;padding:13px 34px;">Browse All Events</a>
       </div>
     </div>
@@ -538,7 +522,13 @@ function scrollTrack(id, dir) {
     const book = showcase.querySelector('.showcase-book');
 
     showcase.querySelectorAll('.showcase-card').forEach(item => item.classList.toggle('active', item === card));
-    if (stage) stage.style.setProperty('--stage-bg', `url('${card.dataset.image}')`);
+    if (stage) {
+      stage.classList.add('is-switching');
+      window.setTimeout(() => {
+        stage.style.setProperty('--stage-bg', `url('${card.dataset.image}')`);
+        stage.classList.remove('is-switching');
+      }, 90);
+    }
     if (title) title.textContent = card.dataset.title || '';
     if (type) type.textContent = card.dataset.type || '';
     if (rating) rating.textContent = stars(card.dataset.rating);
