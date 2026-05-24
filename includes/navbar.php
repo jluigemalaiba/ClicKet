@@ -10,14 +10,11 @@ $navUserLabel = userDisplayName($navUser);
     <!-- Logo -->
     <a href="index.php" class="nav-logo">
       <span class="logo-icon">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 12C20 7.58 16.42 4 12 4C7.58 4 4 7.58 4 12C4 14.85 5.44 17.37 7.64 18.9L6.5 21H17.5L16.36 18.9C18.56 17.37 20 14.85 20 12Z"
-                fill="white"/>
-          <rect x="9" y="10" width="6" height="1.5" rx=".75" fill="#E8162B"/>
-          <rect x="9" y="12.5" width="4" height="1.5" rx=".75" fill="#E8162B"/>
-        </svg>
+        <img src="assets/Icon_Logo.png" alt="" aria-hidden="true">
       </span>
-      <span class="logo-clic">Clic</span><span class="logo-ket">Ket</span>
+      <span class="logo-name">
+        <img src="assets/Name_Logo.png" alt="ClicKet">
+      </span>
     </a>
 
     <!-- Nav links (desktop) -->
