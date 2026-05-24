@@ -59,14 +59,14 @@ if (!$user && $mode === 'account') {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= $mode === 'signup' ? 'Sign Up' : ($mode === 'account' ? 'My Account' : 'Log In') ?> | ClicKet</title>
+  <title>ClicKet</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/auth.css">
 </head>
-<body class="auth-body">
+<body class="auth-body auth-mode-<?= $mode === 'signup' ? 'signup' : ($mode === 'account' ? 'account' : 'login') ?>">
 
 <!-- ============================================================
      FLASH NOTIFICATION BAR
@@ -394,17 +394,12 @@ if (!$user && $mode === 'account') {
   <!-- Top bar: logo left, back button right — sits above glass card -->
   <header class="auth-topbar">
     <a href="index.php" class="auth-brand" aria-label="ClicKet — home">
-      <!-- ClicKet SVG logo mark -->
       <div class="auth-brand__mark">
-        <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x="1.5" y="5" width="19" height="12" rx="2.5" stroke="#0f0f0f" stroke-width="1.6"/>
-          <path d="M7.5 5V4a2 2 0 0 1 4 0v1" stroke="#e8162b" stroke-width="1.6" stroke-linecap="round"/>
-          <path d="M14.5 5V4a1.5 1.5 0 0 1 3 0v1" stroke="#e8162b" stroke-width="1.6" stroke-linecap="round"/>
-          <line x1="7" y1="11" x2="15" y2="11" stroke="#0f0f0f" stroke-width="1.4" stroke-linecap="round"/>
-          <line x1="7" y1="14" x2="11" y2="14" stroke="#0f0f0f" stroke-width="1.4" stroke-linecap="round"/>
-        </svg>
+        <img src="assets/Icon_Logo.png" alt="" aria-hidden="true">
       </div>
-      <span class="auth-brand__name">ClicKet</span>
+      <span class="auth-brand__name">
+        <img src="assets/Name_Logo.png" alt="ClicKet">
+      </span>
     </a>
 
     <a href="index.php" class="auth-back-btn">
@@ -419,7 +414,7 @@ if (!$user && $mode === 'account') {
        GLASSMORPHIC FORM PANEL — centered on screen
        ============================================================ -->
   <main class="glass-wrap">
-    <div class="glass-card">
+    <div class="glass-card auth-panel" data-auth-mode="<?= $mode === 'signup' ? 'signup' : ($mode === 'account' ? 'account' : 'login') ?>">
 
       <?php if ($mode === 'account' && $user): ?>
         <!-- ====================================================
@@ -452,9 +447,9 @@ if (!$user && $mode === 'account') {
              LOGIN / SIGNUP FORM
              ==================================================== -->
         <div class="gc-header">
-          <p class="gc-eyebrow"><?= $mode === 'signup' ? 'Create Account' : 'Welcome Back' ?></p>
-          <h2 class="gc-title"><?= $mode === 'signup' ? 'Join ClicKet' : 'Sign in to continue' ?></h2>
-          <p class="gc-copy">
+          <p class="gc-eyebrow" data-auth-eyebrow><?= $mode === 'signup' ? 'Create Account' : 'Welcome Back' ?></p>
+          <h2 class="gc-title" data-auth-title><?= $mode === 'signup' ? 'Join ClicKet' : 'Sign in to continue' ?></h2>
+          <p class="gc-copy" data-auth-copy>
             <?= $mode === 'signup'
               ? 'Set up your account to book events faster and keep all your tickets in one place.'
               : 'Access your tickets, event history, and booking details.' ?>
@@ -465,12 +460,14 @@ if (!$user && $mode === 'account') {
         <div class="mode-tabs" role="tablist">
           <a href="auth.php?mode=login"
              class="mode-tab <?= $mode !== 'signup' ? 'mode-tab--active' : '' ?>"
+             data-auth-switch="login"
              role="tab"
              aria-selected="<?= $mode !== 'signup' ? 'true' : 'false' ?>">
             Log In
           </a>
           <a href="auth.php?mode=signup"
              class="mode-tab <?= $mode === 'signup' ? 'mode-tab--active' : '' ?>"
+             data-auth-switch="signup"
              role="tab"
              aria-selected="<?= $mode === 'signup' ? 'true' : 'false' ?>">
             Sign Up
@@ -493,23 +490,21 @@ if (!$user && $mode === 'account') {
         <?php endif; ?>
 
         <form class="auth-form" method="post" action="auth.php" id="authForm" novalidate>
-          <input type="hidden" name="mode" value="<?= $mode === 'signup' ? 'signup' : 'login' ?>">
+          <input type="hidden" name="mode" id="authModeInput" value="<?= $mode === 'signup' ? 'signup' : 'login' ?>">
 
-          <?php if ($mode === 'signup'): ?>
-            <div class="field-group">
-              <label class="field-label" for="nameField">Full Name</label>
-              <input
-                class="field-input"
-                type="text"
-                id="nameField"
-                name="name"
-                value="<?= oldInput('name') ?>"
-                placeholder="e.g. Maria Santos"
-                autocomplete="name"
-                required
-              >
-            </div>
-          <?php endif; ?>
+          <div class="field-group auth-signup-field <?= $mode === 'signup' ? '' : 'auth-field--hidden' ?>">
+            <label class="field-label" for="nameField">Full Name</label>
+            <input
+              class="field-input"
+              type="text"
+              id="nameField"
+              name="name"
+              value="<?= oldInput('name') ?>"
+              placeholder="e.g. Maria Santos"
+              autocomplete="name"
+              <?= $mode === 'signup' ? 'required' : 'disabled' ?>
+            >
+          </div>
 
           <div class="field-group">
             <label class="field-label" for="emailField">Email Address</label>
@@ -550,35 +545,33 @@ if (!$user && $mode === 'account') {
             </div>
           </div>
 
-          <?php if ($mode === 'signup'): ?>
-            <div class="field-group">
-              <label class="field-label" for="pwConfirmField">Confirm Password</label>
-              <div class="field-wrap">
-                <input
-                  class="field-input"
-                  type="password"
-                  name="confirm_password"
-                  id="pwConfirmField"
-                  placeholder="Repeat your password"
-                  autocomplete="new-password"
-                  required
-                >
-                <button type="button" class="pw-toggle" id="pwConfirmToggle" aria-label="Show confirm password">
-                  <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                  </svg>
-                  <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-                    <line x1="1" y1="1" x2="23" y2="23"/>
-                  </svg>
-                </button>
-              </div>
+          <div class="field-group auth-signup-field <?= $mode === 'signup' ? '' : 'auth-field--hidden' ?>">
+            <label class="field-label" for="pwConfirmField">Confirm Password</label>
+            <div class="field-wrap">
+              <input
+                class="field-input"
+                type="password"
+                name="confirm_password"
+                id="pwConfirmField"
+                placeholder="Repeat your password"
+                autocomplete="new-password"
+                <?= $mode === 'signup' ? 'required' : 'disabled' ?>
+              >
+              <button type="button" class="pw-toggle" id="pwConfirmToggle" aria-label="Show confirm password">
+                <svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                  <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </button>
             </div>
-          <?php endif; ?>
+          </div>
 
           <button type="submit" class="auth-submit" id="authSubmit">
-            <span class="btn-label"><?= $mode === 'signup' ? 'Create Account' : 'Log In' ?></span>
+            <span class="btn-label" data-auth-submit-label><?= $mode === 'signup' ? 'Create Account' : 'Log In' ?></span>
             <span class="spinner" aria-hidden="true"></span>
           </button>
         </form>
@@ -598,6 +591,128 @@ if (!$user && $mode === 'account') {
 (function () {
 
   /* ── Password visibility toggles ──────────────────── */
+  /* Smooth mode switching between login and signup panels */
+  const panel = document.querySelector('.auth-panel');
+  const modeLinks = document.querySelectorAll('[data-auth-switch]');
+  const motionAllowed = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const canAnimateAuthMode = panel && panel.dataset.authMode !== 'account';
+  const modeInput = document.getElementById('authModeInput');
+  const signupFields = document.querySelectorAll('.auth-signup-field');
+  const authAlert = document.querySelector('.auth-alert');
+  const authText = {
+    login: {
+      eyebrow: 'Welcome Back',
+      title: 'Sign in to continue',
+      copy: 'Access your tickets, event history, and booking details.',
+      submit: 'Log In',
+      passwordPlaceholder: 'Enter your password',
+      passwordAutocomplete: 'current-password'
+    },
+    signup: {
+      eyebrow: 'Create Account',
+      title: 'Join ClicKet',
+      copy: 'Set up your account to book events faster and keep all your tickets in one place.',
+      submit: 'Create Account',
+      passwordPlaceholder: 'Minimum 8 characters',
+      passwordAutocomplete: 'new-password'
+    }
+  };
+  const authNodes = {
+    eyebrow: document.querySelector('[data-auth-eyebrow]'),
+    title: document.querySelector('[data-auth-title]'),
+    copy: document.querySelector('[data-auth-copy]'),
+    submit: document.querySelector('[data-auth-submit-label]'),
+    password: document.getElementById('pwField')
+  };
+
+  if (canAnimateAuthMode && motionAllowed) {
+    panel.classList.add('auth-panel--enter-forward');
+
+    requestAnimationFrame(() => {
+      panel.classList.add('auth-panel--ready');
+    });
+  }
+
+  function setAuthMode(mode, shouldUpdateUrl) {
+    const isSignup = mode === 'signup';
+    const nextText = authText[mode];
+    if (!nextText || !panel) return;
+
+    panel.dataset.authMode = mode;
+    document.body.classList.toggle('auth-mode-login', !isSignup);
+    document.body.classList.toggle('auth-mode-signup', isSignup);
+    if (modeInput) modeInput.value = mode;
+
+    if (authNodes.eyebrow) authNodes.eyebrow.textContent = nextText.eyebrow;
+    if (authNodes.title) authNodes.title.textContent = nextText.title;
+    if (authNodes.copy) authNodes.copy.textContent = nextText.copy;
+    if (authNodes.submit) authNodes.submit.textContent = nextText.submit;
+    if (authNodes.password) {
+      authNodes.password.placeholder = nextText.passwordPlaceholder;
+      authNodes.password.setAttribute('autocomplete', nextText.passwordAutocomplete);
+    }
+
+    signupFields.forEach((field) => {
+      field.classList.toggle('auth-field--hidden', !isSignup);
+      field.querySelectorAll('input').forEach((input) => {
+        input.disabled = !isSignup;
+        input.required = isSignup;
+      });
+    });
+
+    modeLinks.forEach((modeLink) => {
+      const isActive = modeLink.dataset.authSwitch === mode;
+      modeLink.classList.toggle('mode-tab--active', isActive);
+      modeLink.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    if (authAlert) authAlert.classList.add('auth-alert--dismissed');
+
+    if (shouldUpdateUrl) {
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.set('mode', mode);
+      window.history.pushState({ authMode: mode }, '', nextUrl);
+    }
+  }
+
+  modeLinks.forEach((link) => {
+    link.addEventListener('click', function (event) {
+      event.preventDefault();
+      const nextMode = link.dataset.authSwitch;
+      if (!canAnimateAuthMode || link.getAttribute('aria-selected') === 'true') return;
+
+      const currentMode = panel.dataset.authMode;
+      const direction = currentMode === 'signup' && nextMode === 'login' ? 'back' : 'forward';
+
+      if (!motionAllowed) {
+        setAuthMode(nextMode, true);
+        return;
+      }
+
+      document.body.classList.add('auth-bg--switching');
+      panel.classList.add(`auth-panel--swap-out-${direction}`);
+      window.setTimeout(() => {
+        setAuthMode(nextMode, true);
+        panel.classList.remove(`auth-panel--swap-out-${direction}`);
+        panel.classList.add(`auth-panel--swap-in-${direction}`);
+
+        requestAnimationFrame(() => {
+          panel.classList.remove(`auth-panel--swap-in-${direction}`);
+        });
+
+        window.setTimeout(() => {
+          document.body.classList.remove('auth-bg--switching');
+        }, 280);
+      }, 140);
+    });
+  });
+
+  window.addEventListener('popstate', function () {
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('mode') === 'signup' ? 'signup' : 'login';
+    setAuthMode(mode, false);
+  });
+
   function bindToggle(toggleId, fieldId) {
     const btn   = document.getElementById(toggleId);
     const field = document.getElementById(fieldId);
