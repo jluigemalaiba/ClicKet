@@ -9,41 +9,39 @@
   </div>
 
   <div class="partners-ticker-wrapper">
-    <!-- Duplicated for infinite loop illusion -->
-    <div class="partners-ticker" id="partnersTicker">
-
+    <div class="partners-ticker" id="partnersTicker" aria-label="Partner venues and organizers">
       <?php
       $partners = [
-        'Philippine Arena',
-        'Araneta Coliseum',
-        'Newport PAT',
-        'MOA Arena',
-        'SM Mall of Asia',
-        'Philsports Arena',
-        'Filoil EcoOil Centre',
-        'PICC Forum',
-        'Resorts World Manila',
-        'Star Theater',
-        'Kia Theater',
-        'Samsung Hall',
-        'Philippine Arena',
-        'Araneta Coliseum',
-        'Newport PAT',
-        'MOA Arena',
-        'Philsports Arena',
-        'Filoil EcoOil Centre',
-        'PICC Forum',
-        'Resorts World Manila',
-        'Star Theater',
-        'Kia Theater',
-        'Samsung Hall',
+        ['file' => 'Cuneta.png', 'name' => 'Cuneta Astrodome'],
+        ['file' => 'Filoil.png', 'name' => 'Filoil EcoOil Centre'],
+        ['file' => 'Metropolitan.png', 'name' => 'Metropolitan Theater'],
+        ['file' => 'MOA.png', 'name' => 'MOA Arena'],
+        ['file' => 'Muntinlupa.png', 'name' => 'Muntinlupa Sports Center'],
+        ['file' => 'Newport.png', 'name' => 'Newport Performing Arts Theater'],
+        ['file' => 'Ninoy_Rizal.png', 'name' => 'Ninoy Aquino Stadium and Rizal Memorial'],
+        ['file' => 'Nuvali.png', 'name' => 'Nuvali'],
+        ['file' => 'PArena.png', 'name' => 'Philippine Arena'],
+        ['file' => 'Philsports.png', 'name' => 'Philsports Arena'],
+        ['file' => 'RWM.png', 'name' => 'Resorts World Manila'],
+        ['file' => 'Samsung.png', 'name' => 'Samsung Hall'],
+        ['file' => 'Smart.png', 'name' => 'Smart Araneta Coliseum'],
+        ['file' => 'Solaire.png', 'name' => 'Solaire Resort Entertainment City'],
+        ['file' => 'TP.png', 'name' => 'Tanghalang Pilipino'],
       ];
-      foreach ($partners as $p): ?>
-        <div class="partner-item">
-          <span class="partner-name-text"><?= htmlspecialchars($p) ?></span>
+      for ($set = 0; $set < 2; $set++): ?>
+        <div class="partners-set" aria-hidden="<?= $set === 1 ? 'true' : 'false' ?>">
+          <?php foreach ($partners as $partner): ?>
+            <div class="partner-item">
+              <img
+                class="partner-logo"
+                src="assets/<?= htmlspecialchars($partner['file']) ?>"
+                alt="<?= $set === 0 ? htmlspecialchars($partner['name']) : '' ?>"
+                loading="lazy"
+              >
+            </div>
+          <?php endforeach; ?>
         </div>
-      <?php endforeach; ?>
-
+      <?php endfor; ?>
     </div>
   </div>
 </section>
@@ -58,9 +56,11 @@
       <div class="footer-brand">
         <a href="index.php" class="footer-logo">
           <span class="logo-icon">
-            <svg viewBox="0 0 24 24"><path d="M20 12C20 7.58 16.42 4 12 4C7.58 4 4 7.58 4 12C4 14.85 5.44 17.37 7.64 18.9L6.5 21H17.5L16.36 18.9C18.56 17.37 20 14.85 20 12Z" fill="white"/></svg>
+            <img src="assets/Icon_Logo.png" alt="" aria-hidden="true">
           </span>
-          <span>Clic<span class="logo-ket">Ket</span></span>
+          <span class="logo-name">
+            <img src="assets/Name_Logo.png" alt="ClicKet">
+          </span>
         </a>
         <p class="footer-tagline">
           Your one-stop web-based ticketing platform for concerts, theater plays, and sports events—with interactive seat selection, virtual queuing, and real-time booking.
@@ -129,7 +129,7 @@
     <!-- Footer bottom -->
     <div class="footer-bottom">
       <p class="footer-copyright">
-        &copy; <?= date('Y') ?> <strong>ClicKet</strong>. All rights reserved. Built with ❤ in the Philippines.
+        &copy; <?= date('Y') ?> <strong>ClicKet</strong>. All rights reserved.
       </p>
       <nav class="footer-bottom-links">
         <a href="#">Privacy Policy</a>
