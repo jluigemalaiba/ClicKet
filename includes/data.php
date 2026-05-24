@@ -75,5 +75,5 @@ $sports_events = [
   ['title'=>'Philippine Open Tennis','league'=>'ATP Challenger','venue'=>'Rizal Memorial Tennis','date'=>'Mar 15, 2026','price'=>'₱350','rating'=>4,'type'=>'Tennis'],
   ['title'=>'Ironman 70.3 Cebu','league'=>'Ironman','venue'=>'Cebu City','date'=>'Apr 5, 2026','price'=>'₱450','rating'=>4,'type'=>'Triathlon'],
   ['title'=>'NCAA Season 100 Finals','league'=>'NCAA Philippines','venue'=>'Filoil EcoOil Centre','date'=>'Nov 10, 2025','price'=>'₱400','rating'=>5,'type'=>'Basketball'],
-  ['title'=>'PVL All-Filipino Conference Final','league'=>'PVL','venue'=>'PhilSports Arena','date'=>'May 18, 2026','price'=>'₱550','rating'=>5,'type'=>'Volleyball'],
+  ['title'=>'PVL AFC Final','league'=>'PVL','venue'=>'PhilSports Arena','date'=>'May 18, 2026','price'=>'₱550','rating'=>5,'type'=>'Volleyball'],
 ];
