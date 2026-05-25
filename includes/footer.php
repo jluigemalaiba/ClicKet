@@ -3,7 +3,7 @@
 ?>
 
 <!-- ===== PARTNERS CAROUSEL ===== -->
-<section class="partners-section">
+<section class="partners-section" id="venues">
   <div class="container-xl px-4">
     <p class="partners-label">Trusted by Leading Venues &amp; Organizers</p>
   </div>
@@ -85,13 +85,18 @@
       <div>
         <h4 class="footer-col-title">Explore</h4>
         <ul class="footer-links-list">
+          <li><a href="index.php">Home</a></li>
+          <li><a href="events.php">Events</a></li>
+          <li><a href="#">News</a></li>
+          <li><a href="#">Contact</a></li>
+          <li><a href="auth.php?mode=login">Login</a></li>
           <li><a href="about.php">About ClicKet</a></li>
-          <li><a href="#">Concerts</a></li>
-          <li><a href="#">Theater Plays</a></li>
-          <li><a href="#">Sports Events</a></li>
+          <li><a href="concerts.php">Concerts</a></li>
+          <li><a href="theater.php">Theater Plays</a></li>
+          <li><a href="sports.php">Sports Events</a></li>
           <li><a href="#">Featured Events</a></li>
           <li><a href="#">Upcoming Shows</a></li>
-          <li><a href="#">Venues &amp; Arenas</a></li>
+          <li><a href="venues.php">Venues &amp; Arenas</a></li>
         </ul>
       </div>
 

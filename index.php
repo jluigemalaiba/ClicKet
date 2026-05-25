@@ -76,11 +76,11 @@ require_once __DIR__ . '/includes/log.php';
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
   </button>
   <a href="index.php">Home</a>
-  <a href="#">Concerts</a>
-  <a href="#">Theater Plays</a>
-  <a href="#">Sports Events</a>
-  <a href="#">Venues</a>
-  <a href="#">My Tickets</a>
+  <a href="concerts.php">Concerts</a>
+  <a href="theater.php">Theater Plays</a>
+  <a href="sports.php">Sports Events</a>
+  <a href="venues.php">Venues</a>
+  <a href="auth.php?mode=account">My Tickets</a>
   <div style="margin-top:28px;display:flex;gap:12px;">
     <a href="auth.php?mode=login" class="nav-btn-login" style="border:1.5px solid #ddd;padding:10px 24px;border-radius:50px;font-size:14px;color:#444;font-weight:600;">Log In</a>
     <a href="auth.php?mode=signup" class="nav-btn-signup" style="background:var(--red-primary);color:#fff;padding:10px 24px;border-radius:50px;font-size:14px;font-weight:700;">Sign Up</a>

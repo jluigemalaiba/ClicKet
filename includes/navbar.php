@@ -22,10 +22,10 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <ul class="nav-links">
       <li><a href="index.php" class="<?= ($currentPage === 'index.php') ? 'active' : '' ?>">Home</a></li>
       <li><a href="about.php" class="<?= ($currentPage === 'about.php') ? 'active' : '' ?>">About Us</a></li>
-      <li><a href="#">Concerts</a></li>
-      <li><a href="#">Theater Plays</a></li>
-      <li><a href="#">Sports Events</a></li>
-      <li><a href="#">Venues</a></li>
+      <li><a href="concerts.php" class="<?= ($currentPage === 'concerts.php') ? 'active' : '' ?>">Concerts</a></li>
+      <li><a href="theater.php" class="<?= ($currentPage === 'theater.php') ? 'active' : '' ?>">Theater Plays</a></li>
+      <li><a href="sports.php" class="<?= ($currentPage === 'sports.php') ? 'active' : '' ?>">Sports Events</a></li>
+      <li><a href="venues.php" class="<?= ($currentPage === 'venues.php') ? 'active' : '' ?>">Venues</a></li>
       <li><a href="auth.php?mode=account">My Tickets</a></li>
     </ul>
 
@@ -60,10 +60,10 @@ $currentPage = basename($_SERVER['PHP_SELF']);
   </button>
   <a href="index.php" class="mobile-nav-link <?= ($currentPage === 'index.php') ? 'active' : '' ?>">Home</a>
   <a href="about.php" class="mobile-nav-link <?= ($currentPage === 'about.php') ? 'active' : '' ?>">About Us</a>
-  <a href="#" class="mobile-nav-link">Concerts</a>
-  <a href="#" class="mobile-nav-link">Theater Plays</a>
-  <a href="#" class="mobile-nav-link">Sports Events</a>
-  <a href="#" class="mobile-nav-link">Venues</a>
+  <a href="concerts.php" class="mobile-nav-link <?= ($currentPage === 'concerts.php') ? 'active' : '' ?>">Concerts</a>
+  <a href="theater.php" class="mobile-nav-link <?= ($currentPage === 'theater.php') ? 'active' : '' ?>">Theater Plays</a>
+  <a href="sports.php" class="mobile-nav-link <?= ($currentPage === 'sports.php') ? 'active' : '' ?>">Sports Events</a>
+  <a href="venues.php" class="mobile-nav-link <?= ($currentPage === 'venues.php') ? 'active' : '' ?>">Venues</a>
   <a href="auth.php?mode=account" class="mobile-nav-link">My Tickets</a>
 </div>
 
