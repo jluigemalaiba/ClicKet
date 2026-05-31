@@ -57,7 +57,7 @@ $events = array_merge(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Discover and book upcoming concerts, theater shows, and sports events on ClicKet.">
-  <title>Events | ClicKet</title>
+  <title>ClicKet</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="css/variables.css">
@@ -677,6 +677,7 @@ $events = array_merge(
             data-rating="<?= (int) $event['rating'] ?>"
             data-price="<?= (int) $event['priceValue'] ?>"
             data-title="<?= htmlspecialchars(strtolower($event['title'])) ?>"
+            data-search="<?= htmlspecialchars(strtolower($event['title'] . ' ' . $event['categoryLabel'] . ' ' . $event['type'] . ' ' . $event['venue'] . ' ' . $event['sub'])) ?>"
           >
             <div class="events-card-poster">
               <img src="<?= htmlspecialchars($event['poster']) ?>" alt="<?= htmlspecialchars($event['title']) ?> poster" loading="lazy">
@@ -739,6 +740,7 @@ $events = array_merge(
   const grid = document.getElementById('eventsGrid');
   const count = document.getElementById('eventsCount');
   const empty = document.getElementById('eventsEmpty');
+  const searchQuery = (new URLSearchParams(window.location.search).get('search') || '').trim().toLowerCase();
 
   function handleScroll() {
     if (navbar) {
@@ -776,7 +778,9 @@ $events = array_merge(
     sortCards(cards, sortFilter.value);
 
     getCards().forEach(card => {
-      const shouldShow = selectedCategory === 'all' || card.dataset.category === selectedCategory;
+      const matchesCategory = selectedCategory === 'all' || card.dataset.category === selectedCategory;
+      const matchesSearch = !searchQuery || card.dataset.search.includes(searchQuery);
+      const shouldShow = matchesCategory && matchesSearch;
       card.hidden = !shouldShow;
       if (shouldShow) {
         visible += 1;

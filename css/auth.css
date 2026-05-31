@@ -127,12 +127,12 @@
   opacity: .95;
 }
 
-/* Heavy white wash — cards show as very faint ghost images */
+/* Soft white wash — keeps the form readable while the moving cards remain visible */
 .bg-stage__scrim {
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: rgba(255, 255, 255, .84);
+  background: rgba(255, 255, 255, .62);
 }
 
 /* Grid container — fills the full background */
@@ -152,6 +152,9 @@
   gap: 14px;
   flex: 1;
   min-width: 0;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
 }
 
 /*
@@ -176,13 +179,13 @@
 .bg-col--5 { animation: bgScrollUp   28s linear infinite; animation-delay: -3s; }
 
 @keyframes bgScrollUp {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-50%); }
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(0, -50%, 0); }
 }
 
 @keyframes bgScrollDown {
-  from { transform: translateY(-50%); }
-  to   { transform: translateY(0); }
+  from { transform: translate3d(0, -50%, 0); }
+  to   { transform: translate3d(0, 0, 0); }
 }
 
 /* ── Background event cards ─────────────────────────────────── */
@@ -191,14 +194,14 @@
   width: 100%;
   height: 190px;
   border-radius: var(--radius-lg);
-  background-color: #d8d8d8;     /* light fallback while image loads */
+  background-color: #d4d4d4;     /* visible fallback while image loads */
   background-size: cover;
   background-position: center;
   overflow: hidden;
   flex-shrink: 0;
   box-shadow:
     inset 0 0 0 1px rgba(0,0,0,.06),
-    0 4px 16px rgba(0,0,0,.12);
+    0 8px 22px rgba(0,0,0,.16);
 }
 
 .bg-card--tall { height: 280px; }
@@ -210,14 +213,14 @@
   inset: 0;
   background: linear-gradient(
     175deg,
-    rgba(255,255,255,.15) 0%,
-    rgba(255,255,255,.05) 100%
+    rgba(255,255,255,.04) 0%,
+    rgba(0,0,0,.08) 100%
   );
 }
 
 /* Labels hidden — cards act as pure visual texture on white bg */
 .bg-card__info,
-.bg-card__badge { display: none; }
+.bg-card__badge { display: none !important; }
 
 .bg-card__badge--red {
   background: var(--red);
@@ -247,6 +250,11 @@
   font-size: 11px;
   font-weight: 500;
   letter-spacing: .3px;
+}
+
+.bg-card__info,
+.bg-card__badge {
+  display: none !important;
 }
 
 /* ============================================================

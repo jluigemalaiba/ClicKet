@@ -70,24 +70,6 @@ require_once __DIR__ . '/includes/log.php';
 
 <?php require_once __DIR__ . '/includes/navbar.php'; ?>
 
-<!-- Mobile nav drawer -->
-<div class="mobile-nav-drawer" id="mobileDrawer">
-  <button class="mobile-drawer-close" id="drawerClose">
-    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-  </button>
-  <a href="index.php">Home</a>
-  <a href="concerts.php">Concerts</a>
-  <a href="theater.php">Theater Plays</a>
-  <a href="sports.php">Sports Events</a>
-  <a href="venues.php">Venues</a>
-  <a href="auth.php?mode=account">My Tickets</a>
-  <div style="margin-top:28px;display:flex;gap:12px;">
-    <a href="auth.php?mode=login" class="nav-btn-login" style="border:1.5px solid #ddd;padding:10px 24px;border-radius:50px;font-size:14px;color:#444;font-weight:600;">Log In</a>
-    <a href="auth.php?mode=signup" class="nav-btn-signup" style="background:var(--red-primary);color:#fff;padding:10px 24px;border-radius:50px;font-size:14px;font-weight:700;">Sign Up</a>
-  </div>
-</div>
-
-
 <!-- ═══════════════════════════════════
      HERO SECTION
 ════════════════════════════════════ -->
@@ -98,9 +80,16 @@ require_once __DIR__ . '/includes/log.php';
     <?php
     $mosaic_seeds = [10,20,30,40,50, 60,70,80,90,100, 110,120,130,140,150];
     $mosaic_cats  = ['concert','theater','sports','featured','concert','theater','sports','featured','concert','theater','sports','featured','concert','theater','sports'];
-    foreach ($mosaic_seeds as $si => $seed): ?>
-      <div class="mosaic-card">
-        <img src="<?= posterUrl($mosaic_cats[$si], $seed) ?>" alt="" loading="lazy">
+    $mosaic_columns = array_chunk(array_map(null, $mosaic_seeds, $mosaic_cats), 3);
+    foreach ($mosaic_columns as $colIndex => $column): ?>
+      <div class="mosaic-col mosaic-col--<?= $colIndex + 1 ?>">
+        <?php for ($loop = 0; $loop < 2; $loop++): ?>
+          <?php foreach ($column as [$seed, $cat]): ?>
+            <div class="mosaic-card">
+              <img src="<?= posterUrl($cat, $seed) ?>" alt="" loading="lazy">
+            </div>
+          <?php endforeach; ?>
+        <?php endfor; ?>
       </div>
     <?php endforeach; ?>
   </div>
@@ -124,27 +113,6 @@ require_once __DIR__ . '/includes/log.php';
         Browse Events
       </a>
     </div>
-
-    <div class="hero-stats">
-      <div class="stat-item">
-        <div class="stat-value">200<span>+</span></div>
-        <div class="stat-label">Live Events</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value">50<span>K+</span></div>
-        <div class="stat-label">Happy Attendees</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value">30<span>+</span></div>
-        <div class="stat-label">Top Venues</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value">100<span>%</span></div>
-        <div class="stat-label">Secure Payments</div>
-      </div>
-    </div>
-  </div>
-
 </section>
 
 
@@ -153,9 +121,9 @@ require_once __DIR__ . '/includes/log.php';
 ════════════════════════════════════ -->
 <section class="featured-section">
   <div class="container-fluid">
-    <div class="section-header px-0">
+    <div class="section-header px-0" style="margin-bottom:-30px;">
       <h2 class="section-title">Featured <span>Events</span></h2>
-      <a href="events.php" class="see-all-btn">See All Events</a>
+      <a href="events.php" class="see-all-btn" style="margin-bottom:-3px;">See All Events</a>
     </div>
   </div>
 
@@ -196,15 +164,11 @@ require_once __DIR__ . '/includes/log.php';
   <div class="container-xl px-4">
 
     <div class="section-header" style="margin-bottom:20px;">
-      <div>
+      <div style="margin-bottom:-15px;">
         <p style="font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--red-primary);margin-bottom:4px;">Category</p>
-        <h2 class="section-title">🎵 <span>Concerts</span></h2>
+        <h2 class="section-title"><span style="width: 46px; height: 46px; display: inline-block; vertical-align: middle;"><img src="assets/concerts.png" alt="ClicKet Concerts"></span> Concerts</h2>
       </div>
-      <div class="category-strip">
-        <button class="cat-tab active" data-filter="all" data-grid="concertsTrack">All</button>
-        <button class="cat-tab" data-filter="Local" data-grid="concertsTrack">Local</button>
-        <button class="cat-tab" data-filter="International" data-grid="concertsTrack">International</button>
-      </div>
+      <a href="#" class="see-all-btn" style="margin-bottom:-3px;">See All</a>
     </div>
 
     <?php renderCategoryShowcase(
@@ -259,15 +223,11 @@ require_once __DIR__ . '/includes/log.php';
   <div class="container-xl px-4">
 
     <div class="section-header" style="margin-bottom:20px;">
-      <div>
+      <div style="margin-bottom:-15px;">
         <p style="font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--red-primary);margin-bottom:4px;">Category</p>
-        <h2 class="section-title">🎭 Theater <span>Plays</span></h2>
+        <h2 class="section-title"><span style="width: 54px; height: 54px; display: inline-block; vertical-align: middle;"><img src="assets/theater.png" alt="ClicKet Theater"></span> Theater <span>Plays</span></h2>
       </div>
-      <div class="category-strip">
-        <button class="cat-tab active" data-filter="all" data-grid="theaterTrack">All</button>
-        <button class="cat-tab" data-filter="Musical" data-grid="theaterTrack">Musical</button>
-        <button class="cat-tab" data-filter="Opera" data-grid="theaterTrack">Opera</button>
-      </div>
+      <a href="#" class="see-all-btn" style="margin-bottom:-3px;">See All</a>
     </div>
 
     <?php renderCategoryShowcase(
@@ -320,17 +280,11 @@ require_once __DIR__ . '/includes/log.php';
   <div class="container-xl px-4">
 
     <div class="section-header" style="margin-bottom:20px;">
-      <div>
+      <div style="margin-bottom:-15px;">
         <p style="font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--red-primary);margin-bottom:4px;">Category</p>
-        <h2 class="section-title">🏆 Sports <span>Events</span></h2>
+        <h2 class="section-title"><span style="width: 50px; height: 50px; display: inline-block; vertical-align: middle;"><img src="assets/sport.png" alt="ClicKet Sports"></span> Sports <span>Events</span></h2>
       </div>
-      <div class="category-strip">
-        <button class="cat-tab active" data-filter="all" data-grid="sportsTrack">All</button>
-        <button class="cat-tab" data-filter="Basketball" data-grid="sportsTrack">Basketball</button>
-        <button class="cat-tab" data-filter="Boxing" data-grid="sportsTrack">Boxing</button>
-        <button class="cat-tab" data-filter="Football" data-grid="sportsTrack">Football</button>
-        <button class="cat-tab" data-filter="Volleyball" data-grid="sportsTrack">Volleyball</button>
-      </div>
+      <a href="#" class="see-all-btn" style="margin-bottom:-3px;">See All</a>
     </div>
 
     <?php renderCategoryShowcase(
@@ -390,7 +344,7 @@ require_once __DIR__ . '/includes/log.php';
   </div>
 </section>
 
-
+<?php require_once __DIR__ . '/includes/carousel.php'; ?>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
 
 

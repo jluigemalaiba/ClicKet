@@ -27,7 +27,7 @@ $venues = [
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Explore ClicKet partner venues and arenas for concerts, theater plays, and sports events.">
-  <title>Venues | ClicKet</title>
+  <title>ClicKet</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="css/variables.css">

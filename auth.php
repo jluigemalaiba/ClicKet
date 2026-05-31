@@ -589,6 +589,21 @@ if (!$user && $mode === 'account') {
 
 <script>
 (function () {
+  const bgColumns = document.querySelectorAll('.bg-col');
+
+  bgColumns.forEach((column) => {
+    const cards = Array.from(column.children).filter((child) => child.classList.contains('bg-card'));
+    if (!cards.length) return;
+
+    const fragment = document.createDocumentFragment();
+    cards.forEach((card) => {
+      const clone = card.cloneNode(true);
+      clone.setAttribute('aria-hidden', 'true');
+      fragment.appendChild(clone);
+    });
+
+    column.appendChild(fragment);
+  });
 
   /* ── Password visibility toggles ──────────────────── */
   /* Smooth mode switching between login and signup panels */

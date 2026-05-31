@@ -9,7 +9,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Learn about ClicKet — Your trusted ticketing platform for concerts, theater plays, and sports events with innovative seat selection technology.">
-  <title>About Us | ClicKet</title>
+  <title>ClicKet</title>
 
   <!-- Bootstrap 5 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">

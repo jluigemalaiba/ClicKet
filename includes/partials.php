@@ -132,57 +132,57 @@ function renderCategoryShowcase(
           <p class="showcase-description"><?= htmlspecialchars($description) ?></p>
           <div class="showcase-actions">
             <a href="event-detail.php?id=0" class="btn-primary showcase-book">Book Now</a>
-            <a href="<?= htmlspecialchars($seeAllUrl) ?>" class="btn-outline showcase-see-all">See All</a>
+            <a href="<?= htmlspecialchars($seeAllUrl) ?>" class="btn-outline showcase-see-all">See More</a>
           </div>
         </div>
-      </div>
 
-      <div class="showcase-bottom">
-        <div class="showcase-summary">
-          <div>
-            <p class="netflix-category-label"><?= htmlspecialchars($label) ?></p>
-            <div class="netflix-big-title"><?= htmlspecialchars($bigTitle) ?></div>
-          </div>
-          <p class="netflix-description"><?= htmlspecialchars($description) ?></p>
-        </div>
-
-        <div class="showcase-rail-wrap">
-          <button class="showcase-nav prev" type="button" aria-label="Previous" data-showcase-nav="-1">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-
-          <div class="showcase-rail">
-            <?php foreach ($events as $idx => $event):
-                $sub = $event['artist'] ?? $event['company'] ?? $event['league'] ?? '';
-                $type = $event['type'] ?? $label;
-                $rating = (int)($event['rating'] ?? 4);
-            ?>
-              <button
-                class="showcase-card <?= $idx === 0 ? 'active' : '' ?>"
-                type="button"
-                data-type="<?= htmlspecialchars($type) ?>"
-                data-title="<?= htmlspecialchars($event['title']) ?>"
-                data-date="<?= htmlspecialchars($event['date']) ?>"
-                data-venue="<?= htmlspecialchars($event['venue']) ?>"
-                data-sub="<?= htmlspecialchars($sub) ?>"
-                data-price="<?= htmlspecialchars($event['price']) ?>"
-                data-rating="<?= $rating ?>"
-                data-category="<?= htmlspecialchars($label) ?>"
-                data-image="<?= landscapeUrl($category, $idx + 10) ?>"
-                data-link="event-detail.php?id=<?= $idx ?>"
-              >
-                <img src="<?= posterUrl($category, $idx + 10) ?>" alt="<?= htmlspecialchars($event['title']) ?>" loading="lazy">
-                <span class="showcase-card-overlay">
-                  <span class="showcase-card-type"><?= htmlspecialchars($type) ?></span>
-                  <strong><?= htmlspecialchars($event['title']) ?></strong>
-                </span>
-              </button>
-            <?php endforeach; ?>
+        <div class="showcase-bottom">
+          <div class="showcase-summary">
+            <div>
+              <p class="netflix-category-label"><?= htmlspecialchars($label) ?></p>
+              <div class="netflix-big-title"><?= htmlspecialchars($bigTitle) ?></div>
+            </div>
+            <p class="netflix-description"><?= htmlspecialchars($description) ?></p>
           </div>
 
-          <button class="showcase-nav next" type="button" aria-label="Next" data-showcase-nav="1">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
+          <div class="showcase-rail-wrap">
+            <button class="showcase-nav prev" type="button" aria-label="Previous" data-showcase-nav="-1">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+
+            <div class="showcase-rail">
+              <?php foreach ($events as $idx => $event):
+                  $sub = $event['artist'] ?? $event['company'] ?? $event['league'] ?? '';
+                  $type = $event['type'] ?? $label;
+                  $rating = (int)($event['rating'] ?? 4);
+              ?>
+                <button
+                  class="showcase-card <?= $idx === 0 ? 'active' : '' ?>"
+                  type="button"
+                  data-type="<?= htmlspecialchars($type) ?>"
+                  data-title="<?= htmlspecialchars($event['title']) ?>"
+                  data-date="<?= htmlspecialchars($event['date']) ?>"
+                  data-venue="<?= htmlspecialchars($event['venue']) ?>"
+                  data-sub="<?= htmlspecialchars($sub) ?>"
+                  data-price="<?= htmlspecialchars($event['price']) ?>"
+                  data-rating="<?= $rating ?>"
+                  data-category="<?= htmlspecialchars($label) ?>"
+                  data-image="<?= landscapeUrl($category, $idx + 10) ?>"
+                  data-link="event-detail.php?id=<?= $idx ?>"
+                >
+                  <img src="<?= posterUrl($category, $idx + 10) ?>" alt="<?= htmlspecialchars($event['title']) ?>" loading="lazy">
+                  <span class="showcase-card-overlay">
+                    <span class="showcase-card-type"><?= htmlspecialchars($type) ?></span>
+                    <strong><?= htmlspecialchars($event['title']) ?></strong>
+                  </span>
+                </button>
+              <?php endforeach; ?>
+            </div>
+
+            <button class="showcase-nav next" type="button" aria-label="Next" data-showcase-nav="1">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>

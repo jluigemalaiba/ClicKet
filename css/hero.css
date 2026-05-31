@@ -15,10 +15,8 @@
 /* Mosaic card grid background */
 .hero-mosaic-bg {
   position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(3, 1fr);
+  inset: -160px -60px;
+  display: flex;
   gap: 6px;
   padding: 6px;
   opacity: 0.5;
@@ -28,10 +26,36 @@
   z-index: 1;
 }
 
+.hero-mosaic-bg .mosaic-col {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hero-mosaic-bg .mosaic-col--1 { animation: heroScrollUp 28s linear infinite; animation-delay: -6s; }
+.hero-mosaic-bg .mosaic-col--2 { animation: heroScrollDown 36s linear infinite; animation-delay: -14s; }
+.hero-mosaic-bg .mosaic-col--3 { animation: heroScrollUp 24s linear infinite; animation-delay: -10s; }
+.hero-mosaic-bg .mosaic-col--4 { animation: heroScrollDown 40s linear infinite; animation-delay: -20s; }
+.hero-mosaic-bg .mosaic-col--5 { animation: heroScrollUp 30s linear infinite; animation-delay: -4s; }
+
+@keyframes heroScrollUp {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
+}
+
+@keyframes heroScrollDown {
+  from { transform: translateY(-50%); }
+  to { transform: translateY(0); }
+}
+
 .hero-mosaic-bg .mosaic-card {
   border-radius: 12px;
   overflow: hidden;
   position: relative;
+  flex: 0 0 calc((100vh + 320px - 24px) / 3);
+  min-height: 210px;
 }
 
 .hero-mosaic-bg .mosaic-card img {
@@ -193,5 +217,21 @@
   .hero-content { padding: 108px 20px 40px; }
   .hero-stats { gap: 28px; }
   .stat-value { font-size: 28px; }
-  .hero-mosaic-bg { opacity: 0.34; transform: none; }
+  .hero-mosaic-bg {
+    opacity: 0.34;
+    inset: -120px -72px;
+    transform: perspective(760px) rotateY(-8deg) rotateX(4deg) scale(1.12);
+    transform-origin: right center;
+  }
+
+  .hero-mosaic-bg .mosaic-card {
+    flex-basis: clamp(150px, 28vh, 220px);
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-mosaic-bg .mosaic-col {
+    animation: none;
+  }
 }
