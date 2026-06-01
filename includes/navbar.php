@@ -22,7 +22,11 @@ $navSearchValue = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
     </a>
 
     <button class="nav-hamburger navbar-toggler d-xl-none" type="button" data-bs-toggle="collapse" data-bs-target="#clicketNavbar" aria-controls="clicketNavbar" aria-expanded="false" aria-label="Toggle navigation">
-      <img src="assets/menu.png" alt="" aria-hidden="true">
+      <span class="nav-hamburger-lines" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
     </button>
 
     <div class="collapse navbar-collapse clicket-navbar-collapse" id="clicketNavbar">
