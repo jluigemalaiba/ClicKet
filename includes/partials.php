@@ -60,7 +60,9 @@ function renderEventCard(array $event, string $category, int $idx): void {
 
         <div class="event-footer">
           <div class="event-stars" aria-label="Rating"><?= $stars ?></div>
-          <a href="event-detail.php?id=<?= $idx ?>" class="event-book-btn">Book Now</a>
+          <button type="button" class="event-book-btn" onclick="cartManager.addItem({id: 'event-<?= htmlspecialchars($event['id'] ?? $idx); ?>', title: '<?= htmlspecialchars($event['title']); ?>', category: '<?= htmlspecialchars($category); ?>', price: '<?= htmlspecialchars($price); ?>', image: '<?= htmlspecialchars($poster); ?>'})">
+            Add to Cart
+          </button>
         </div>
       </div>
     </div>
@@ -131,7 +133,9 @@ function renderCategoryShowcase(
           </p>
           <p class="showcase-description"><?= htmlspecialchars($description) ?></p>
           <div class="showcase-actions">
-            <a href="event-detail.php?id=0" class="btn-primary showcase-book">Book Now</a>
+            <button type="button" class="btn-primary" onclick="cartManager.addItem({id: 'showcase-<?= htmlspecialchars($first['id'] ?? 0); ?>', title: '<?= htmlspecialchars($first['title']); ?>', category: '<?= htmlspecialchars($label); ?>', price: '<?= htmlspecialchars($first['price']); ?>', image: '<?= landscapeUrl($category, 10); ?>'})">
+              Add to Cart
+            </button>
             <a href="<?= htmlspecialchars($seeAllUrl) ?>" class="btn-outline showcase-see-all">See More</a>
           </div>
         </div>
