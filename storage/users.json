@@ -54,5 +54,12 @@
         "email": "jun@gmail.com",
         "password": "$2y$10$631pzTGZ5c4hA.judDRIf.gnER3R49wOgfF7bA0y7VWdaXOMrIH3q",
         "created_at": "2026-05-23T06:25:51+02:00"
+    },
+    {
+        "id": "e2d5e73cd6737d30",
+        "name": "Chrizyl Abella",
+        "email": "shua@gmail.com",
+        "password": "$2y$10$BUPasqeH5cWJAP5SYtWyvOaVLcUP8HhBuTIj.bZA8x7xi7HygXWKS",
+        "created_at": "2026-06-01T09:03:01+02:00"
     }
 ]
