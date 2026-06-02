@@ -102,6 +102,7 @@ $navSearchValue = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
               </a>
             </div>
           </div>
+          <a href="auth.php?logout=1" class="nav-btn-signup nav-btn-logout-inline">Log Out</a>
         <?php else: ?>
           <a href="auth.php?mode=login" class="nav-btn-login">Log In</a>
           <a href="auth.php?mode=signup" class="nav-btn-signup">Sign Up</a>

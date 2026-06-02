@@ -293,6 +293,11 @@
   color: var(--white);
 }
 
+.nav-btn-logout-inline {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
 .nav-profile {
   position: relative;
   flex-shrink: 0;
