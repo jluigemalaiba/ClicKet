@@ -9,8 +9,75 @@ function startSessionIfNeeded(): void {
 
 startSessionIfNeeded();
 
+// Initialize cart session
+if (!isset($_SESSION['clicket_cart'])) {
+    $_SESSION['clicket_cart'] = [];
+}
+
 if (!defined('CLICKET_USERS_FILE')) {
     define('CLICKET_USERS_FILE', __DIR__ . '/../storage/users.json');
+}
+
+// ── CART SESSION FUNCTIONS ──────────────────────────────────
+
+function addToCart(array $item): void {
+    if (!isset($_SESSION['clicket_cart'])) {
+        $_SESSION['clicket_cart'] = [];
+    }
+    
+    $itemId = $item['id'] ?? null;
+    if (!$itemId) return;
+    
+    // Check if item exists and increment qty
+    foreach ($_SESSION['clicket_cart'] as &$cartItem) {
+        if ($cartItem['id'] === $itemId) {
+            $cartItem['qty'] = ($cartItem['qty'] ?? 1) + 1;
+            return;
+        }
+    }
+    
+    // Add new item
+    $_SESSION['clicket_cart'][] = array_merge($item, ['qty' => 1]);
+}
+
+function removeFromCart(string $itemId): void {
+    if (!isset($_SESSION['clicket_cart'])) return;
+    $_SESSION['clicket_cart'] = array_filter(
+        $_SESSION['clicket_cart'],
+        fn($item) => ($item['id'] ?? null) !== $itemId
+    );
+    $_SESSION['clicket_cart'] = array_values($_SESSION['clicket_cart']);
+}
+
+function updateCartQty(string $itemId, int $qty): void {
+    if (!isset($_SESSION['clicket_cart']) || $qty < 1) return;
+    foreach ($_SESSION['clicket_cart'] as &$item) {
+        if ($item['id'] === $itemId) {
+            $item['qty'] = $qty;
+            return;
+        }
+    }
+}
+
+function getCart(): array {
+    return $_SESSION['clicket_cart'] ?? [];
+}
+
+function getCartCount(): int {
+    return array_sum(array_map(fn($item) => $item['qty'] ?? 1, $_SESSION['clicket_cart'] ?? []));
+}
+
+function getCartTotal(): int {
+    $total = 0;
+    foreach ($_SESSION['clicket_cart'] ?? [] as $item) {
+        $price = (int) preg_replace('/[^0-9]/', '', $item['price'] ?? '0');
+        $total += $price * ($item['qty'] ?? 1);
+    }
+    return $total;
+}
+
+function clearCart(): void {
+    $_SESSION['clicket_cart'] = [];
 }
 
 function ensureUserStore(): void {

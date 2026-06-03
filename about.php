@@ -1,5 +1,5 @@
 <?php
-// about.php — ClicKet About Us Page (Refined Edition)
+// about.php - ClicKet About Page
 require_once __DIR__ . '/includes/log.php';
 $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
@@ -8,296 +8,298 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Learn about ClicKet — Your trusted ticketing platform for concerts, theater plays, and sports events with innovative seat selection technology.">
+  <meta name="description" content="Learn about ClicKet, a trusted ticketing platform for concerts, theater, sports, and live events.">
   <title>ClicKet</title>
 
-  <!-- Bootstrap 5 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-
-  <!-- ClicKet Stylesheets -->
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/navbar.css">
   <link rel="stylesheet" href="css/about.css">
   <link rel="stylesheet" href="css/partners-footer.css">
 </head>
-<body>
+<body class="about-page">
 
-  <!-- ===== NAVBAR ===== -->
-  <?php require_once __DIR__ . '/includes/navbar.php'; ?>
+<?php require_once __DIR__ . '/includes/navbar.php'; ?>
 
-  <!-- ===== HERO SECTION ===== -->
-  <section class="about-hero">
-    <!-- Unsplash Dark Concert/Stadium Background Image URL: https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1600&h=800&fit=crop&blend=https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1600&h=800&fit=crop&blend_mode=multiply -->
+<main>
+  <section class="about-hero" aria-label="About ClicKet">
     <img
-      src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1600&h=800&fit=crop"
-      alt="Concert crowd with dynamic lighting"
+      src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1800&h=1100&fit=crop"
+      alt="Fans enjoying a live concert"
       class="about-hero-bg"
-      loading="lazy"
+      loading="eager"
     >
-    <div class="about-hero-overlay"></div>
-    <div class="about-hero-content">
-      <h1 class="about-hero-title">About Us</h1>
-      <nav class="about-breadcrumbs" aria-label="Breadcrumb">
-        <a href="index.php">Home</a>
-        <span class="breadcrumb-sep">/</span>
-        <span class="breadcrumb-current">About Us</span>
-      </nav>
-    </div>
-  </section>
+    <div class="about-hero-shade" aria-hidden="true"></div>
 
-  <!-- ===== COMPANY INTRO SECTION ===== -->
-  <section class="company-intro-section py-5 py-lg-6">
-    <div class="container-xxl">
-      <div class="row g-4 g-lg-5 align-items-center">
-
-        <!-- Left: Image -->
-        <div class="col-lg-6 mb-4 mb-lg-0">
-          <div class="intro-image-container">
-            <!-- Unsplash Concert/Event Image URL: https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop -->
-            <img
-              src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop"
-              alt="Live concert crowd with dynamic lighting and energy"
-              class="intro-image img-fluid rounded"
-              loading="lazy"
-            >
+    <div class="container-xl px-4">
+      <div class="about-hero-layout">
+        <div class="about-hero-copy">
+          <p class="about-kicker">ClicKet Company Profile</p>
+          <h1>Your trusted partner in live event ticketing.</h1>
+          <p>
+            We help fans discover memorable concerts, theater shows, and sports events while giving organizers a reliable platform for selling, scanning, and managing tickets.
+          </p>
+          <div class="about-hero-actions">
+            <a href="events.php" class="btn-primary">Browse Events</a>
+            <a href="#mission" class="about-link-btn">Our Mission</a>
           </div>
         </div>
 
-        <!-- Right: Content -->
-        <div class="col-lg-6">
-          <div class="intro-content">
-            <span class="intro-label">About Us</span>
-            <h2 class="intro-title mb-3">We Always Make The Best Event Experiences</h2>
-            <p class="intro-description mb-4">
-              At ClicKet, we believe every event deserves seamless access. Since day one, we've revolutionized the ticketing experience with innovative technology, transparent pricing, and customer-first design. From intimate theater productions to massive outdoor festivals, we're committed to connecting fans with the moments that matter most.
-            </p>
-            <div class="intro-highlights">
-              <div class="highlight-item mb-3">
-                <span class="highlight-icon">✓</span>
-                <p class="mb-0">Real-time seat selection with interactive venue maps</p>
-              </div>
-              <div class="highlight-item mb-3">
-                <span class="highlight-icon">✓</span>
-                <p class="mb-0">Virtual queue system preventing ticket fraud and scalping</p>
-              </div>
-              <div class="highlight-item mb-0">
-                <span class="highlight-icon">✓</span>
-                <p class="mb-0">Secure payments and instant mobile ticket delivery</p>
-              </div>
-            </div>
-            <a href="auth.php?mode=signup" class="btn btn-primary mt-4">Get Started</a>
+        <div class="about-hero-panel" aria-label="ClicKet platform highlights">
+          <div>
+            <span>Active categories</span>
+            <strong>Concerts, Theater, Sports</strong>
           </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== STATS & SKILLS SECTION ===== -->
-  <section class="stats-skills-section py-5 py-lg-6">
-    <div class="container-xxl">
-      <div class="row g-4 g-lg-5">
-
-        <!-- Left: Progress Bars (Skills) -->
-        <div class="col-lg-6 mb-4 mb-lg-0">
-          <div class="skills-container">
-            <h3 class="skills-title mb-2">Our Operations</h3>
-            <p class="skills-description mb-4">
-              Trusted by leading venues and organizers across the Philippines, we maintain industry-leading standards in security, reliability, and customer satisfaction.
-            </p>
-
-            <div class="progress-bar-group">
-              <div class="progress-item mb-4">
-                <div class="progress-header mb-2">
-                  <span class="progress-label">Ticket Availability</span>
-                  <span class="progress-value">95%</span>
-                </div>
-                <div class="progress progress-bar">
-                  <div class="progress-fill" style="width: 95%"></div>
-                </div>
-              </div>
-
-              <div class="progress-item mb-4">
-                <div class="progress-header mb-2">
-                  <span class="progress-label">Network Security</span>
-                  <span class="progress-value">98%</span>
-                </div>
-                <div class="progress progress-bar">
-                  <div class="progress-fill" style="width: 98%"></div>
-                </div>
-              </div>
-
-              <div class="progress-item mb-4">
-                <div class="progress-header mb-2">
-                  <span class="progress-label">Customer Satisfaction</span>
-                  <span class="progress-value">94%</span>
-                </div>
-                <div class="progress progress-bar">
-                  <div class="progress-fill" style="width: 94%"></div>
-                </div>
-              </div>
-
-              <div class="progress-item">
-                <div class="progress-header mb-2">
-                  <span class="progress-label">Uptime Guarantee</span>
-                  <span class="progress-value">99.7%</span>
-                </div>
-                <div class="progress progress-bar">
-                  <div class="progress-fill" style="width: 99.7%"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right: Stats Grid -->
-        <div class="col-lg-6">
-          <div class="row g-3">
-            <div class="col-sm-6">
-              <div class="stat-card h-100">
-                <div class="stat-number">20+</div>
-                <div class="stat-label">Partner Venues</div>
-              </div>
-            </div>
-
-            <div class="col-sm-6">
-              <div class="stat-card h-100">
-                <div class="stat-number">1,000+</div>
-                <div class="stat-label">Events Hosted</div>
-              </div>
-            </div>
-
-            <div class="col-sm-6">
-              <div class="stat-card h-100">
-                <div class="stat-number">300k+</div>
-                <div class="stat-label">Satisfied Customers</div>
-              </div>
-            </div>
-
-            <div class="col-sm-6">
-              <div class="stat-card h-100">
-                <div class="stat-number">₱2.5B+</div>
-                <div class="stat-label">Ticket Revenue Processed</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== THE CLICKET EXPERIENCE SECTION (WOW FACTOR) ===== -->
-  <section class="experience-section py-5 py-lg-6">
-    <div class="container-xxl">
-      <div class="row mb-5 text-center">
-        <div class="col-12">
-          <h2 class="section-title mb-3">The ClicKet Experience</h2>
-          <p class="section-subtitle">Three simple steps to secure your perfect seats</p>
-        </div>
-      </div>
-
-      <div class="row g-4 g-lg-5">
-        <!-- Step 1: Discover -->
-        <div class="col-md-6 col-lg-4">
-          <div class="experience-card">
-            <div class="experience-icon-wrap">
-              <div class="experience-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="m21 21-4.35-4.35"/>
-                </svg>
-              </div>
-            </div>
-            <h3 class="experience-step-number">01</h3>
-            <h4 class="experience-title">Discover</h4>
-            <p class="experience-description">
-              Browse thousands of events from concerts to sports. Use our intuitive filters to find the perfect show that matches your interests and schedule.
-            </p>
-            <div class="experience-cta">Explore Events →</div>
-          </div>
-        </div>
-
-        <!-- Step 2: Secure -->
-        <div class="col-md-6 col-lg-4">
-          <div class="experience-card">
-            <div class="experience-icon-wrap">
-              <div class="experience-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
-              </div>
-            </div>
-            <h3 class="experience-step-number">02</h3>
-            <h4 class="experience-title">Secure</h4>
-            <p class="experience-description">
-              Select your seats with our interactive venue maps. Lock in your choice with encrypted payment processing and instant confirmation.
-            </p>
-            <div class="experience-cta">Select Seats →</div>
-          </div>
-        </div>
-
-        <!-- Step 3: Scan -->
-        <div class="col-md-6 col-lg-4">
-          <div class="experience-card">
-            <div class="experience-icon-wrap">
-              <div class="experience-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 4h18v7H3z"/>
-                  <path d="M3 13h18v7H3z"/>
-                  <path d="M6 6v1m6-1v1m6-1v1M6 15v1m6-1v1m6-1v1"/>
-                </svg>
-              </div>
-            </div>
-            <h3 class="experience-step-number">03</h3>
-            <h4 class="experience-title">Scan</h4>
-            <p class="experience-description">
-              Receive your mobile ticket instantly. Scan at the gate with a single tap—no printing needed. Enjoy the show!
-            </p>
-            <div class="experience-cta">Get Tickets →</div>
+          <div>
+            <span>Core promise</span>
+            <strong>Secure tickets, clearer choices, faster entry</strong>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ===== CTA BANNER SECTION ===== -->
+  <section class="about-intro-section">
+    <div class="container-xl px-4">
+      <div class="about-intro-grid">
+        <div class="about-intro-media">
+          <img
+            src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1000&h=850&fit=crop"
+            alt="Crowd at a live music event"
+            loading="lazy"
+          >
+        </div>
+
+        <div class="about-intro-copy">
+          <p class="about-kicker">Who We Are</p>
+          <h2>Built for the moment before the lights go down.</h2>
+          <p>
+            ClicKet is a digital ticketing service made for Philippine event fans, venue teams, and organizers. Our platform combines event discovery, seat selection, payment, mobile tickets, and gate validation in one clear booking flow.
+          </p>
+          <div class="about-proof-row" aria-label="ClicKet company statistics">
+            <div>
+              <strong>1,000+</strong>
+              <span>Events supported</span>
+            </div>
+            <div>
+              <strong>300k+</strong>
+              <span>Tickets delivered</span>
+            </div>
+            <div>
+              <strong>99.7%</strong>
+              <span>Platform uptime</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mission-section" id="mission">
+    <div class="container-xl px-4">
+      <div class="mission-heading">
+        <p class="about-kicker">Mission &amp; Vision</p>
+        <h2>We make ticketing easier to trust, manage, and enjoy.</h2>
+      </div>
+
+      <div class="mission-layout">
+        <article class="mission-feature">
+          <span>01</span>
+          <h3>Our Mission</h3>
+          <p>
+            To make live events easy to find, book, enter, and remember by removing friction from ticket purchase, payment, and venue admission.
+          </p>
+        </article>
+
+        <article class="mission-feature mission-feature-dark">
+          <span>02</span>
+          <h3>Our Vision</h3>
+          <p>
+            To become the ticketing partner people choose first for concerts, theater, sports, campus events, and local productions across the Philippines.
+          </p>
+        </article>
+
+        <article class="mission-feature">
+          <span>03</span>
+          <h3>Our Standard</h3>
+          <p>
+            Clear pricing, secure checkout, verified tickets, responsive support, and tools that help organizers understand demand before doors open.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="owners-section">
+    <div class="container-xl px-4">
+      <div class="owners-layout">
+        <div class="owners-copy">
+          <p class="about-kicker">Owners</p>
+          <h2>Guided by people who understand event operations.</h2>
+          <p>
+            ClicKet is led by a small ownership group focused on reliable technology, practical venue workflows, and better fan support.
+          </p>
+        </div>
+
+        <div class="owners-list">
+          <article class="owner-row">
+            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=300&fit=crop" alt="Alex Herrera" loading="lazy">
+            <div>
+              <h3>Alex Herrera</h3>
+              <p>Founder &amp; Managing Owner</p>
+            </div>
+          </article>
+          <article class="owner-row">
+            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=300&fit=crop" alt="Camille Reyes" loading="lazy">
+            <div>
+              <h3>Camille Reyes</h3>
+              <p>Operations &amp; Venue Partnerships Owner</p>
+            </div>
+          </article>
+          <article class="owner-row">
+            <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop" alt="Rafael Ong" loading="lazy">
+            <div>
+              <h3>Rafael Ong</h3>
+              <p>Technology &amp; Product Owner</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="process-section">
+    <div class="container-xl px-4">
+      <div class="process-heading">
+        <p class="about-kicker">Our Strategy</p>
+        <h2>Four working principles behind every ClicKet release.</h2>
+      </div>
+
+      <div class="process-grid">
+        <article>
+          <span>01</span>
+          <h3>Protect the ticket</h3>
+          <p>Use account checks, secure payment handling, and verified mobile tickets to reduce fraud and resale confusion.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h3>Shorten the line</h3>
+          <p>Design faster purchase paths and gate scanning tools so fans spend less time waiting and more time inside.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h3>Show useful data</h3>
+          <p>Give organizers sales, attendance, and customer insights that support better event planning.</p>
+        </article>
+        <article>
+          <span>04</span>
+          <h3>Support the scene</h3>
+          <p>Make room for major venues, school programs, independent theater, sports leagues, and local productions.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="news-section">
+    <div class="container-xl px-4">
+      <div class="news-heading">
+        <div>
+          <p class="about-kicker">News</p>
+          <h2>Latest updates from ClicKet</h2>
+        </div>
+        <a href="events.php" class="about-link-btn">See current events</a>
+      </div>
+
+      <div class="news-grid">
+        <article class="news-story news-story-large">
+          <img src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=900&h=700&fit=crop" alt="Outdoor concert audience" loading="lazy">
+          <div>
+            <span>May 2026</span>
+            <h3>Expanded support for larger venue seat maps</h3>
+            <p>New seat-map improvements help fans review sections faster while giving organizers cleaner inventory control.</p>
+          </div>
+        </article>
+
+        <article class="news-story">
+          <span>April 2026</span>
+          <h3>Mobile ticket wallet improvements</h3>
+          <p>Fans can prepare tickets earlier and move through venue entry with fewer check-in steps.</p>
+        </article>
+
+        <article class="news-story">
+          <span>March 2026</span>
+          <h3>Organizer analytics dashboard</h3>
+          <p>Partner organizers can now review sales pace, category demand, and attendance trends in one place.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="faq-section">
+    <div class="container-xl px-4">
+      <div class="faq-layout">
+        <div>
+          <p class="about-kicker">FAQ</p>
+          <h2>Frequently asked questions</h2>
+        </div>
+
+        <div class="faq-list">
+          <details open>
+            <summary>What events does ClicKet support?</summary>
+            <p>ClicKet supports concerts, theater productions, sports events, campus programs, and organizer-created live experiences.</p>
+          </details>
+          <details>
+            <summary>How does ClicKet help prevent ticket issues?</summary>
+            <p>We use secure checkout, verified ticket records, mobile delivery, and account-based access to make tickets easier to validate.</p>
+          </details>
+          <details>
+            <summary>Can organizers use ClicKet for event data?</summary>
+            <p>Yes. Partner organizers can monitor sales performance, attendance signals, and customer trends for smarter planning.</p>
+          </details>
+          <details>
+            <summary>Do fans need printed tickets?</summary>
+            <p>No. ClicKet is designed around mobile tickets that can be scanned at the gate.</p>
+          </details>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="about-cta-banner">
-    <!-- Unsplash Event/Crowd Image URL: https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1600&h=600&fit=crop -->
     <img
-      src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1600&h=600&fit=crop"
-      alt="Dynamic event atmosphere with crowd"
+      src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1800&h=800&fit=crop"
+      alt="Live performance stage lights"
       class="cta-background"
       loading="lazy"
     >
-    <div class="cta-overlay"></div>
-    <div class="container-xxl">
+    <div class="cta-overlay" aria-hidden="true"></div>
+    <div class="container-xl px-4">
       <div class="cta-content">
-        <span class="cta-label">Ready to Book?</span>
-        <h2 class="cta-title">We Are Always Ready To Secure Your Seats</h2>
-        <a href="index.php" class="btn btn-primary">Browse Events</a>
+        <p class="about-kicker">Ready to book?</p>
+        <h2>Find the next show worth showing up for.</h2>
+        <a href="events.php" class="btn-primary">Browse Events</a>
       </div>
     </div>
   </section>
+</main>
 
-  <!-- ===== FOOTER ===== -->
-  <?php require_once __DIR__ . '/includes/footer.php'; ?>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    (function () {
-      const navbar = document.querySelector('.navbar-clicket');
-      if (!navbar) {
-        return;
-      }
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  (function () {
+    const navbar = document.querySelector('.navbar-clicket');
+    if (!navbar) {
+      return;
+    }
 
-      function handleScroll() {
-        navbar.classList.toggle('scrolled', window.scrollY > 60);
-      }
+    function handleScroll() {
+      navbar.classList.toggle('scrolled', window.scrollY > 60);
+    }
 
-      window.addEventListener('scroll', handleScroll, { passive: true });
-      handleScroll();
-    })();
-  </script>
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+  })();
+</script>
 </body>
 </html>

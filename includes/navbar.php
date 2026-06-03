@@ -23,7 +23,11 @@ $navSearchValue = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
     </a>
 
     <button class="nav-hamburger navbar-toggler d-xl-none" type="button" data-bs-toggle="collapse" data-bs-target="#clicketNavbar" aria-controls="clicketNavbar" aria-expanded="false" aria-label="Toggle navigation">
-      <img src="assets/menu.png" alt="" aria-hidden="true">
+      <span class="nav-hamburger-lines" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
     </button>
 
     <div class="collapse navbar-collapse clicket-navbar-collapse" id="clicketNavbar">
@@ -48,6 +52,10 @@ $navSearchValue = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
 
       <!-- Actions -->
       <div class="nav-actions">
+        <button class="nav-cart-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas" title="Shopping cart">
+          🛒
+          <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+        </button>
         <form class="nav-search-form <?= $navSearchValue !== '' ? 'is-open' : '' ?>" action="events.php" method="get" role="search">
           <input type="search" name="search" value="<?= htmlspecialchars($navSearchValue) ?>" placeholder="Search events" aria-label="Search events">
           <button class="nav-search-btn" type="button" aria-label="Open search">

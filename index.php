@@ -22,6 +22,7 @@ require_once __DIR__ . '/includes/log.php';
   <link rel="stylesheet" href="css/featured.css">
   <link rel="stylesheet" href="css/events.css">
   <link rel="stylesheet" href="css/partners-footer.css">
+  <link rel="stylesheet" href="css/cart.css">
 
   <style>
     /* ── CTA Banner ──────────────────────────── */
@@ -69,6 +70,41 @@ require_once __DIR__ . '/includes/log.php';
 <body>
 
 <?php require_once __DIR__ . '/includes/navbar.php'; ?>
+
+<!-- Shopping Cart Offcanvas -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
+  <div class="offcanvas-header cart-offcanvas-header">
+    <h5 class="offcanvas-title" id="cartOffcanvasLabel">🛒 Shopping Cart</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body cart-offcanvas-body">
+    <div id="cartItemsContainer" class="cart-items-container">
+      <!-- Items rendered here -->
+    </div>
+  </div>
+  <div class="cart-offcanvas-footer">
+    <div class="cart-summary">
+      <div class="cart-summary-row">
+        <span>Subtotal:</span>
+        <span id="cartSubtotal">₱0</span>
+      </div>
+      <div class="cart-summary-row">
+        <span>Tax (10%):</span>
+        <span id="cartTax">₱0</span>
+      </div>
+      <div class="cart-summary-row cart-total">
+        <span>Total:</span>
+        <span id="cartTotal">₱0</span>
+      </div>
+    </div>
+    <button type="button" class="btn btn-primary w-100" id="checkoutBtn">
+      Proceed to Booking
+    </button>
+    <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-bs-dismiss="offcanvas">
+      Continue Shopping
+    </button>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════
      HERO SECTION
@@ -526,6 +562,17 @@ function scrollTrack(id, dir) {
     });
   });
 })();
+</script>
+
+<!-- Bootstrap Bundle (with Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Cart Manager -->
+<script src="js/cart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    cartManager.init();
+  });
 </script>
 
 </body>
