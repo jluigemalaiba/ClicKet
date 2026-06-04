@@ -75,5 +75,12 @@
         "email": "talastrisha@gmail.com",
         "password": "$2y$10$BkYaqBd54R6zi6\/cUy9hz.3SKVlhmSRE4FBSakhXePBeTUpjxSNf2",
         "created_at": "2026-06-01T21:53:10+02:00"
+    },
+    {
+        "id": "ddb1cd3386a986d3",
+        "name": "Trisha Mae Talas",
+        "email": "talastrishamae@gmail.com",
+        "password": "$2y$10$cPyCoF7XeYFiLUF2\/rocJugzSIsmf5tR8s27l3kS7uHOwv1fcsRr2",
+        "created_at": "2026-06-04T07:50:03+02:00"
     }
 ]
