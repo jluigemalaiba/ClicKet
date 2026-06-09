@@ -52,10 +52,6 @@ $navSearchValue = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
 
       <!-- Actions -->
       <div class="nav-actions">
-        <button class="nav-cart-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas" aria-controls="cartOffcanvas" title="Shopping cart">
-          🛒
-          <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
-        </button>
         <form class="nav-search-form <?= $navSearchValue !== '' ? 'is-open' : '' ?>" action="events.php" method="get" role="search">
           <input type="search" name="search" value="<?= htmlspecialchars($navSearchValue) ?>" placeholder="Search events" aria-label="Search events">
           <button class="nav-search-btn" type="button" aria-label="Open search">
