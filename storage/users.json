@@ -75,5 +75,12 @@
         "email": "talastrisha@gmail.com",
         "password": "$2y$10$BkYaqBd54R6zi6\/cUy9hz.3SKVlhmSRE4FBSakhXePBeTUpjxSNf2",
         "created_at": "2026-06-01T21:53:10+02:00"
+    },
+    {
+        "id": "24b44ef3e545f51e",
+        "name": "Ariana Grande",
+        "email": "cludygrissy@gmail.com",
+        "password": "$2y$10$sKpVJP5M3tM.3r8wuvxAlu8g2a28l7t5JlAJOZD2cmfYrOQeM5uD.",
+        "created_at": "2026-06-04T08:52:26+02:00"
     }
 ]
