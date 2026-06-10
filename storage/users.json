@@ -82,5 +82,12 @@
         "email": "cludygrissy@gmail.com",
         "password": "$2y$10$sKpVJP5M3tM.3r8wuvxAlu8g2a28l7t5JlAJOZD2cmfYrOQeM5uD.",
         "created_at": "2026-06-04T08:52:26+02:00"
+    },
+    {
+        "id": "f15868540ddf697c",
+        "name": "ariana234",
+        "email": "arianagrande@gmail.com",
+        "password": "$2y$10$1VmiEq9ZIa\/fBQGfo5vjNuLJXFVs7vwLNsKImMUMeAGmsP.kQ305C",
+        "created_at": "2026-06-10T06:09:16+02:00"
     }
 ]

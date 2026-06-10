@@ -495,15 +495,17 @@ if (!$user && $mode === 'account') {
           <input type="hidden" name="mode" id="authModeInput" value="<?= $mode === 'signup' ? 'signup' : 'login' ?>">
 
           <div class="field-group auth-signup-field <?= $mode === 'signup' ? '' : 'auth-field--hidden' ?>">
-            <label class="field-label" for="nameField">Full Name</label>
+            <label class="field-label" for="nameField">Username</label>
             <input
               class="field-input"
               type="text"
               id="nameField"
               name="name"
               value="<?= oldInput('name') ?>"
-              placeholder="e.g. Maria Santos"
-              autocomplete="name"
+              placeholder="e.g. ariana123"
+              autocomplete="username"
+              minlength="6"
+              pattern="^\S{6,}$"
               <?= $mode === 'signup' ? 'required' : 'disabled' ?>
             >
           </div>
@@ -530,7 +532,7 @@ if (!$user && $mode === 'account') {
                 type="password"
                 name="password"
                 id="pwField"
-                placeholder="<?= $mode === 'signup' ? 'Minimum 8 characters' : 'Enter your password' ?>"
+                placeholder="<?= $mode === 'signup' ? '8+ chars, uppercase, number, symbol' : 'Enter your password' ?>"
                 autocomplete="<?= $mode === 'signup' ? 'new-password' : 'current-password' ?>"
                 required
               >
@@ -630,7 +632,7 @@ if (!$user && $mode === 'account') {
       title: 'Join ClicKet',
       copy: 'Set up your account to book events faster and keep all your tickets in one place.',
       submit: 'Create Account',
-      passwordPlaceholder: 'Minimum 8 characters',
+      passwordPlaceholder: '8+ chars, uppercase, number, symbol',
       passwordAutocomplete: 'new-password'
     }
   };

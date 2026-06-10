@@ -149,7 +149,11 @@ function registerUser(string $name, string $email, string $password, string $con
     $errors = [];
 
     if ($name === '') {
-        $errors[] = 'Please enter your full name.';
+        $errors[] = 'Please enter your username.';
+    } elseif (strlen($name) < 6) {
+        $errors[] = 'Username must be at least 6 characters.';
+    } elseif (preg_match('/\s/', $name)) {
+        $errors[] = 'Username cannot contain spaces.';
     }
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -158,6 +162,12 @@ function registerUser(string $name, string $email, string $password, string $con
 
     if (strlen($password) < 8) {
         $errors[] = 'Password must be at least 8 characters.';
+    } elseif (!preg_match('/[A-Z]/', $password)) {
+        $errors[] = 'Password must include at least one uppercase letter.';
+    } elseif (!preg_match('/[0-9]/', $password)) {
+        $errors[] = 'Password must include at least one number.';
+    } elseif (!preg_match('/[^A-Za-z0-9]/', $password)) {
+        $errors[] = 'Password must include at least one special character.';
     }
 
     if ($password !== $confirm) {

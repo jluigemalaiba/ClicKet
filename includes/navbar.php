@@ -68,8 +68,11 @@ $navFlash = pullFlashMessage();
             </button>
             <div class="dropdown-menu dropdown-menu-end nav-profile-menu">
               <div class="nav-profile-summary">
-                <span class="nav-profile-name"><?= htmlspecialchars($navUser['name']) ?></span>
-                <span class="nav-profile-email"><?= htmlspecialchars($navUser['email']) ?></span>
+                <span class="nav-profile-summary-avatar" aria-hidden="true"><?= htmlspecialchars($navUserInitial) ?></span>
+                <span class="nav-profile-summary-text">
+                  <span class="nav-profile-name"><?= htmlspecialchars($navUser['name']) ?></span>
+                  <span class="nav-profile-email"><?= htmlspecialchars($navUser['email']) ?></span>
+                </span>
               </div>
 
               <a class="nav-profile-item" href="auth.php?mode=account">

@@ -364,15 +364,38 @@
 
 .nav-profile-summary {
   display: grid;
-  gap: 6px;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
   min-width: 0;
   padding: 10px 10px 12px;
   border-bottom: 1px solid var(--gray-200);
   margin-bottom: 6px;
 }
 
+.nav-profile-summary-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--red-primary);
+  color: var(--white);
+  font-size: 15px;
+  font-weight: 900;
+  box-shadow: 0 0 0 5px rgba(232,22,43,.1);
+}
+
+.nav-profile-summary-text {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
 .nav-profile-name,
 .nav-profile-email {
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
