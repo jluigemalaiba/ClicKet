@@ -1298,7 +1298,7 @@ $heroTickets = [
 
     function start() {
       window.clearInterval(timer);
-      timer = window.setInterval(() => render(active + 1), 4200);
+      timer = window.setInterval(() => render(active + 1), 3400);
     }
 
     dots.forEach((dot, index) => {
@@ -1312,7 +1312,10 @@ $heroTickets = [
     carousel.addEventListener('mouseleave', start);
 
     render(0);
-    start();
+    window.setTimeout(() => {
+      render(active + 1);
+      start();
+    }, 650);
   }
 
   window.addEventListener('scroll', handleScroll, { passive: true });
