@@ -32,12 +32,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($result['success']) {
+        $authUser = currentUser();
+        $firstName = userDisplayName($authUser);
         $message = $mode === 'signup'
-            ? 'Your account has been created successfully.'
-            : 'Signed in successfully. Welcome back.';
+            ? 'Welcome to ClicKet' . ($firstName !== '' ? ', ' . $firstName : '') . '!'
+            : 'Welcome back' . ($firstName !== '' ? ', ' . $firstName : '') . '!';
 
         setFlashMessage('success', $message);
-        header('Location: auth.php?mode=account');
+        header('Location: index.php');
         exit;
     }
 

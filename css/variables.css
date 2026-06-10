@@ -86,6 +86,8 @@ button { cursor: pointer; border: none; background: none; font-family: var(--fon
 .section-title span { color: var(--red-primary); }
 
 .section-header {
+  position: relative;
+  z-index: 5;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -95,6 +97,12 @@ button { cursor: pointer; border: none; background: none; font-family: var(--fon
 }
 
 .see-all-btn {
+  position: relative;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
   font-family: var(--font-body);
   font-size: 13px;
   font-weight: 600;
@@ -102,7 +110,7 @@ button { cursor: pointer; border: none; background: none; font-family: var(--fon
   letter-spacing: 1.5px;
   color: var(--red-primary);
   border: 1.5px solid var(--red-primary);
-  padding: 8px 22px;
+  padding: 0 28px;
   border-radius: var(--btn-radius);
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast);
   white-space: nowrap;

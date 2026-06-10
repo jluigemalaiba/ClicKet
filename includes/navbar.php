@@ -8,6 +8,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 $eventPages = ['events.php', 'concerts.php', 'theater.php', 'sports.php'];
 $isEventsActive = in_array($currentPage, $eventPages, true);
 $navSearchValue = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
+$navFlash = pullFlashMessage();
 ?>
 <nav class="navbar-clicket navbar navbar-expand-xl">
   <div class="navbar-inner">
@@ -117,15 +118,36 @@ $navSearchValue = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
   </div>
 </nav>
 
+<?php if ($navFlash): ?>
+<div class="ck-toast ck-toast--<?= htmlspecialchars($navFlash['type']) ?>" id="ckToast" role="status" aria-live="polite">
+  <span class="ck-toast__mark" aria-hidden="true"></span>
+  <span class="ck-toast__message"><?= htmlspecialchars($navFlash['message']) ?></span>
+  <button class="ck-toast__close" type="button" aria-label="Close notification">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </svg>
+  </button>
+</div>
+<?php endif; ?>
+
 <script>
   (() => {
     const searchForms = document.querySelectorAll('.nav-search-form');
+
+    function closeSearch(form) {
+      const input = form.querySelector('input[type="search"]');
+      form.classList.remove('is-open');
+      if (input) input.blur();
+    }
 
     searchForms.forEach((form) => {
       const input = form.querySelector('input[type="search"]');
       const button = form.querySelector('.nav-search-btn');
 
-      button.addEventListener('click', () => {
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+
         if (!form.classList.contains('is-open')) {
           form.classList.add('is-open');
           input.focus();
@@ -140,7 +162,33 @@ $navSearchValue = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
         input.focus();
       });
 
+      form.addEventListener('click', (event) => event.stopPropagation());
       input.addEventListener('focus', () => form.classList.add('is-open'));
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeSearch(form);
+      });
     });
+
+    document.addEventListener('click', (event) => {
+      searchForms.forEach((form) => {
+        if (form.classList.contains('is-open') && !form.contains(event.target)) {
+          closeSearch(form);
+        }
+      });
+    });
+
+    const toast = document.getElementById('ckToast');
+
+    if (toast) {
+      const closeBtn = toast.querySelector('.ck-toast__close');
+      const closeToast = () => {
+        toast.classList.remove('is-visible');
+        window.setTimeout(() => toast.remove(), 260);
+      };
+
+      requestAnimationFrame(() => toast.classList.add('is-visible'));
+      if (closeBtn) closeBtn.addEventListener('click', closeToast);
+      window.setTimeout(closeToast, 5200);
+    }
   })();
 </script>
