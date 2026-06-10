@@ -27,22 +27,22 @@ function landscapeUrl(string $category, int $seed): string {
 
 // Featured events
 $featured_events = [
-  ['title'=>'BTS Permission to Dance Manila','sub'=>'High-demand concert','category'=>'Concert','venue'=>'MOA Arena','date'=>'Nov 15, 2025','price'=>'PHP 12,000','poster'=>posterUrl('featured',1)],
+  ['title'=>'BTS Permission to Dance Manila','sub'=>'International','category'=>'Concert','venue'=>'MOA Arena','date'=>'Nov 15, 2025','price'=>'PHP 12,000','poster'=>posterUrl('featured',1)],
   ['title'=>'Miss Saigon','sub'=>'Broadway Revisited','category'=>'Theater','venue'=>'Newport Performing Arts Theater','date'=>'Oct 22, 2025','price'=>'PHP 1,800','poster'=>posterUrl('featured',2)],
   ['title'=>'PBA Finals','sub'=>'Game 7 - The Decider','category'=>'Sports','venue'=>'Smart Araneta Coliseum','date'=>'Dec 5, 2025','price'=>'PHP 600','poster'=>posterUrl('featured',3)],
   ['title'=>'BLACKPINK Born Pink Encore','sub'=>'Arena tour','category'=>'Concert','venue'=>'MOA Arena','date'=>'Jan 10, 2026','price'=>'PHP 9,500','poster'=>posterUrl('featured',4)],
   ['title'=>'Hamilton','sub'=>'The Musical','category'=>'Theater','venue'=>'Newport Performing Arts Theater','date'=>'Feb 14, 2026','price'=>'PHP 2,500','poster'=>posterUrl('featured',5)],
   ['title'=>'FIBA Asia Cup','sub'=>'Philippines vs. Lebanon','category'=>'Sports','venue'=>'Philippine Arena','date'=>'Mar 2, 2026','price'=>'PHP 1,200','poster'=>posterUrl('featured',6)],
-  ['title'=>'Taylor Swift The Eras Tour Manila','sub'=>'High-demand concert','category'=>'Concert','venue'=>'Philippine Arena','date'=>'Apr 19, 2026','price'=>'PHP 14,500','poster'=>posterUrl('featured',7)],
+  ['title'=>'Taylor Swift The Eras Tour Manila','sub'=>'International','category'=>'Concert','venue'=>'Philippine Arena','date'=>'Apr 19, 2026','price'=>'PHP 14,500','poster'=>posterUrl('featured',7)],
 ];
 
 // Concert events
 $concert_events = [
-  ['title'=>'BTS Permission to Dance Manila','artist'=>'BTS','venue'=>'MOA Arena','date'=>'Nov 15, 2025','price'=>'PHP 12,000','rating'=>5,'type'=>'High-Demand Concert'],
-  ['title'=>'BLACKPINK Born Pink Encore','artist'=>'BLACKPINK','venue'=>'MOA Arena','date'=>'Jan 10, 2026','price'=>'PHP 9,500','rating'=>5,'type'=>'High-Demand Concert'],
-  ['title'=>'Bruno Mars 24K Magic Live','artist'=>'Bruno Mars','venue'=>'MOA Arena','date'=>'Jan 24, 2026','price'=>'PHP 8,500','rating'=>5,'type'=>'High-Demand Concert'],
-  ['title'=>'Ariana Grande Eternal Sunshine Live','artist'=>'Ariana Grande','venue'=>'MOA Arena','date'=>'Feb 28, 2026','price'=>'PHP 10,500','rating'=>5,'type'=>'High-Demand Concert'],
-  ['title'=>'Taylor Swift The Eras Tour Manila','artist'=>'Taylor Swift','venue'=>'Philippine Arena','date'=>'Apr 19, 2026','price'=>'PHP 14,500','rating'=>5,'type'=>'High-Demand Concert'],
+  ['title'=>'BTS Permission to Dance Manila','artist'=>'BTS','venue'=>'MOA Arena','date'=>'Nov 15, 2025','price'=>'PHP 12,000','rating'=>5,'type'=>'International'],
+  ['title'=>'BLACKPINK Born Pink Encore','artist'=>'BLACKPINK','venue'=>'MOA Arena','date'=>'Jan 10, 2026','price'=>'PHP 9,500','rating'=>5,'type'=>'International'],
+  ['title'=>'Bruno Mars 24K Magic Live','artist'=>'Bruno Mars','venue'=>'MOA Arena','date'=>'Jan 24, 2026','price'=>'PHP 8,500','rating'=>5,'type'=>'International'],
+  ['title'=>'Ariana Grande Eternal Sunshine Live','artist'=>'Ariana Grande','venue'=>'MOA Arena','date'=>'Feb 28, 2026','price'=>'PHP 10,500','rating'=>5,'type'=>'International'],
+  ['title'=>'Taylor Swift The Eras Tour Manila','artist'=>'Taylor Swift','venue'=>'Philippine Arena','date'=>'Apr 19, 2026','price'=>'PHP 14,500','rating'=>5,'type'=>'International'],
   ['title'=>'Coldplay Music of the Spheres','artist'=>'Coldplay','venue'=>'Philippine Arena','date'=>'Mar 8, 2026','price'=>'PHP 7,500','rating'=>5,'type'=>'International'],
   ['title'=>'Ed Sheeran Mathematics','artist'=>'Ed Sheeran','venue'=>'Philippine Arena','date'=>'May 22, 2026','price'=>'PHP 6,500','rating'=>5,'type'=>'International'],
   ['title'=>'Billie Eilish Hit Me Hard and Soft','artist'=>'Billie Eilish','venue'=>'Philippine Arena','date'=>'Jun 20, 2026','price'=>'PHP 8,800','rating'=>5,'type'=>'International'],

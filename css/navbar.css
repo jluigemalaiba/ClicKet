@@ -842,3 +842,511 @@
   .nav-btn-signup { padding: 8px 14px; font-size: 12px; }
   .navbar-clicket.scrolled { width: calc(100% - 24px); top: 8px; }
 }
+
+/* =============================================
+   Profile Edit Panel (Offcanvas)
+   ============================================= */
+
+.profile-edit-panel {
+  width: min(480px, 100vw) !important;
+  border-left: 1px solid var(--gray-200);
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+}
+
+/* Header */
+.profile-edit-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 24px 24px 18px;
+  border-bottom: 1px solid var(--gray-100);
+  flex-shrink: 0;
+  background: var(--white);
+}
+
+.profile-edit-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 3px;
+  line-height: 1.2;
+}
+
+.profile-edit-subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gray-500);
+  margin: 0;
+}
+
+.profile-edit-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--gray-100);
+  color: var(--gray-500);
+  flex-shrink: 0;
+  margin-top: -2px;
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+
+.profile-edit-close:hover { background: rgba(232,22,43,.1); color: var(--red-primary); }
+.profile-edit-close svg { width: 15px; height: 15px; stroke: currentColor; }
+
+/* Body */
+.profile-edit-body {
+  flex: 1 1 0;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--gray-200) transparent;
+}
+
+.profile-edit-body::-webkit-scrollbar { width: 5px; }
+.profile-edit-body::-webkit-scrollbar-thumb { background: var(--gray-200); border-radius: 99px; }
+
+/* Avatar */
+.profile-edit-avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  background: var(--gray-100);
+  border-radius: 14px;
+  border: 1px solid var(--gray-200);
+}
+
+.profile-edit-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.profile-edit-avatar-display {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--red-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 0 0 3px var(--white), 0 0 0 5px rgba(232,22,43,.18);
+}
+
+.profile-edit-avatar-initial {
+  color: var(--white);
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.profile-edit-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-edit-avatar-btn {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--red-primary);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.18);
+  transition: background var(--dur-fast), transform var(--dur-fast);
+}
+
+.profile-edit-avatar-btn:hover { background: var(--red-light); transform: scale(1.08); }
+.profile-edit-avatar-btn svg { width: 13px; height: 13px; stroke: currentColor; }
+
+.profile-edit-avatar-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 4px;
+}
+
+.profile-edit-avatar-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--gray-500);
+  margin: 0;
+}
+
+/* Fields */
+.profile-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.profile-edit-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.profile-edit-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray-600);
+  letter-spacing: .3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-edit-optional {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+
+.profile-edit-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--white);
+  border: 1.5px solid var(--gray-200);
+  border-radius: 10px;
+  outline: none;
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+  appearance: none;
+}
+
+.profile-edit-input:focus {
+  border-color: rgba(232,22,43,.4);
+  box-shadow: 0 0 0 3px rgba(232,22,43,.1);
+}
+
+.profile-edit-input::placeholder { color: var(--gray-400); }
+
+/* Textarea */
+.profile-edit-textarea {
+  height: auto;
+  padding: 10px 14px;
+  resize: none;
+  line-height: 1.5;
+}
+
+.profile-edit-char-count {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--gray-400);
+  text-align: right;
+  margin-top: -2px;
+}
+
+/* Input with prefix (+63) */
+.profile-edit-input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--gray-200);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--white);
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+
+.profile-edit-input-wrap:focus-within {
+  border-color: rgba(232,22,43,.4);
+  box-shadow: 0 0 0 3px rgba(232,22,43,.1);
+}
+
+.profile-edit-prefix {
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray-500);
+  border-right: 1.5px solid var(--gray-200);
+  height: 42px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  background: var(--gray-100);
+  flex-shrink: 0;
+}
+
+.profile-edit-input--prefix {
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  flex: 1;
+}
+
+/* Input with leading icon (calendar, email) */
+.profile-edit-input-wrap--icon {
+  position: relative;
+}
+
+.profile-edit-input-wrap--icon .profile-edit-field-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  stroke: var(--gray-400);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.profile-edit-input--icon {
+  padding-left: 38px;
+}
+
+/* Date input — force calendar-only look */
+input[type="date"].profile-edit-input,
+input[type="date"].profile-edit-input--icon {
+  cursor: pointer;
+  caret-color: transparent;
+}
+
+input[type="date"].profile-edit-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* Select */
+.profile-edit-select-wrap {
+  position: relative;
+}
+
+.profile-edit-select {
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.profile-edit-select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  stroke: var(--gray-400);
+  pointer-events: none;
+}
+
+/* Section divider */
+.profile-edit-section-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin: 4px 0 -4px;
+}
+
+.profile-edit-section-divider::before,
+.profile-edit-section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--gray-200);
+}
+
+/* Footer */
+.profile-edit-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--gray-100);
+  flex-shrink: 0;
+  background: var(--white);
+}
+
+.profile-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  border-radius: var(--btn-radius);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 0;
+  transition: background var(--dur-fast), color var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast);
+}
+
+.profile-edit-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  flex-shrink: 0;
+}
+
+.profile-edit-btn--ghost {
+  background: var(--gray-100);
+  color: var(--gray-600);
+  border: 1.5px solid var(--gray-200);
+}
+
+.profile-edit-btn--ghost:hover {
+  background: var(--gray-200);
+  color: var(--text-primary);
+}
+
+.profile-edit-btn--save {
+  background: var(--red-primary);
+  color: var(--white);
+}
+
+.profile-edit-btn--save:hover {
+  background: var(--red-light);
+  transform: translateY(-1px);
+  box-shadow: var(--glow-red);
+}
+
+/* nav-profile-edit-trigger — same visual as nav-profile-item */
+.nav-profile-edit-trigger {
+  background: none;
+  border: 0;
+  text-align: left;
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Mobile overrides */
+@media (max-width: 575px) {
+  .profile-edit-panel { width: 100vw !important; }
+  .profile-edit-body { padding: 18px 16px; }
+  .profile-edit-header { padding: 18px 16px 14px; }
+  .profile-edit-footer { padding: 14px 16px; }
+  .profile-edit-row { grid-template-columns: 1fr; }
+}
+
+/* =============================================
+   Navbar — Mobile responsiveness fixes
+   ============================================= */
+
+/* Hide the inline logout button on desktop (it duplicates inside dropdown) */
+@media (min-width: 1200px) {
+  .nav-btn-logout-inline { display: none !important; }
+}
+
+/* On mobile, hide the profile dropdown icon and show clean logout button */
+@media (max-width: 1199px) {
+  /* Profile toggle button: hide, replaced by full-width dropdown */
+  .nav-profile-toggle { display: none !important; }
+
+  /* Profile dropdown opens flat inside nav */
+  .nav-profile .dropdown-menu {
+    position: static !important;
+    transform: none !important;
+    display: none;
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    box-shadow: none;
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+  }
+
+  .nav-profile .dropdown-menu.show { display: block; }
+
+  /* Show a full-width "Account" trigger button in mobile */
+  .nav-profile::before {
+    display: none; /* handled via toggle */
+  }
+
+  /* Re-show the profile section nicely */
+  .nav-profile {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Logout inline button: show on mobile for quick access */
+  .nav-btn-logout-inline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 420px;
+  }
+}
+
+
+/* Mobile profile trigger button */
+.nav-profile-mobile-btn {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--gray-200);
+  background: var(--white);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+
+.nav-profile-mobile-btn:hover,
+.nav-profile-mobile-btn.show {
+  background: rgba(232,22,43,.05);
+  border-color: rgba(232,22,43,.3);
+}
+
+.nav-profile-mobile-btn .nav-profile-avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.nav-profile-mobile-chevron {
+  width: 14px;
+  height: 14px;
+  stroke: var(--gray-400);
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform var(--dur-fast);
+}
+
+.nav-profile-mobile-btn.show .nav-profile-mobile-chevron {
+  transform: rotate(180deg);
+}
+
+@media (max-width: 1199px) {
+  .nav-profile-mobile-btn { display: inline-flex !important; }
+}
