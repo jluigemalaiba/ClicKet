@@ -3,11 +3,6 @@
 require_once __DIR__ . '/includes/data.php';
 require_once __DIR__ . '/includes/log.php';
 
-function eventPagePriceValue(string $price): int {
-    preg_match_all('/\d+/', $price, $matches);
-    return (int) implode('', $matches[0] ?? []);
-}
-
 function eventPageStars(int $rating): string {
     $rating = max(0, min(5, $rating));
     $stars = '';
@@ -23,16 +18,12 @@ function buildEventPageRows(array $events, string $categoryKey, string $category
 
     foreach ($events as $idx => $event) {
         $sub = $event['artist'] ?? $event['company'] ?? $event['league'] ?? '';
-        $price = (string) ($event['price'] ?? '');
-
         $rows[] = [
             'id' => $categoryKey . '-' . ($idx + 1),
             'title' => $event['title'],
             'date' => $event['date'],
             'time' => $times[($idx + $timeOffset) % count($times)],
             'venue' => $event['venue'],
-            'price' => $price,
-            'priceValue' => eventPagePriceValue($price),
             'rating' => (int) ($event['rating'] ?? 4),
             'type' => $event['type'] ?? $categoryLabel,
             'sub' => $sub,
@@ -201,7 +192,7 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
 
     .events-filter-panel {
       display: grid;
-      grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr) minmax(220px, 1fr) auto;
+      grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr) minmax(220px, 1fr);
       gap: 16px;
       align-items: end;
       padding: 20px;
@@ -244,20 +235,6 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
       border-color: var(--red-primary);
       background: #fff;
       box-shadow: 0 0 0 4px rgba(232,22,43,.1);
-    }
-
-    .events-count-pill {
-      min-height: 46px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 18px;
-      border-radius: var(--btn-radius);
-      background: rgba(232,22,43,.1);
-      color: var(--red-primary);
-      font-size: 13px;
-      font-weight: 800;
-      white-space: nowrap;
     }
 
     .events-listing-section {
@@ -358,12 +335,11 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
       right: 12px;
       z-index: 2;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-start;
       gap: 8px;
     }
 
-    .events-category-badge,
-    .events-price-badge {
+    .events-category-badge {
       display: inline-flex;
       align-items: center;
       min-height: 26px;
@@ -380,11 +356,6 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
     .events-category-badge {
       background: rgba(17,17,17,.68);
       backdrop-filter: blur(8px);
-    }
-
-    .events-price-badge {
-      background: var(--red-primary);
-      box-shadow: 0 8px 20px rgba(232,22,43,.3);
     }
 
     .events-card-overlay-title {
@@ -550,9 +521,6 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
         grid-template-columns: 1fr 1fr;
       }
 
-      .events-count-pill {
-        grid-column: 1 / -1;
-      }
     }
 
     @media (max-width: 767px) {
@@ -661,13 +629,8 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
           <label for="sortFilter">Sorting</label>
           <select class="events-select" id="sortFilter">
             <option value="rating-asc">Lowest Rating &rarr; Highest Rating</option>
-            <option value="price-asc">Lowest Price &rarr; Highest Price</option>
             <option value="title-asc">A &rarr; Z</option>
           </select>
-        </div>
-
-        <div class="events-count-pill" id="eventsCount" aria-live="polite">
-          <?= count($events) ?> Events
         </div>
       </div>
     </div>
@@ -688,7 +651,6 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
             class="events-card"
             data-category="<?= htmlspecialchars($event['categoryKey']) ?>"
             data-rating="<?= (int) $event['rating'] ?>"
-            data-price="<?= (int) $event['priceValue'] ?>"
             data-title="<?= htmlspecialchars(strtolower($event['title'])) ?>"
             data-venue="<?= htmlspecialchars($event['venue']) ?>"
             data-search="<?= htmlspecialchars(strtolower($event['title'] . ' ' . $event['categoryLabel'] . ' ' . $event['type'] . ' ' . $event['venue'] . ' ' . $event['sub'])) ?>"
@@ -697,7 +659,6 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
               <img src="<?= htmlspecialchars($event['poster']) ?>" alt="<?= htmlspecialchars($event['title']) ?> poster" loading="lazy">
               <div class="events-card-badges">
                 <span class="events-category-badge"><?= htmlspecialchars($event['categoryLabel']) ?></span>
-                <span class="events-price-badge"><?= htmlspecialchars($event['price']) ?></span>
               </div>
               <div class="events-card-overlay-title">
                 <span><?= htmlspecialchars($event['type']) ?></span>
@@ -753,9 +714,15 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
   const venueFilter = document.getElementById('venueFilter');
   const sortFilter = document.getElementById('sortFilter');
   const grid = document.getElementById('eventsGrid');
-  const count = document.getElementById('eventsCount');
+  const navEventsLabel = document.getElementById('navEventsLabel');
   const empty = document.getElementById('eventsEmpty');
   const searchQuery = (new URLSearchParams(window.location.search).get('search') || '').trim().toLowerCase();
+  const categoryLabels = {
+    all: 'Events',
+    concerts: 'Concerts',
+    theater: 'Theater Plays',
+    sports: 'Sports Events'
+  };
 
   function handleScroll() {
     if (navbar) {
@@ -771,10 +738,6 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
     const sorted = cards.slice();
 
     sorted.sort((a, b) => {
-      if (mode === 'price-asc') {
-        return Number(a.dataset.price) - Number(b.dataset.price);
-      }
-
       if (mode === 'title-asc') {
         return a.dataset.title.localeCompare(b.dataset.title);
       }
@@ -804,7 +767,10 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
       }
     });
 
-    count.textContent = visible + (visible === 1 ? ' Event' : ' Events');
+    if (navEventsLabel) {
+      navEventsLabel.textContent = categoryLabels[selectedCategory] || 'Events';
+    }
+
     empty.classList.toggle('is-visible', visible === 0);
   }
 

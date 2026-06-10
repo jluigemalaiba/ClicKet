@@ -146,25 +146,26 @@ $venues = [
     }
     .arc-meta-item { display: flex; align-items: center; gap: 5px; }
     .arc-meta-sep  { color: #dcdbdb; }
-    .arc-info-btn {
+    .arc-info-hint {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 42px;
-      padding: 0 26px;
-      border-radius: var(--btn-radius);
-      background: var(--red-primary);
-      color: #fff;
+      gap: 8px;
+      max-width: 100%;
+      margin: 0;
+      color: var(--gray-600);
       font-size: .9rem;
       font-weight: 800;
-      text-decoration: none;
-      transition: background var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast);
+      line-height: 1.45;
     }
-    .arc-info-btn:hover {
-      background: var(--red-light);
-      color: #fff;
-      transform: translateY(-2px);
-      box-shadow: var(--glow-red);
+    .arc-info-hint::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      flex: 0 0 8px;
+      border-radius: 50%;
+      background: var(--red-primary);
+      box-shadow: 0 0 0 5px rgba(232,22,43,.1);
     }
     .arc-resume-hint { font-size: .78rem; color: var(--gray-400); margin: 10px 0 0; }
     @media (max-width: 767px) {
@@ -272,7 +273,7 @@ $venues = [
               <span id="arcCapacity"></span>
             </span>
           </div>
-          <a href="events.php" class="arc-info-btn" id="arcEventsBtn">View Events</a>
+          <p class="arc-info-hint">Select this venue to view matched events</p>
         </div>
 
       </div>
@@ -305,7 +306,6 @@ $venues = [
   var arcType   = document.getElementById('arcType');
   var arcLoc    = document.getElementById('arcLocation');
   var arcCap    = document.getElementById('arcCapacity');
-  var arcBtn    = document.getElementById('arcEventsBtn');
 
   var wrap   = document.querySelector('.venue-arc-wrap');
   var N      = items.length;
@@ -371,7 +371,6 @@ $venues = [
     arcType.textContent = el.dataset.type;
     arcLoc.textContent  = el.dataset.location;
     arcCap.textContent  = el.dataset.capacity + ' seats';
-    arcBtn.href         = venueEventsUrl(el.dataset.name);
     infoPanel.hidden    = false;
     infoPanel.style.animation = 'none';
     requestAnimationFrame(function () { infoPanel.style.animation = ''; });

@@ -404,16 +404,6 @@
   align-items: flex-start;
 }
 
-.event-price-tag {
-  background: var(--red-primary);
-  color: #fff;
-  font-size: 10px;
-  font-weight: 800;
-  padding: 3px 9px;
-  border-radius: 20px;
-  letter-spacing: .4px;
-}
-
 .event-type-badge {
   background: rgba(0,0,0,.55);
   backdrop-filter: blur(6px);

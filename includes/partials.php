@@ -20,7 +20,6 @@ function renderEventCard(array $event, string $category, int $idx): void {
         <img src="<?= $poster ?>" alt="<?= $title ?>" loading="lazy">
         <div class="event-poster-overlay">
           <div class="event-poster-top">
-            <span class="event-price-tag"><?= $price ?></span>
             <span class="event-type-badge"><?= $type ?></span>
           </div>
           <div class="event-poster-bottom">
@@ -168,7 +167,6 @@ function renderCategoryShowcase(
                   data-date="<?= htmlspecialchars($event['date']) ?>"
                   data-venue="<?= htmlspecialchars($event['venue']) ?>"
                   data-sub="<?= htmlspecialchars($sub) ?>"
-                  data-price="<?= htmlspecialchars($event['price']) ?>"
                   data-rating="<?= $rating ?>"
                   data-category="<?= htmlspecialchars($label) ?>"
                   data-image="<?= landscapeUrl($category, $idx + 10) ?>"

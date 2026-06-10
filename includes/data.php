@@ -69,16 +69,16 @@ $theater_events = [
 
 // Sports events
 $sports_events = [
-  ['title'=>'PBA Finals Game 7','league'=>'PBA','venue'=>'Smart Araneta Coliseum','date'=>'Dec 5, 2025','price'=>'PHP 600','rating'=>5,'type'=>'Basketball'],
-  ['title'=>'FIBA Asia Cup QF','league'=>'FIBA','venue'=>'Philippine Arena','date'=>'Mar 2, 2026','price'=>'PHP 1,200','rating'=>5,'type'=>'Basketball'],
-  ['title'=>'Pacquiao Exhibition Bout','league'=>'WBA','venue'=>'MOA Arena','date'=>'Jan 30, 2026','price'=>'PHP 2,000','rating'=>5,'type'=>'Boxing'],
-  ['title'=>'UAAP Season 88 Finals','league'=>'UAAP','venue'=>'Smart Araneta Coliseum','date'=>'Nov 22, 2025','price'=>'PHP 500','rating'=>5,'type'=>'Basketball'],
-  ['title'=>'Azkals vs Thailand','league'=>'AFF Championship','venue'=>'Ninoy Aquino Stadium and Rizal Memorial','date'=>'Dec 18, 2025','price'=>'PHP 300','rating'=>4,'type'=>'Football'],
-  ['title'=>'WWE Live Manila','league'=>'WWE','venue'=>'Philippine Arena','date'=>'Feb 20, 2026','price'=>'PHP 1,800','rating'=>5,'type'=>'Wrestling'],
-  ['title'=>'Philippine Open Tennis','league'=>'ATP Challenger','venue'=>'Ninoy Aquino Stadium and Rizal Memorial','date'=>'Mar 15, 2026','price'=>'PHP 350','rating'=>4,'type'=>'Tennis'],
-  ['title'=>'Ironman 70.3 Laguna','league'=>'Ironman','venue'=>'Nuvali','date'=>'Apr 5, 2026','price'=>'PHP 450','rating'=>4,'type'=>'Triathlon'],
-  ['title'=>'NCAA Season 100 Finals','league'=>'NCAA Philippines','venue'=>'Filoil EcoOil Centre','date'=>'Nov 10, 2025','price'=>'PHP 400','rating'=>5,'type'=>'Basketball'],
-  ['title'=>'PVL AFC Final','league'=>'PVL','venue'=>'Philsports Arena','date'=>'May 18, 2026','price'=>'PHP 550','rating'=>5,'type'=>'Volleyball'],
-  ['title'=>'MPBL Pasay Invitational','league'=>'MPBL','venue'=>'Cuneta Astrodome','date'=>'Feb 9, 2026','price'=>'PHP 350','rating'=>4,'type'=>'Basketball'],
-  ['title'=>'Muntinlupa Hoopfest Finals','league'=>'City Hoops','venue'=>'Muntinlupa Sports Center','date'=>'Mar 28, 2026','price'=>'PHP 250','rating'=>4,'type'=>'Basketball'],
+  ['title'=>'PBA Finals Game 7','league'=>'PBA','venue'=>'Smart Araneta Coliseum','date'=>'Dec 5, 2025','rating'=>5,'type'=>'Basketball'],
+  ['title'=>'FIBA Asia Cup QF','league'=>'FIBA','venue'=>'Philippine Arena','date'=>'Mar 2, 2026','rating'=>5,'type'=>'Basketball'],
+  ['title'=>'Pacquiao Exhibition Bout','league'=>'WBA','venue'=>'MOA Arena','date'=>'Jan 30, 2026','rating'=>5,'type'=>'Boxing'],
+  ['title'=>'UAAP Season 88 Finals','league'=>'UAAP','venue'=>'Smart Araneta Coliseum','date'=>'Nov 22, 2025','rating'=>5,'type'=>'Basketball'],
+  ['title'=>'Azkals vs Thailand','league'=>'AFF Championship','venue'=>'Ninoy Aquino Stadium and Rizal Memorial','date'=>'Dec 18, 2025','rating'=>4,'type'=>'Football'],
+  ['title'=>'WWE Live Manila','league'=>'WWE','venue'=>'Philippine Arena','date'=>'Feb 20, 2026','rating'=>5,'type'=>'Wrestling'],
+  ['title'=>'Philippine Open Tennis','league'=>'ATP Challenger','venue'=>'Ninoy Aquino Stadium and Rizal Memorial','date'=>'Mar 15, 2026','rating'=>4,'type'=>'Tennis'],
+  ['title'=>'Ironman 70.3 Laguna','league'=>'Ironman','venue'=>'Nuvali','date'=>'Apr 5, 2026','rating'=>4,'type'=>'Triathlon'],
+  ['title'=>'NCAA Season 100 Finals','league'=>'NCAA Philippines','venue'=>'Filoil EcoOil Centre','date'=>'Nov 10, 2025','rating'=>5,'type'=>'Basketball'],
+  ['title'=>'PVL AFC Final','league'=>'PVL','venue'=>'Philsports Arena','date'=>'May 18, 2026','rating'=>5,'type'=>'Volleyball'],
+  ['title'=>'MPBL Pasay Invitational','league'=>'MPBL','venue'=>'Cuneta Astrodome','date'=>'Feb 9, 2026','rating'=>4,'type'=>'Basketball'],
+  ['title'=>'Muntinlupa Hoopfest Finals','league'=>'City Hoops','venue'=>'Muntinlupa Sports Center','date'=>'Mar 28, 2026','rating'=>4,'type'=>'Basketball'],
 ];

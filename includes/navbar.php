@@ -6,6 +6,14 @@ $navUserLabel = userDisplayName($navUser);
 $navUserInitial = $navUserLabel !== '' ? strtoupper(substr($navUserLabel, 0, 1)) : 'U';
 $currentPage = basename($_SERVER['PHP_SELF']);
 $navCategory = isset($_GET['category']) ? trim((string) $_GET['category']) : '';
+$navEventLabels = [
+    'concerts' => 'Concerts',
+    'theater' => 'Theater Plays',
+    'sports' => 'Sports Events',
+];
+$navEventsLabel = ($currentPage === 'events.php' && isset($navEventLabels[$navCategory]))
+    ? $navEventLabels[$navCategory]
+    : 'Events';
 $navSearchValue = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
 $navFlash = pullFlashMessage();
 ?>
@@ -37,7 +45,7 @@ $navFlash = pullFlashMessage();
         <li><a href="about.php" class="<?= ($currentPage === 'about.php') ? 'active' : '' ?>">About Us</a></li>
         <li class="nav-item dropdown nav-events-dropdown">
           <button class="nav-dropdown-toggle <?= ($currentPage === 'events.php') ? 'active' : '' ?>" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            Events
+            <span id="navEventsLabel"><?= htmlspecialchars($navEventsLabel) ?></span>
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <ul class="dropdown-menu nav-events-menu">
