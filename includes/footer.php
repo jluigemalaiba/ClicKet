@@ -10,7 +10,7 @@
 
       <!-- Brand -->
       <div class="footer-brand">
-        <a href="index.php" class="footer-logo">
+        <a href="#top" class="footer-logo" data-scroll-top>
           <span class="logo-icon">
             <img src="assets/Icon_Logo.png" alt="" aria-hidden="true">
           </span>

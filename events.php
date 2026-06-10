@@ -45,6 +45,45 @@ $events = array_merge(
 
 $venueOptions = array_values(array_unique(array_map(static fn ($event) => $event['venue'], $events)));
 sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
+
+$heroTickets = [
+    [
+        'eyebrow' => 'ClicKet Premium',
+        'title' => 'BTS Permission to Dance Manila',
+        'date' => 'Nov. 15',
+        'venue' => 'MOA Arena',
+        'sub' => 'High-demand ticket drop',
+        'poster' => posterUrl('featured', 41),
+        'category' => 'Concert',
+    ],
+    [
+        'eyebrow' => 'World Tour 2026',
+        'title' => 'Wave to Earth: The Pieces Tour',
+        'date' => 'Feb. 21',
+        'venue' => 'SM Mall of Asia Arena',
+        'sub' => 'Experience packages available soon',
+        'poster' => posterUrl('concert', 42),
+        'category' => 'Concert',
+    ],
+    [
+        'eyebrow' => 'Arena Weekend',
+        'title' => 'Taylor Swift The Eras Tour Manila',
+        'date' => 'Apr. 19',
+        'venue' => 'Philippine Arena',
+        'sub' => 'Priority ticket release',
+        'poster' => posterUrl('featured', 43),
+        'category' => 'Concert',
+    ],
+    [
+        'eyebrow' => 'Finals Night',
+        'title' => 'PBA Finals Game 7',
+        'date' => 'Dec. 05',
+        'venue' => 'Smart Araneta Coliseum',
+        'sub' => 'Championship seats',
+        'poster' => posterUrl('sports', 44),
+        'category' => 'Sports',
+    ],
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -67,42 +106,12 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
 
     .events-hero {
       position: relative;
-      min-height: 620px;
-      padding: 168px 0 92px;
+      min-height: 570px;
+      padding: 112px 0 54px;
       overflow: hidden;
-      background: #111;
-      color: #fff;
+      background: #fff;
+      color: var(--text-primary);
       isolation: isolate;
-    }
-
-    .events-hero-video,
-    .events-hero-fallback {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      z-index: -3;
-    }
-
-    .events-hero-fallback {
-      background-image: url('https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1800&h=1000&fit=crop');
-      background-size: cover;
-      background-position: center;
-    }
-
-    .events-hero-video {
-      opacity: .88;
-    }
-
-    .events-hero::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(90deg, rgba(17,17,17,.9) 0%, rgba(17,17,17,.68) 38%, rgba(232,22,43,.5) 100%),
-        linear-gradient(180deg, rgba(0,0,0,.18) 0%, rgba(0,0,0,.62) 100%);
-      z-index: -2;
     }
 
     .events-hero::after {
@@ -110,78 +119,195 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
       position: absolute;
       left: 0;
       right: 0;
-      bottom: 0;
-      height: 8px;
+      top: 0;
+      height: 7px;
       background: var(--red-primary);
-      z-index: 1;
+      z-index: 2;
     }
 
-    .events-hero-content {
-      max-width: 720px;
+    .ticket-carousel {
+      position: relative;
+      width: min(1500px, 100vw);
+      margin: 0 auto;
+      padding: 0 0 40px;
     }
 
-    .events-eyebrow {
-      display: inline-flex;
-      align-items: center;
+    .ticket-carousel-viewport {
+      position: relative;
+      height: clamp(330px, 34vw, 430px);
+      overflow: hidden;
+    }
+
+    .ticket-slide {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: min(960px, 66vw);
+      height: 100%;
+      opacity: 0;
+      transform: translateX(-50%) scale(.84);
+      transition: transform .65s cubic-bezier(.22,1,.36,1), opacity .65s cubic-bezier(.22,1,.36,1), filter .65s;
+      pointer-events: none;
+      filter: grayscale(.55) blur(2px);
+    }
+
+    .ticket-slide.is-active {
+      z-index: 5;
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+      pointer-events: auto;
+      filter: none;
+    }
+
+    .ticket-slide.is-active .ticket-card {
+      box-shadow: 0 24px 70px rgba(17,17,17,.16);
+    }
+
+    .ticket-slide.is-prev {
+      z-index: 3;
+      opacity: .26;
+      transform: translateX(-129%) scale(.88);
+    }
+
+    .ticket-slide.is-next {
+      z-index: 3;
+      opacity: .26;
+      transform: translateX(29%) scale(.88);
+    }
+
+    .ticket-card {
+      height: 100%;
+      display: grid;
+      grid-template-columns: minmax(210px, .7fr) minmax(0, 1.45fr);
       gap: 10px;
-      margin-bottom: 18px;
-      padding: 7px 14px;
-      border-radius: var(--btn-radius);
-      background: rgba(232,22,43,.8);
-      border: 1px solid rgba(255,255,255,.22);
+      border: 1px solid rgba(0,0,0,.08);
+      background: #f8f8f5;
+      box-shadow: 0 18px 50px rgba(17,17,17,.1);
+      overflow: hidden;
+    }
+
+    .ticket-visual {
+      position: relative;
+      min-width: 0;
+      background: #ddd;
+      overflow: hidden;
+    }
+
+    .ticket-visual img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(.2);
+    }
+
+    .ticket-visual::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(0,0,0,.28), rgba(0,0,0,.02));
+      pointer-events: none;
+    }
+
+    .ticket-copy {
+      position: relative;
+      display: grid;
+      align-content: center;
+      padding: clamp(28px, 4vw, 54px);
+      background:
+        radial-gradient(circle at 0 30%, rgba(232,22,43,.08), transparent 28%),
+        linear-gradient(90deg, #fff 0%, #f7f5ef 100%);
+    }
+
+    .ticket-copy::before {
+      content: '';
+      position: absolute;
+      inset: 26px auto 26px 0;
+      width: 1px;
+      border-left: 1px dashed rgba(0,0,0,.18);
+    }
+
+    .ticket-eyebrow {
+      margin: 0 0 12px;
+      color: var(--red-primary);
       font-size: 11px;
       font-weight: 800;
       letter-spacing: 2px;
       text-transform: uppercase;
     }
 
-    .events-eyebrow::before {
-      content: '';
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow: 0 0 0 5px rgba(255,255,255,.15);
-    }
-
-    .events-hero-title {
+    .ticket-title {
       font-family: var(--font-display);
-      font-size: 78px;
-      line-height: .92;
+      font-size: clamp(40px, 5.8vw, 78px);
+      line-height: .88;
       letter-spacing: 1px;
-      margin: 0 0 22px;
-      max-width: 700px;
+      margin: 0;
+      max-width: 780px;
       text-wrap: balance;
     }
 
-    .events-hero-title span {
-      color: var(--red-light);
-    }
-
-    .events-hero-copy {
-      max-width: 570px;
-      margin: 0 0 34px;
-      color: rgba(255,255,255,.78);
-      font-size: 16px;
-      line-height: 1.75;
-    }
-
-    .events-hero-actions {
+    .ticket-meta {
       display: flex;
+      align-items: end;
+      gap: clamp(20px, 4vw, 54px);
+      margin-top: 24px;
       flex-wrap: wrap;
-      gap: 12px;
+    }
+
+    .ticket-date {
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      font-size: clamp(30px, 4.2vw, 58px);
+      line-height: .9;
+      letter-spacing: .5px;
+    }
+
+    .ticket-place {
+      display: grid;
+      gap: 4px;
+      color: var(--gray-600);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .ticket-place strong {
+      color: var(--text-primary);
+      font-size: clamp(24px, 3vw, 42px);
+      line-height: .95;
+      font-family: var(--font-display);
+      font-weight: 400;
+    }
+
+    .ticket-footer-note {
+      margin-top: 26px;
+      color: var(--gray-600);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .ticket-carousel-dots {
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+      display: inline-flex;
       align-items: center;
+      gap: 12px;
+      transform: translateX(-50%);
     }
 
-    .events-hero .btn-outline {
-      border-color: rgba(255,255,255,.55);
-      color: #fff;
+    .ticket-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 0;
+      background: #d5d8d8;
+      transition: background var(--dur-fast), transform var(--dur-fast);
     }
 
-    .events-hero .btn-outline:hover {
-      background: rgba(255,255,255,.14);
-      border-color: #fff;
-      color: #fff;
+    .ticket-dot.is-active {
+      background: #879993;
+      transform: scale(1.18);
     }
 
     .events-filter-section {
@@ -654,12 +780,16 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
 
     @media (max-width: 991px) {
       .events-hero {
-        min-height: 560px;
-        padding: 142px 0 72px;
+        min-height: 510px;
+        padding: 100px 0 48px;
       }
 
-      .events-hero-title {
-        font-size: 58px;
+      .ticket-slide {
+        width: min(760px, 78vw);
+      }
+
+      .ticket-card {
+        grid-template-columns: minmax(150px, .6fr) minmax(0, 1.4fr);
       }
 
       .events-filter-panel {
@@ -670,6 +800,35 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
     }
 
     @media (max-width: 767px) {
+      .ticket-carousel-viewport {
+        height: 500px;
+      }
+
+      .ticket-slide,
+      .ticket-slide.is-prev,
+      .ticket-slide.is-next {
+        width: min(430px, calc(100vw - 32px));
+        opacity: 0;
+        transform: translateX(-50%) scale(.96);
+      }
+
+      .ticket-slide.is-active {
+        opacity: 1;
+        transform: translateX(-50%) scale(1);
+      }
+
+      .ticket-card {
+        grid-template-columns: 1fr;
+      }
+
+      .ticket-visual {
+        min-height: 180px;
+      }
+
+      .ticket-copy {
+        padding: 24px;
+      }
+
       .events-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 18px;
@@ -702,16 +861,21 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
 
     @media (max-width: 520px) {
       .events-hero {
-        min-height: 530px;
-        padding: 132px 0 62px;
+        min-height: 500px;
+        padding: 92px 0 42px;
       }
 
-      .events-hero-title {
-        font-size: 44px;
+      .ticket-carousel-viewport {
+        height: 470px;
       }
 
-      .events-hero-copy {
-        font-size: 14px;
+      .ticket-title {
+        font-size: 38px;
+      }
+
+      .ticket-meta {
+        gap: 16px;
+        margin-top: 18px;
       }
 
       .events-grid {
@@ -729,27 +893,35 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
 <?php require_once __DIR__ . '/includes/navbar.php'; ?>
 
 <main>
-  <section class="events-hero" aria-label="Events banner">
-    <div class="events-hero-fallback" aria-hidden="true"></div>
-    <video class="events-hero-video" autoplay muted loop playsinline poster="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1800&h=1000&fit=crop" aria-hidden="true">
-      <source src="https://videos.pexels.com/video-files/13641377/13641377-hd_1920_1080_24fps.mp4" type="video/mp4">
-    </video>
-
-    <div class="container-xl px-4">
-      <div class="events-hero-content">
-        <p class="events-eyebrow">ClicKet Events</p>
-        <h1 class="events-hero-title">Discover <span>Upcoming</span> Events</h1>
-        <p class="events-hero-copy">
-          Find the nights worth dressing up for, from arena tours and opening acts
-          to final whistles and standing ovations.
-        </p>
-        <div class="events-hero-actions">
-          <a href="#eventsGrid" class="btn-primary">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
-            Browse Events
-          </a>
-          <a href="auth.php?mode=login" class="btn-outline">Log In to Book</a>
-        </div>
+  <section class="events-hero" aria-label="Featured ticket carousel">
+    <div class="ticket-carousel" id="ticketCarousel">
+      <div class="ticket-carousel-viewport">
+        <?php foreach ($heroTickets as $idx => $ticket): ?>
+          <article class="ticket-slide <?= $idx === 0 ? 'is-active' : ($idx === 1 ? 'is-next' : ($idx === count($heroTickets) - 1 ? 'is-prev' : '')) ?>" data-ticket-slide="<?= $idx ?>">
+            <div class="ticket-card">
+              <div class="ticket-visual">
+                <img src="<?= htmlspecialchars($ticket['poster']) ?>" alt="<?= htmlspecialchars($ticket['title']) ?> poster" loading="<?= $idx === 0 ? 'eager' : 'lazy' ?>">
+              </div>
+              <div class="ticket-copy">
+                <p class="ticket-eyebrow"><?= htmlspecialchars($ticket['eyebrow']) ?></p>
+                <h1 class="ticket-title"><?= htmlspecialchars($ticket['title']) ?></h1>
+                <div class="ticket-meta">
+                  <div class="ticket-date"><?= htmlspecialchars($ticket['date']) ?></div>
+                  <div class="ticket-place">
+                    <strong><?= htmlspecialchars($ticket['venue']) ?></strong>
+                    <span><?= htmlspecialchars($ticket['category']) ?> &middot; <?= htmlspecialchars($ticket['sub']) ?></span>
+                  </div>
+                </div>
+                <p class="ticket-footer-note">Browse ticket availability and event details below.</p>
+              </div>
+            </div>
+          </article>
+        <?php endforeach; ?>
+      </div>
+      <div class="ticket-carousel-dots" aria-label="Featured ticket slides">
+        <?php foreach ($heroTickets as $idx => $ticket): ?>
+          <button class="ticket-dot <?= $idx === 0 ? 'is-active' : '' ?>" type="button" data-ticket-dot="<?= $idx ?>" aria-label="Show <?= htmlspecialchars($ticket['title']) ?>"></button>
+        <?php endforeach; ?>
       </div>
     </div>
   </section>
@@ -1093,6 +1265,56 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
     }
   }
 
+  function initTicketCarousel() {
+    const carousel = document.getElementById('ticketCarousel');
+    if (!carousel) {
+      return;
+    }
+
+    const slides = Array.from(carousel.querySelectorAll('[data-ticket-slide]'));
+    const dots = Array.from(carousel.querySelectorAll('[data-ticket-dot]'));
+    if (slides.length <= 1) {
+      return;
+    }
+
+    let active = 0;
+    let timer = null;
+
+    function render(nextIndex) {
+      active = (nextIndex + slides.length) % slides.length;
+      const prev = (active - 1 + slides.length) % slides.length;
+      const next = (active + 1) % slides.length;
+
+      slides.forEach((slide, index) => {
+        slide.classList.toggle('is-active', index === active);
+        slide.classList.toggle('is-prev', index === prev);
+        slide.classList.toggle('is-next', index === next);
+      });
+
+      dots.forEach((dot, index) => {
+        dot.classList.toggle('is-active', index === active);
+      });
+    }
+
+    function start() {
+      window.clearInterval(timer);
+      timer = window.setInterval(() => render(active + 1), 4200);
+    }
+
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        render(index);
+        start();
+      });
+    });
+
+    carousel.addEventListener('mouseenter', () => window.clearInterval(timer));
+    carousel.addEventListener('mouseleave', start);
+
+    render(0);
+    start();
+  }
+
   window.addEventListener('scroll', handleScroll, { passive: true });
   document.addEventListener('click', () => closeCustomSelects());
   categoryFilter.addEventListener('change', updateEvents);
@@ -1104,6 +1326,7 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
   enhanceSelect(categoryFilter, 'category');
   enhanceSelect(venueFilter, 'venue');
   enhanceSelect(sortFilter, 'sort');
+  initTicketCarousel();
   handleScroll();
   updateEvents();
 })();

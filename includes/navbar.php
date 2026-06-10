@@ -21,7 +21,7 @@ $navFlash = pullFlashMessage();
   <div class="navbar-inner">
 
     <!-- Logo -->
-    <a href="#index" class="nav-logo">
+    <a href="#top" class="nav-logo" data-scroll-top>
       <span class="logo-icon">
         <img src="assets/Icon_Logo.png" alt="" aria-hidden="true">
       </span>

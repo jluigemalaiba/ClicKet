@@ -8,6 +8,14 @@
 (() => {
   'use strict';
 
+  document.addEventListener('click', (event) => {
+    const topLink = event.target.closest('[data-scroll-top]');
+    if (!topLink) return;
+
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
   /* ─── Search Toggle ────────────────────────────────────────────────────── */
 
   const searchForms = document.querySelectorAll('.nav-search-form');
