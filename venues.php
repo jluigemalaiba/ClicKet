@@ -378,21 +378,26 @@ $venues = [
   }
 
   items.forEach(function (el) {
-    el.addEventListener('click', function () {
+    function pauseOnItem() {
       var idx = parseInt(el.dataset.index, 10);
-      if (!spinning && activeIdx === idx) {
-        spinning  = true;
-        activeIdx = null;
-        infoPanel.hidden = true;
-        items.forEach(function (b) { b.classList.remove('is-active'); });
-        return;
-      }
       spinning  = false;
       activeIdx = idx;
       items.forEach(function (b) { b.classList.remove('is-active'); });
       el.classList.add('is-active');
       showInfo(idx);
-    });
+    }
+
+    function resumeFromItem() {
+      spinning  = true;
+      activeIdx = null;
+      infoPanel.hidden = true;
+      items.forEach(function (b) { b.classList.remove('is-active'); });
+    }
+
+    el.addEventListener('mouseenter', pauseOnItem);
+    el.addEventListener('mouseleave', resumeFromItem);
+    el.addEventListener('focus', pauseOnItem);
+    el.addEventListener('blur', resumeFromItem);
   });
 
   window.addEventListener('resize', layout, { passive: true });

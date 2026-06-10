@@ -177,6 +177,7 @@
   border: 1px solid rgba(0,0,0,.08);
   border-radius: 14px;
   box-shadow: 0 18px 45px rgba(0,0,0,.14);
+  z-index: 1100;
 }
 
 .nav-events-menu .dropdown-item {
@@ -352,6 +353,7 @@
   background: var(--white);
   box-shadow: 0 18px 48px rgba(0,0,0,.16);
   color: var(--text-primary);
+  z-index: 1100;
   transition: background var(--dur-mid), border-color var(--dur-mid), color var(--dur-mid), box-shadow var(--dur-mid);
 }
 

@@ -113,6 +113,7 @@ require_once __DIR__ . '/includes/log.php';
         Browse Events
       </a>
     </div>
+  </div>
 </section>
 
 
@@ -363,12 +364,6 @@ require_once __DIR__ . '/includes/log.php';
   window.addEventListener('scroll', handleScroll, { passive: true });
 
   /* ── Mobile drawer ───────────────────────────── */
-  const hamburger   = document.getElementById('navHamburger');
-  const drawer      = document.getElementById('mobileDrawer');
-  const drawerClose = document.getElementById('drawerClose');
-  if (hamburger) hamburger.addEventListener('click', () => drawer.classList.add('open'));
-  if (drawerClose) drawerClose.addEventListener('click', () => drawer.classList.remove('open'));
-
   /* ── Featured slider ─────────────────────────── */
   const slider  = document.getElementById('featuredSlider');
   const cards   = Array.from(slider ? slider.querySelectorAll('.feat-card') : []);
@@ -527,9 +522,6 @@ function scrollTrack(id, dir) {
   });
 })();
 </script>
-
-<!-- Bootstrap Bundle (with Popper) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
