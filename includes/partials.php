@@ -132,9 +132,9 @@ function renderCategoryShowcase(
           </p>
           <p class="showcase-description"><?= htmlspecialchars($description) ?></p>
           <div class="showcase-actions">
-            <button type="button" class="btn-primary" onclick="cartManager.addItem({id: 'showcase-<?= htmlspecialchars($first['id'] ?? 0); ?>', title: '<?= htmlspecialchars($first['title']); ?>', category: '<?= htmlspecialchars($label); ?>', price: '<?= htmlspecialchars($first['price']); ?>', image: '<?= landscapeUrl($category, 10); ?>'})">
+            <a href="auth.php?mode=login" class="btn-primary showcase-book">
               Book Now
-            </button>
+            </a>
             <a href="<?= htmlspecialchars($seeAllUrl) ?>" class="btn-outline showcase-see-all">See More</a>
           </div>
         </div>

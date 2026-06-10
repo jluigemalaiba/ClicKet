@@ -52,12 +52,10 @@
       <div>
         <h4 class="footer-col-title">Support</h4>
         <ul class="footer-links-list">
-          <li><a href="#">Help Center</a></li>
-          <li><a href="#">Booking Guide</a></li>
-          <li><a href="#">Refund Policy</a></li>
-          <li><a href="#">Virtual Queue FAQ</a></li>
-          <li><a href="#">Contact Us</a></li>
-          <li><a href="#">Terms &amp; Conditions</a></li>
+          <li><a href="help.php">Help Center</a></li>
+          <li><a href="help.php#queue">Virtual Queue FAQ</a></li>
+          <li><a href="contact.php">Contact Us</a></li>
+          <li><a href="help.php#terms">Terms &amp; Conditions</a></li>
         </ul>
       </div>
 
@@ -87,7 +85,7 @@
       </p>
       <nav class="footer-bottom-links">
         <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Use</a>
+        <a href="help.php#terms">Terms of Use</a>
         <a href="#">Cookie Policy</a>
         <a href="#">Accessibility</a>
       </nav>
