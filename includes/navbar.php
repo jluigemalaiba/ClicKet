@@ -13,7 +13,7 @@ $navFlash = pullFlashMessage();
   <div class="navbar-inner">
 
     <!-- Logo -->
-    <a href="index.php" class="nav-logo">
+    <a href="#index" class="nav-logo">
       <span class="logo-icon">
         <img src="assets/Icon_Logo.png" alt="" aria-hidden="true">
       </span>
@@ -208,26 +208,33 @@ $navFlash = pullFlashMessage();
 
       <!-- Gender -->
       <div class="profile-edit-field">
-        <label class="profile-edit-label" for="peGender" style="margin-top: 0.5rem;">Gender</label>
-        <div class="profile-edit-select-wrap">
-          <select id="peGender" name="gender" class="profile-edit-input profile-edit-select">
-            <option value="" disabled <?= empty($navUser['gender']) ? 'selected' : '' ?>>Select Gender</option>
-            <option value="male"         <?= ($navUser['gender'] ?? '') === 'male'           ? 'selected' : '' ?>>Male</option>
-            <option value="female"       <?= ($navUser['gender'] ?? '') === 'female'         ? 'selected' : '' ?>>Female</option>
-            <option value="other"        <?= ($navUser['gender'] ?? '') === 'other'          ? 'selected' : '' ?>>Other</option>
-            <option value="prefer_not"   <?= ($navUser['gender'] ?? '') === 'prefer_not'     ? 'selected' : '' ?>>Rather not to say</option>
-          </select>
-          <svg class="profile-edit-select-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        <label class="profile-edit-label" style="margin-top: 0.5rem;">Gender</label>
+        <div class="ck-select-wrap" id="peGenderWrap">
+          <div class="ck-select-trigger profile-edit-input" id="peGenderTrigger" tabindex="0" role="combobox" aria-haspopup="listbox" aria-expanded="false" style="height:42px;padding:0 36px 0 14px;display:flex;align-items:center;cursor:pointer;user-select:none;">
+            <span id="peGenderValue" class="ck-select-placeholder"><?= !empty($navUser['gender']) ? ['male'=>'Male','female'=>'Female','other'=>'Other','prefer_not'=>'Rather not say'][$navUser['gender']] : 'Select Gender' ?></span>
+            <svg class="ck-select-arrow" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);width:14px;height:14px;stroke:var(--gray-400);transition:transform .16s,stroke .16s;pointer-events:none;"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="ck-dropdown" id="peGenderDropdown" role="listbox">
+            <div class="ck-option <?= ($navUser['gender'] ?? '') === 'male'       ? 'is-selected' : '' ?>" data-value="male"       role="option">Male<svg class="ck-option-check" viewBox="0 0 24 24" fill="none" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="ck-option <?= ($navUser['gender'] ?? '') === 'female'     ? 'is-selected' : '' ?>" data-value="female"     role="option">Female<svg class="ck-option-check" viewBox="0 0 24 24" fill="none" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="ck-option <?= ($navUser['gender'] ?? '') === 'other'      ? 'is-selected' : '' ?>" data-value="other"      role="option">Other<svg class="ck-option-check" viewBox="0 0 24 24" fill="none" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            <div class="ck-option <?= ($navUser['gender'] ?? '') === 'prefer_not' ? 'is-selected' : '' ?>" data-value="prefer_not" role="option">Rather not say<svg class="ck-option-check" viewBox="0 0 24 24" fill="none" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          </div>
         </div>
+        <input type="hidden" id="peGender" name="gender" value="<?= htmlspecialchars($navUser['gender'] ?? '') ?>">
       </div>
 
       <!-- Birthday -->
       <div class="profile-edit-field">
-        <label class="profile-edit-label" for="peBirthday" style="margin-top: 0.5rem;">Birthday</label>
-        <div class="profile-edit-input-wrap profile-edit-input-wrap--icon">
-          <svg class="profile-edit-field-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <input type="date" id="peBirthday" name="birthday" class="profile-edit-input profile-edit-input--icon" value="<?= htmlspecialchars($navUser['birthday'] ?? '') ?>" max="<?= date('Y-m-d', strtotime('-13 years')) ?>">
+        <label class="profile-edit-label" style="margin-top: 0.5rem;">Birthday</label>
+        <div class="ck-date-wrap" id="peDateWrap">
+          <svg class="ck-date-icon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--gray-400);pointer-events:none;z-index:1;transition:stroke .16s;"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div class="ck-date-trigger profile-edit-input profile-edit-input--icon" id="peDateTrigger" tabindex="0" role="button" style="display:flex;align-items:center;cursor:pointer;user-select:none;">
+            <span id="peDateDisplay" class="ck-select-placeholder"><?= !empty($navUser['birthday']) ? date('F j, Y', strtotime($navUser['birthday'])) : 'Select date' ?></span>
+          </div>
+          <div class="ck-calendar" id="peCalPanel"></div>
         </div>
+        <input type="hidden" id="peBirthday" name="birthday" value="<?= htmlspecialchars($navUser['birthday'] ?? '') ?>">
       </div>
 
       <!-- Phone -->
@@ -251,6 +258,20 @@ $navFlash = pullFlashMessage();
       <!-- Address Section -->
       <div class="profile-edit-section-divider" style="margin-top: 0.8rem;">
         <span>Address</span>
+      </div>
+
+      <!-- Map Picker -->
+      <div class="profile-edit-field" style="margin-top: 0.9rem;">
+        <div class="pe-map-wrap" id="peMapWrap">
+          <div id="peMap"></div>
+          <div class="pe-map-status" id="peMapStatus">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span id="peMapStatusText">Click anywhere on the map to auto-fill your address</span>
+          </div>
+          <button type="button" class="pe-map-locate-btn" id="peMapLocateBtn" title="Use my current location">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="8" stroke-dasharray="2 4"/></svg>
+          </button>
+        </div>
       </div>
 
       <div class="profile-edit-field">
@@ -293,107 +314,5 @@ $navFlash = pullFlashMessage();
 </div>
 <?php endif; ?>
 
-<script>
-  (() => {
-    const searchForms = document.querySelectorAll('.nav-search-form');
+<script src="js/navbar.js" defer></script>
 
-    function closeSearch(form) {
-      const input = form.querySelector('input[type="search"]');
-      form.classList.remove('is-open');
-      if (input) input.blur();
-    }
-
-    searchForms.forEach((form) => {
-      const input = form.querySelector('input[type="search"]');
-      const button = form.querySelector('.nav-search-btn');
-
-      button.addEventListener('click', (event) => {
-        event.stopPropagation();
-
-        if (!form.classList.contains('is-open')) {
-          form.classList.add('is-open');
-          input.focus();
-          return;
-        }
-
-        if (input.value.trim()) {
-          form.submit();
-          return;
-        }
-
-        input.focus();
-      });
-
-      form.addEventListener('click', (event) => event.stopPropagation());
-      input.addEventListener('focus', () => form.classList.add('is-open'));
-      input.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') closeSearch(form);
-      });
-    });
-
-    document.addEventListener('click', (event) => {
-      searchForms.forEach((form) => {
-        if (form.classList.contains('is-open') && !form.contains(event.target)) {
-          closeSearch(form);
-        }
-      });
-    });
-
-    // --- Profile Edit Panel ---
-    const avatarInput  = document.getElementById('profileAvatarInput');
-    const avatarImg    = document.getElementById('profileAvatarImg');
-    const avatarInitial= document.getElementById('profileAvatarInitial');
-    const bioTextarea  = document.getElementById('peBio');
-    const bioCount     = document.getElementById('peBioCount');
-
-    if (avatarInput) {
-      avatarInput.addEventListener('change', () => {
-        const file = avatarInput.files[0];
-        if (!file || !file.type.startsWith('image/')) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          avatarImg.src = e.target.result;
-          avatarImg.style.display = 'block';
-          if (avatarInitial) avatarInitial.style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    if (bioTextarea && bioCount) {
-      const update = () => { bioCount.textContent = bioTextarea.value.length; };
-      bioTextarea.addEventListener('input', update);
-      update();
-    }
-
-    // Close dropdown when profile panel opens
-    document.addEventListener('show.bs.offcanvas', (e) => {
-      if (e.target && e.target.id === 'profileEditPanel') {
-        document.querySelectorAll('.nav-profile .dropdown-menu.show').forEach(m => {
-          const dropdownEl = m.closest('.dropdown');
-          if (dropdownEl) {
-            const toggle = dropdownEl.querySelector('[data-bs-toggle="dropdown"]');
-            if (toggle) {
-              const dd = bootstrap.Dropdown.getInstance(toggle);
-              if (dd) dd.hide();
-            }
-          }
-        });
-      }
-    });
-
-    const toast = document.getElementById('ckToast');
-
-    if (toast) {
-      const closeBtn = toast.querySelector('.ck-toast__close');
-      const closeToast = () => {
-        toast.classList.remove('is-visible');
-        window.setTimeout(() => toast.remove(), 260);
-      };
-
-      requestAnimationFrame(() => toast.classList.add('is-visible'));
-      if (closeBtn) closeBtn.addEventListener('click', closeToast);
-      window.setTimeout(closeToast, 5200);
-    }
-  })();
-</script>
