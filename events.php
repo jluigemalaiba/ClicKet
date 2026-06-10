@@ -22,6 +22,7 @@ function buildEventPageRows(array $events, string $categoryKey, string $category
             'id' => $categoryKey . '-' . ($idx + 1),
             'title' => $event['title'],
             'date' => $event['date'],
+            'dateValue' => strtotime($event['date']) ?: 0,
             'time' => $times[($idx + $timeOffset) % count($times)],
             'venue' => $event['venue'],
             'rating' => (int) ($event['rating'] ?? 4),
@@ -192,9 +193,12 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
 
     .events-filter-panel {
       display: grid;
-      grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr) minmax(220px, 1fr);
-      gap: 16px;
+      grid-template-columns: minmax(170px, 280px) minmax(230px, 330px) minmax(260px, 280px);
+      gap: 14px;
       align-items: end;
+      width: fit-content;
+      max-width: 100%;
+      margin: 0 auto;
       padding: 20px;
       border: 1px solid var(--light-border);
       border-radius: var(--card-radius);
@@ -203,6 +207,7 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
     }
 
     .events-filter-field {
+      position: relative;
       display: grid;
       gap: 8px;
     }
@@ -235,6 +240,146 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
       border-color: var(--red-primary);
       background: #fff;
       box-shadow: 0 0 0 4px rgba(232,22,43,.1);
+    }
+
+    .events-select.is-enhanced {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .events-custom-select {
+      position: relative;
+      z-index: 20;
+    }
+
+    .events-custom-select.is-open {
+      z-index: 70;
+    }
+
+    .events-custom-trigger {
+      width: 100%;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 14px 0 16px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 14px;
+      background: #fff;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 650;
+      text-align: left;
+      box-shadow: 0 1px 0 rgba(0,0,0,.03);
+      transition: border-color var(--dur-fast), box-shadow var(--dur-fast), background var(--dur-fast);
+    }
+
+    .events-custom-trigger:hover,
+    .events-custom-trigger[aria-expanded="true"] {
+      border-color: rgba(232,22,43,.5);
+      box-shadow: 0 0 0 4px rgba(232,22,43,.11);
+    }
+
+    .events-custom-trigger svg {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      stroke: var(--gray-500);
+      transition: transform var(--dur-fast), stroke var(--dur-fast);
+    }
+
+    .events-custom-trigger[aria-expanded="true"] svg {
+      transform: rotate(180deg);
+      stroke: var(--red-primary);
+    }
+
+    .events-custom-menu {
+      position: absolute;
+      left: 0;
+      top: calc(100% + 8px);
+      z-index: 50;
+      display: none;
+      min-width: min(360px, 92vw);
+      padding: 6px;
+      border: 1px solid rgba(0,0,0,.1);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 18px 46px rgba(17,17,17,.16);
+    }
+
+    .events-custom-select.is-open .events-custom-menu {
+      display: grid;
+      gap: 4px;
+    }
+
+    .events-custom-select--venue .events-custom-menu {
+      width: min(300px, calc(100vw - 48px));
+      max-height: 240px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      padding: 6px;
+    }
+
+    .events-custom-menu::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .events-custom-menu::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .events-custom-menu::-webkit-scrollbar-thumb {
+      border: 2px solid #fff;
+      border-radius: 999px;
+      background: rgba(232,22,43,.28);
+    }
+
+    .events-custom-select--sort .events-custom-menu {
+      left: auto;
+      right: 0;
+      min-width: min(340px, 92vw);
+    }
+
+    .events-custom-select--sort .events-custom-option {
+      white-space: nowrap;
+    }
+
+    .events-custom-option {
+      display: flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      color: var(--gray-600);
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.2;
+      text-align: left;
+      transition: background var(--dur-fast), color var(--dur-fast);
+    }
+
+    .events-custom-option:hover,
+    .events-custom-option[aria-selected="true"] {
+      background: rgba(232,22,43,.08);
+      color: var(--text-primary);
+    }
+
+    .events-custom-option[aria-selected="true"] {
+      color: var(--red-primary);
+    }
+
+    .events-custom-select--venue .events-custom-option {
+      min-height: 30px;
+      padding: 5px 10px;
+      font-size: 12px;
+      line-height: 1.2;
     }
 
     .events-listing-section {
@@ -518,6 +663,7 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
       }
 
       .events-filter-panel {
+        width: 100%;
         grid-template-columns: 1fr 1fr;
       }
 
@@ -530,8 +676,14 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
       }
 
       .events-filter-panel {
+        width: 100%;
         grid-template-columns: 1fr;
         padding: 16px;
+      }
+
+      .events-custom-select--venue .events-custom-menu {
+        width: 100%;
+        grid-template-columns: 1fr;
       }
 
       .events-section-title {
@@ -628,8 +780,12 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
         <div class="events-filter-field">
           <label for="sortFilter">Sorting</label>
           <select class="events-select" id="sortFilter">
+            <option value="rating-desc">Highest Rating &rarr; Lowest Rating</option>
             <option value="rating-asc">Lowest Rating &rarr; Highest Rating</option>
             <option value="title-asc">A &rarr; Z</option>
+            <option value="title-desc">Z &rarr; A</option>
+            <option value="date-asc">Earliest Date &rarr; Latest Date</option>
+            <option value="date-desc">Latest Date &rarr; Earliest Date</option>
           </select>
         </div>
       </div>
@@ -651,6 +807,7 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
             class="events-card"
             data-category="<?= htmlspecialchars($event['categoryKey']) ?>"
             data-rating="<?= (int) $event['rating'] ?>"
+            data-date="<?= (int) $event['dateValue'] ?>"
             data-title="<?= htmlspecialchars(strtolower($event['title'])) ?>"
             data-venue="<?= htmlspecialchars($event['venue']) ?>"
             data-search="<?= htmlspecialchars(strtolower($event['title'] . ' ' . $event['categoryLabel'] . ' ' . $event['type'] . ' ' . $event['venue'] . ' ' . $event['sub'])) ?>"
@@ -742,10 +899,151 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
         return a.dataset.title.localeCompare(b.dataset.title);
       }
 
-      return Number(a.dataset.rating) - Number(b.dataset.rating);
+      if (mode === 'title-desc') {
+        return b.dataset.title.localeCompare(a.dataset.title);
+      }
+
+      if (mode === 'date-asc') {
+        return Number(a.dataset.date) - Number(b.dataset.date);
+      }
+
+      if (mode === 'date-desc') {
+        return Number(b.dataset.date) - Number(a.dataset.date);
+      }
+
+      if (mode === 'rating-asc') {
+        return Number(a.dataset.rating) - Number(b.dataset.rating);
+      }
+
+      return Number(b.dataset.rating) - Number(a.dataset.rating);
     });
 
     sorted.forEach(card => grid.appendChild(card));
+  }
+
+  function closeCustomSelects(except) {
+    document.querySelectorAll('.events-custom-select.is-open').forEach(select => {
+      if (select !== except) {
+        select.classList.remove('is-open');
+        const trigger = select.querySelector('.events-custom-trigger');
+        if (trigger) {
+          trigger.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
+  }
+
+  function enhanceSelect(select, modifier) {
+    if (!select || select.dataset.enhanced === 'true') {
+      return;
+    }
+
+    select.dataset.enhanced = 'true';
+    select.classList.add('is-enhanced');
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'events-custom-select events-custom-select--' + modifier;
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'events-custom-trigger';
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+
+    const triggerText = document.createElement('span');
+    const triggerIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    triggerIcon.setAttribute('viewBox', '0 0 24 24');
+    triggerIcon.setAttribute('fill', 'none');
+    triggerIcon.setAttribute('stroke-width', '2.4');
+    triggerIcon.setAttribute('stroke-linecap', 'round');
+    triggerIcon.setAttribute('stroke-linejoin', 'round');
+    triggerIcon.setAttribute('aria-hidden', 'true');
+    const iconPath = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    iconPath.setAttribute('points', '6 9 12 15 18 9');
+    triggerIcon.appendChild(iconPath);
+
+    trigger.append(triggerText, triggerIcon);
+
+    const menu = document.createElement('div');
+    menu.className = 'events-custom-menu';
+    menu.setAttribute('role', 'listbox');
+
+    function sync() {
+      const selected = select.options[select.selectedIndex] || select.options[0];
+      triggerText.textContent = selected ? selected.textContent : '';
+      menu.querySelectorAll('.events-custom-option').forEach(option => {
+        option.setAttribute('aria-selected', String(option.dataset.value === select.value));
+      });
+    }
+
+    Array.from(select.options).forEach(option => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'events-custom-option';
+      item.dataset.value = option.value;
+      item.textContent = option.textContent;
+      item.setAttribute('role', 'option');
+
+      item.addEventListener('click', () => {
+        select.value = option.value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        sync();
+        closeCustomSelects();
+        trigger.focus();
+      });
+
+      item.addEventListener('keydown', event => {
+        const items = Array.from(menu.querySelectorAll('.events-custom-option'));
+        const index = items.indexOf(item);
+
+        if (event.key === 'Escape') {
+          closeCustomSelects();
+          trigger.focus();
+        }
+
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          items[Math.min(index + 1, items.length - 1)].focus();
+        }
+
+        if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          items[Math.max(index - 1, 0)].focus();
+        }
+      });
+
+      menu.appendChild(item);
+    });
+
+    trigger.addEventListener('click', event => {
+      event.stopPropagation();
+      const willOpen = !wrapper.classList.contains('is-open');
+      closeCustomSelects(wrapper);
+      wrapper.classList.toggle('is-open', willOpen);
+      trigger.setAttribute('aria-expanded', String(willOpen));
+    });
+
+    trigger.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        closeCustomSelects();
+      }
+
+      if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        closeCustomSelects(wrapper);
+        wrapper.classList.add('is-open');
+        trigger.setAttribute('aria-expanded', 'true');
+        const selected = menu.querySelector('[aria-selected="true"]') || menu.querySelector('.events-custom-option');
+        if (selected) {
+          selected.focus();
+        }
+      }
+    });
+
+    select.addEventListener('change', sync);
+    wrapper.append(trigger, menu);
+    select.insertAdjacentElement('afterend', wrapper);
+    sync();
   }
 
   function updateEvents() {
@@ -796,12 +1094,16 @@ sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
   }
 
   window.addEventListener('scroll', handleScroll, { passive: true });
+  document.addEventListener('click', () => closeCustomSelects());
   categoryFilter.addEventListener('change', updateEvents);
   venueFilter.addEventListener('change', updateEvents);
   sortFilter.addEventListener('change', updateEvents);
 
   applyCategoryFromUrl();
   applyVenueFromUrl();
+  enhanceSelect(categoryFilter, 'category');
+  enhanceSelect(venueFilter, 'venue');
+  enhanceSelect(sortFilter, 'sort');
   handleScroll();
   updateEvents();
 })();
