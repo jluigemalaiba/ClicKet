@@ -169,7 +169,7 @@ require_once __DIR__ . '/includes/log.php';
         <p style="font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--red-primary);margin-bottom:4px;">Category</p>
         <h2 class="section-title"><span style="width: 46px; height: 46px; display: inline-block; vertical-align: middle;"><img src="assets/concerts.png" alt="ClicKet Concerts"></span> Concerts</h2>
       </div>
-      <a href="#" class="see-all-btn" style="margin-bottom:-3px;">See All</a>
+      <a href="events.php?category=concerts" class="see-all-btn" style="margin-bottom:-3px;">See All</a>
     </div>
 
     <?php renderCategoryShowcase(
@@ -180,7 +180,7 @@ require_once __DIR__ . '/includes/log.php';
       'Live Music',
       'From K-Pop megastars to Eraserheads reunion shows, catch the biggest acts performing live on Philippine stages.',
       'Events',
-      'concerts.php'
+      'events.php?category=concerts'
     ); ?>
 
     <div class="netflix-row legacy-event-row">
@@ -188,7 +188,7 @@ require_once __DIR__ . '/includes/log.php';
       <div class="netflix-meta-panel">
         <div class="netflix-big-title">Live<br>Music</div>
         <p class="netflix-description">From K-Pop megastars to Eraserheads reunion shows—catch the biggest acts performing live on Philippine stages.</p>
-        <a href="concerts.php" class="see-all-btn">See All Concerts</a>
+        <a href="events.php?category=concerts" class="see-all-btn">See All Concerts</a>
         <div class="netflix-scroll-nav">
           <button class="scroll-nav-btn" onclick="scrollTrack('concertsTrack',-1)" aria-label="Prev">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -228,7 +228,7 @@ require_once __DIR__ . '/includes/log.php';
         <p style="font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--red-primary);margin-bottom:4px;">Category</p>
         <h2 class="section-title"><span style="width: 54px; height: 54px; display: inline-block; vertical-align: middle;"><img src="assets/theater.png" alt="ClicKet Theater"></span> Theater <span>Plays</span></h2>
       </div>
-      <a href="#" class="see-all-btn" style="margin-bottom:-3px;">See All</a>
+      <a href="events.php?category=theater" class="see-all-btn" style="margin-bottom:-3px;">See All</a>
     </div>
 
     <?php renderCategoryShowcase(
@@ -239,14 +239,14 @@ require_once __DIR__ . '/includes/log.php';
       'Stage Magic',
       'Broadway hits, beloved Filipino musicals, and world-class operas gracing the grandest stages in Manila.',
       'Shows',
-      'theater.php'
+      'events.php?category=theater'
     ); ?>
 
     <div class="netflix-row legacy-event-row">
       <div class="netflix-meta-panel">
         <div class="netflix-big-title">Stage<br>Magic</div>
         <p class="netflix-description">Broadway hits, beloved Filipino musicals, and world-class operas gracing the grandest stages in Manila.</p>
-        <a href="theater.php" class="see-all-btn">See All Theater</a>
+        <a href="events.php?category=theater" class="see-all-btn">See All Theater</a>
         <div class="netflix-scroll-nav">
           <button class="scroll-nav-btn" onclick="scrollTrack('theaterTrack',-1)" aria-label="Prev">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -285,7 +285,7 @@ require_once __DIR__ . '/includes/log.php';
         <p style="font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--red-primary);margin-bottom:4px;">Category</p>
         <h2 class="section-title"><span style="width: 50px; height: 50px; display: inline-block; vertical-align: middle;"><img src="assets/sport.png" alt="ClicKet Sports"></span> Sports <span>Events</span></h2>
       </div>
-      <a href="#" class="see-all-btn" style="margin-bottom:-3px;">See All</a>
+      <a href="events.php?category=sports" class="see-all-btn" style="margin-bottom:-3px;">See All</a>
     </div>
 
     <?php renderCategoryShowcase(
@@ -296,14 +296,14 @@ require_once __DIR__ . '/includes/log.php';
       'Sports Action',
       'Court battles, boxing bouts, football derbies, and volleyball championships, feel the energy live in the arena.',
       'Events',
-      'sports.php'
+      'events.php?category=sports'
     ); ?>
 
     <div class="netflix-row legacy-event-row">
       <div class="netflix-meta-panel">
         <div class="netflix-big-title">Sports<br>Action</div>
         <p class="netflix-description">Court battles, boxing bouts, football derbies, and volleyball championships—feel the energy live in the arena.</p>
-        <a href="sports.php" class="see-all-btn">See All Sports</a>
+        <a href="events.php?category=sports" class="see-all-btn">See All Sports</a>
         <div class="netflix-scroll-nav">
           <button class="scroll-nav-btn" onclick="scrollTrack('sportsTrack',-1)" aria-label="Prev">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>

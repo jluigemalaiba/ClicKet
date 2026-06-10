@@ -371,10 +371,14 @@ $venues = [
     arcType.textContent = el.dataset.type;
     arcLoc.textContent  = el.dataset.location;
     arcCap.textContent  = el.dataset.capacity + ' seats';
-    arcBtn.href         = 'events.php?venue=' + encodeURIComponent(el.dataset.name);
+    arcBtn.href         = venueEventsUrl(el.dataset.name);
     infoPanel.hidden    = false;
     infoPanel.style.animation = 'none';
     requestAnimationFrame(function () { infoPanel.style.animation = ''; });
+  }
+
+  function venueEventsUrl(name) {
+    return 'events.php?venue=' + encodeURIComponent(name);
   }
 
   items.forEach(function (el) {
@@ -398,6 +402,9 @@ $venues = [
     el.addEventListener('mouseleave', resumeFromItem);
     el.addEventListener('focus', pauseOnItem);
     el.addEventListener('blur', resumeFromItem);
+    el.addEventListener('click', function () {
+      window.location.href = venueEventsUrl(el.dataset.name);
+    });
   });
 
   window.addEventListener('resize', layout, { passive: true });

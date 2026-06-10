@@ -50,6 +50,9 @@ $events = array_merge(
     buildEventPageRows($theater_events, 'theater', 'Theater', 'theater', 1),
     buildEventPageRows($sports_events, 'sports', 'Sports', 'sports', 2)
 );
+
+$venueOptions = array_values(array_unique(array_map(static fn ($event) => $event['venue'], $events)));
+sort($venueOptions, SORT_NATURAL | SORT_FLAG_CASE);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -198,7 +201,7 @@ $events = array_merge(
 
     .events-filter-panel {
       display: grid;
-      grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto;
+      grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr) minmax(220px, 1fr) auto;
       gap: 16px;
       align-items: end;
       padding: 20px;
@@ -645,6 +648,16 @@ $events = array_merge(
         </div>
 
         <div class="events-filter-field">
+          <label for="venueFilter">Venue</label>
+          <select class="events-select" id="venueFilter">
+            <option value="all">All Venues</option>
+            <?php foreach ($venueOptions as $venue): ?>
+              <option value="<?= htmlspecialchars($venue) ?>"><?= htmlspecialchars($venue) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+
+        <div class="events-filter-field">
           <label for="sortFilter">Sorting</label>
           <select class="events-select" id="sortFilter">
             <option value="rating-asc">Lowest Rating &rarr; Highest Rating</option>
@@ -677,6 +690,7 @@ $events = array_merge(
             data-rating="<?= (int) $event['rating'] ?>"
             data-price="<?= (int) $event['priceValue'] ?>"
             data-title="<?= htmlspecialchars(strtolower($event['title'])) ?>"
+            data-venue="<?= htmlspecialchars($event['venue']) ?>"
             data-search="<?= htmlspecialchars(strtolower($event['title'] . ' ' . $event['categoryLabel'] . ' ' . $event['type'] . ' ' . $event['venue'] . ' ' . $event['sub'])) ?>"
           >
             <div class="events-card-poster">
@@ -736,6 +750,7 @@ $events = array_merge(
 
   const navbar = document.querySelector('.navbar-clicket');
   const categoryFilter = document.getElementById('categoryFilter');
+  const venueFilter = document.getElementById('venueFilter');
   const sortFilter = document.getElementById('sortFilter');
   const grid = document.getElementById('eventsGrid');
   const count = document.getElementById('eventsCount');
@@ -772,6 +787,7 @@ $events = array_merge(
 
   function updateEvents() {
     const selectedCategory = categoryFilter.value;
+    const selectedVenue = venueFilter.value;
     const cards = getCards();
     let visible = 0;
 
@@ -779,8 +795,9 @@ $events = array_merge(
 
     getCards().forEach(card => {
       const matchesCategory = selectedCategory === 'all' || card.dataset.category === selectedCategory;
+      const matchesVenue = selectedVenue === 'all' || card.dataset.venue === selectedVenue;
       const matchesSearch = !searchQuery || card.dataset.search.includes(searchQuery);
-      const shouldShow = matchesCategory && matchesSearch;
+      const shouldShow = matchesCategory && matchesVenue && matchesSearch;
       card.hidden = !shouldShow;
       if (shouldShow) {
         visible += 1;
@@ -800,11 +817,25 @@ $events = array_merge(
     categoryFilter.value = category;
   }
 
+  function applyVenueFromUrl() {
+    const venue = new URLSearchParams(window.location.search).get('venue');
+    if (!venue) {
+      return;
+    }
+
+    const matchingOption = Array.from(venueFilter.options).find(option => option.value.toLowerCase() === venue.toLowerCase());
+    if (matchingOption) {
+      venueFilter.value = matchingOption.value;
+    }
+  }
+
   window.addEventListener('scroll', handleScroll, { passive: true });
   categoryFilter.addEventListener('change', updateEvents);
+  venueFilter.addEventListener('change', updateEvents);
   sortFilter.addEventListener('change', updateEvents);
 
   applyCategoryFromUrl();
+  applyVenueFromUrl();
   handleScroll();
   updateEvents();
 })();

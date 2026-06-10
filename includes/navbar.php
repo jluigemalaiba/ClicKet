@@ -5,8 +5,7 @@ $navUser = currentUser();
 $navUserLabel = userDisplayName($navUser);
 $navUserInitial = $navUserLabel !== '' ? strtoupper(substr($navUserLabel, 0, 1)) : 'U';
 $currentPage = basename($_SERVER['PHP_SELF']);
-$eventPages = ['events.php', 'concerts.php', 'theater.php', 'sports.php'];
-$isEventsActive = in_array($currentPage, $eventPages, true);
+$navCategory = isset($_GET['category']) ? trim((string) $_GET['category']) : '';
 $navSearchValue = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
 $navFlash = pullFlashMessage();
 ?>
@@ -37,15 +36,15 @@ $navFlash = pullFlashMessage();
         <li><a href="index.php" class="<?= ($currentPage === 'index.php') ? 'active' : '' ?>">Home</a></li>
         <li><a href="about.php" class="<?= ($currentPage === 'about.php') ? 'active' : '' ?>">About Us</a></li>
         <li class="nav-item dropdown nav-events-dropdown">
-          <button class="nav-dropdown-toggle <?= $isEventsActive ? 'active' : '' ?>" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <button class="nav-dropdown-toggle <?= ($currentPage === 'events.php') ? 'active' : '' ?>" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             Events
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <ul class="dropdown-menu nav-events-menu">
-            <li><a class="dropdown-item <?= ($currentPage === 'events.php') ? 'active' : '' ?>" href="events.php">All</a></li>
-            <li><a class="dropdown-item <?= ($currentPage === 'concerts.php') ? 'active' : '' ?>" href="concerts.php">Concerts</a></li>
-            <li><a class="dropdown-item <?= ($currentPage === 'theater.php') ? 'active' : '' ?>" href="theater.php">Theater Plays</a></li>
-            <li><a class="dropdown-item <?= ($currentPage === 'sports.php') ? 'active' : '' ?>" href="sports.php">Sports Events</a></li>
+            <li><a class="dropdown-item <?= ($currentPage === 'events.php' && $navCategory === '') ? 'active' : '' ?>" href="events.php">All Events</a></li>
+            <li><a class="dropdown-item <?= ($currentPage === 'events.php' && $navCategory === 'concerts') ? 'active' : '' ?>" href="events.php?category=concerts">Concerts</a></li>
+            <li><a class="dropdown-item <?= ($currentPage === 'events.php' && $navCategory === 'theater') ? 'active' : '' ?>" href="events.php?category=theater">Theater Plays</a></li>
+            <li><a class="dropdown-item <?= ($currentPage === 'events.php' && $navCategory === 'sports') ? 'active' : '' ?>" href="events.php?category=sports">Sports Events</a></li>
           </ul>
         </li>
         <li><a href="venues.php" class="<?= ($currentPage === 'venues.php') ? 'active' : '' ?>">Venues</a></li>
