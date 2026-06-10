@@ -55,7 +55,7 @@
           <li><a href="help.php">Help Center</a></li>
           <li><a href="help.php#queue">Virtual Queue FAQ</a></li>
           <li><a href="contact.php">Contact Us</a></li>
-          <li><a href="help.php#terms">Terms &amp; Conditions</a></li>
+          <li><a href="terms.php">Terms &amp; Conditions</a></li>
         </ul>
       </div>
 
@@ -85,7 +85,7 @@
       </p>
       <nav class="footer-bottom-links">
         <a href="#">Privacy Policy</a>
-        <a href="help.php#terms">Terms of Use</a>
+        <a href="terms.php">Terms of Use</a>
         <a href="#">Cookie Policy</a>
         <a href="#">Accessibility</a>
       </nav>

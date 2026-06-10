@@ -64,9 +64,17 @@ if (!$user && $mode === 'account') {
   <title>ClicKet</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/auth.css">
+  <style>
+    body.auth-body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Geist', sans-serif;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
 </head>
 <body class="auth-body auth-mode-<?= $mode === 'signup' ? 'signup' : ($mode === 'account' ? 'account' : 'login') ?>">
 
@@ -581,7 +589,7 @@ if (!$user && $mode === 'account') {
         </form>
 
         <p class="gc-footer-note">
-          By continuing, you agree to ClicKet's <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.
+          By continuing, you agree to ClicKet's <a href="terms.php">Terms</a> and <a href="#">Privacy Policy</a>.
         </p>
 
       <?php endif; ?>
