@@ -136,7 +136,7 @@
     if (!wrap) return;
 
     const today   = new Date();
-    const maxDate = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate());
+    const maxDate = today;
 
     const MONTHS       = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -145,8 +145,8 @@
     let calOpen = false;
     let calView = 'days';
     let sel = hidden.value ? new Date(hidden.value + 'T00:00:00') : null;
-    let viewYear  = sel ? sel.getFullYear()  : maxDate.getFullYear();
-    let viewMonth = sel ? sel.getMonth()     : maxDate.getMonth();
+    let viewYear  = sel ? sel.getFullYear()  : today.getFullYear();
+    let viewMonth = sel ? sel.getMonth()     : today.getMonth();
 
     if (sel) {
       display.textContent = sel.toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -414,7 +414,12 @@
         const zip      = (a.postcode || '').replace(/\D/g, '').slice(0, 4);
         const country  = a.country || '';
 
-        const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+          // Clear all address fields first before filling with new location data
+          ['peStreet','peCity','peProvince','peZip','peCountry'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.value = '';
+          });
+
+          const set = (id, val) => { const el = document.getElementById(id); if (el && val && val.trim()) el.value = val; };
         set('peStreet',   street);
         set('peCity',     city);
         set('peProvince', province);
