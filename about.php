@@ -207,30 +207,78 @@ $currentPage = basename($_SERVER['PHP_SELF']);
           <p class="about-kicker">News</p>
           <h2>Latest updates from ClicKet</h2>
         </div>
-        <a href="events.php" class="about-link-btn">See current events</a>
+        <a href="news.php" class="about-link-btn">See All News</a>
       </div>
 
-      <div class="news-grid">
-        <article class="news-story news-story-large">
-          <img src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=900&h=700&fit=crop" alt="Outdoor concert audience" loading="lazy">
-          <div>
-            <span>May 2026</span>
-            <h3>Expanded support for larger venue seat maps</h3>
-            <p>New seat-map improvements help fans review sections faster while giving organizers cleaner inventory control.</p>
+      <div class="news-slider-wrapper">
+        <div class="news-slider" id="newsSlider">
+          <a href="news.php#modal-seat-maps" class="news-slide">
+            <div class="news-slide-img">
+              <img src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=700&h=420&fit=crop" alt="Outdoor concert audience" loading="lazy">
+            </div>
+            <div class="news-slide-body">
+              <span>May 2026</span>
+              <h3>Expanded support for larger venue seat maps</h3>
+              <p>New seat-map improvements help fans review sections faster while giving organizers cleaner inventory control.</p>
+            </div>
+          </a>
+
+          <a href="news.php#modal-mobile-wallet" class="news-slide">
+            <div class="news-slide-img">
+              <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=700&h=420&fit=crop" alt="Concert crowd with phones" loading="lazy">
+            </div>
+            <div class="news-slide-body">
+              <span>April 2026</span>
+              <h3>Mobile ticket wallet improvements</h3>
+              <p>Fans can prepare tickets earlier and move through venue entry with fewer check-in steps.</p>
+            </div>
+          </a>
+
+          <a href="news.php#modal-analytics" class="news-slide">
+            <div class="news-slide-img">
+              <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=700&h=420&fit=crop" alt="Analytics dashboard" loading="lazy">
+            </div>
+            <div class="news-slide-body">
+              <span>March 2026</span>
+              <h3>Organizer analytics dashboard</h3>
+              <p>Partner organizers can now review sales pace, category demand, and attendance trends in one place.</p>
+            </div>
+          </a>
+
+          <a href="news.php#modal-gate-scanning" class="news-slide">
+            <div class="news-slide-img">
+              <img src="https://images.unsplash.com/photo-1603739903239-8b6e64c3b185?w=700&h=420&fit=crop" alt="Event gate scanning" loading="lazy">
+            </div>
+            <div class="news-slide-body">
+              <span>February 2026</span>
+              <h3>Faster gate scanning for high-capacity venues</h3>
+              <p>Updated QR validation cuts average scan time in half, reducing queue bottlenecks at large arenas and stadiums.</p>
+            </div>
+          </a>
+
+          <a href="news.php#modal-discovery" class="news-slide">
+            <div class="news-slide-img">
+              <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=700&h=420&fit=crop" alt="Theater performance" loading="lazy">
+            </div>
+            <div class="news-slide-body">
+              <span>January 2026</span>
+              <h3>Redesigned event discovery experience</h3>
+              <p>A refreshed browse and filter interface makes it easier to find concerts, theater shows, and sports events by date, city, and category.</p>
+            </div>
+          </a>
+        </div>
+
+        <div class="news-slider-controls">
+          <button class="news-slider-btn" id="newsPrev" aria-label="Previous news">&#8592;</button>
+          <div class="news-slider-dots" id="newsDots">
+            <button class="news-dot active" aria-label="News 1"></button>
+            <button class="news-dot" aria-label="News 2"></button>
+            <button class="news-dot" aria-label="News 3"></button>
+            <button class="news-dot" aria-label="News 4"></button>
+            <button class="news-dot" aria-label="News 5"></button>
           </div>
-        </article>
-
-        <article class="news-story">
-          <span>April 2026</span>
-          <h3>Mobile ticket wallet improvements</h3>
-          <p>Fans can prepare tickets earlier and move through venue entry with fewer check-in steps.</p>
-        </article>
-
-        <article class="news-story">
-          <span>March 2026</span>
-          <h3>Organizer analytics dashboard</h3>
-          <p>Partner organizers can now review sales pace, category demand, and attendance trends in one place.</p>
-        </article>
+          <button class="news-slider-btn" id="newsNext" aria-label="Next news">&#8594;</button>
+        </div>
       </div>
     </div>
   </section>
@@ -286,6 +334,35 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // News Slider
+  (function () {
+    const slider = document.getElementById('newsSlider');
+    const dots = document.querySelectorAll('.news-dot');
+    const slides = document.querySelectorAll('.news-slide');
+    if (!slider || !slides.length) return;
+
+    let current = 0;
+
+    function goTo(index) {
+      current = (index + slides.length) % slides.length;
+      slider.style.transform = `translateX(-${current * 100}%)`;
+      dots.forEach((d, i) => d.classList.toggle('active', i === current));
+    }
+
+    document.getElementById('newsPrev')?.addEventListener('click', () => goTo(current - 1));
+    document.getElementById('newsNext')?.addEventListener('click', () => goTo(current + 1));
+    dots.forEach((dot, i) => dot.addEventListener('click', () => goTo(i)));
+
+    // Auto-play
+    let timer = setInterval(() => goTo(current + 1), 5000);
+    slider.closest('.news-slider-wrapper')?.addEventListener('mouseenter', () => clearInterval(timer));
+    slider.closest('.news-slider-wrapper')?.addEventListener('mouseleave', () => {
+      timer = setInterval(() => goTo(current + 1), 5000);
+    });
+  })();
+</script>
+
 <script>
   (function () {
     const navbar = document.querySelector('.navbar-clicket');

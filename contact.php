@@ -64,31 +64,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     .contact-hero {
       position: relative;
-      padding: 160px 0 82px;
+      padding: 0;
       overflow: hidden;
-      background: #111;
-      color: #fff;
-      isolation: isolate;
+      background: #fff;
+      color: var(--text-primary);
+      border-bottom: 3px solid var(--red-primary);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 340px;
     }
 
-    .contact-hero::before {
+    /* Left: text panel */
+    .contact-hero-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 120px max(24px, calc((100vw - 1320px) / 2 + 24px)) 60px max(24px, calc((100vw - 1320px) / 2 + 24px));
+    }
+
+    /* Right: decorative accent panel */
+    .contact-hero-right {
+      position: relative;
+      background: var(--gray-50, #f9f9f9);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .contact-hero-right::before {
       content: '';
       position: absolute;
       inset: 0;
-      z-index: -2;
-      background:
-        linear-gradient(90deg, rgba(17,17,17,.92) 0%, rgba(17,17,17,.74) 48%, rgba(232,22,43,.52) 100%),
-        url('<?= htmlspecialchars(landscapeUrl('featured', 71)) ?>') center / cover;
+      background-image:
+        linear-gradient(rgba(232,22,43,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,22,43,.06) 1px, transparent 1px);
+      background-size: 40px 40px;
     }
 
-    .contact-hero::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 8px;
+    .contact-hero-deco {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 40px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .contact-hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .5px;
+      white-space: nowrap;
+    }
+
+    .contact-hero-pill svg {
+      width: 14px; height: 14px;
+      stroke: currentColor;
+      flex-shrink: 0;
+    }
+
+    .contact-hero-pill--red {
       background: var(--red-primary);
+      color: #fff;
+    }
+
+    .contact-hero-pill--outline {
+      background: #fff;
+      color: var(--text-primary);
+      border: 1.5px solid var(--gray-200, #e5e5e5);
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+
+    .contact-hero-pill--muted {
+      background: rgba(232,22,43,.07);
+      color: var(--red-primary);
+      border: 1px solid rgba(232,22,43,.18);
     }
 
     .contact-eyebrow,
@@ -105,9 +163,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       margin: 0;
       max-width: 760px;
       font-family: var(--font-display);
-      font-size: clamp(50px, 7vw, 86px);
+      font-size: clamp(44px, 5.5vw, 78px);
       line-height: .92;
       letter-spacing: 1px;
+      color: var(--text-primary);
     }
 
     .contact-title span {
@@ -115,11 +174,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     .contact-copy {
-      max-width: 650px;
-      margin: 22px 0 0;
-      color: rgba(255,255,255,.78);
-      font-size: 16px;
+      max-width: 480px;
+      margin: 18px 0 0;
+      color: var(--gray-500, #6b7280);
+      font-size: 15px;
       line-height: 1.75;
+    }
+
+    @media (max-width: 991px) {
+      .contact-hero {
+        grid-template-columns: 1fr;
+        min-height: auto;
+      }
+      .contact-hero-right {
+        display: none;
+      }
+      .contact-hero-left {
+        padding: 120px 20px 48px;
+      }
     }
 
     .contact-icon {
@@ -312,6 +384,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       transition: border-color var(--dur-fast), background var(--dur-fast), box-shadow var(--dur-fast);
     }
 
+    /* ── CUSTOM SELECT DROPDOWN ── */
+    .contact-field select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 42px;
+      cursor: pointer;
+    }
+
+    .contact-field select:focus {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23e8162b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    }
+
+    /* Style the dropdown options (white background, clean spacing) */
+    .contact-field select option {
+      background: #fff;
+      color: var(--text-primary, #111);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px 16px;
+    }
+
+    .contact-field select option:disabled {
+      color: var(--gray-400, #9ca3af);
+    }
+
+    .contact-field select option:hover,
+    .contact-field select option:checked {
+      background: rgba(232,22,43,.07);
+      color: var(--red-primary);
+    }
+
     .contact-field textarea {
       min-height: 150px;
       padding-top: 13px;
@@ -363,10 +469,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     @media (max-width: 640px) {
-      .contact-hero {
-        padding: 132px 0 48px;
-      }
-
       .contact-form-row {
         grid-template-columns: 1fr;
       }
@@ -383,12 +485,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <main>
   <section class="contact-hero">
-    <div class="container-xl px-4">
+    <!-- Left: text -->
+    <div class="contact-hero-left">
       <p class="contact-eyebrow">ClicKet Support</p>
       <h1 class="contact-title">Contact <span>Us</span></h1>
       <p class="contact-copy">
         Reach our support team for ticket purchases, refunds, venue questions, organizer inquiries, and account concerns.
       </p>
+    </div>
+
+    <!-- Right: decorative pill cloud -->
+    <div class="contact-hero-right" aria-hidden="true">
+      <div class="contact-hero-deco">
+        <span class="contact-hero-pill contact-hero-pill--red">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Send a Message
+        </span>
+        <span class="contact-hero-pill contact-hero-pill--outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.62 19a19.45 19.45 0 0 1-6-6A19.79 19.79 0 0 1 3.12 4.18 2 2 0 0 1 5.09 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L9.21 9.77a16 16 0 0 0 6 6l1.13-1.13a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Hotline Support
+        </span>
+        <span class="contact-hero-pill contact-hero-pill--muted">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Quick Response
+        </span>
+        <span class="contact-hero-pill contact-hero-pill--outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg>
+          Email Support
+        </span>
+        <span class="contact-hero-pill contact-hero-pill--red">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          Metro Manila
+        </span>
+        <span class="contact-hero-pill contact-hero-pill--muted">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Tracked Tickets
+        </span>
+        <span class="contact-hero-pill contact-hero-pill--outline">Refunds &amp; Exchanges</span>
+        <span class="contact-hero-pill contact-hero-pill--muted">Organizer Inquiries</span>
+        <span class="contact-hero-pill contact-hero-pill--outline">Venue Support</span>
+      </div>
     </div>
   </section>
 

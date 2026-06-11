@@ -84,10 +84,10 @@
         &copy; <?= date('Y') ?> <strong>ClicKet</strong>. All rights reserved.
       </p>
       <nav class="footer-bottom-links">
-        <a href="#">Privacy Policy</a>
+        <a href="privacy.php">Privacy Policy</a>
         <a href="terms.php">Terms of Use</a>
         <a href="#">Cookie Policy</a>
-        <a href="#">Accessibility</a>
+        <a href="accessibility.php">Accessibility</a>
       </nav>
     </div>
 
