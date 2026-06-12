@@ -5,7 +5,7 @@
 <!-- ===== PARTNERS CAROUSEL ===== -->
 <section class="partners-section" id="venues">
   <div class="container-xl px-4">
-    <p class="partners-label">Trusted by Leading Venues &amp; Organizers</p>
+    <p class="partners-label">Our Trusted Venues &amp; Arenas</p>
   </div>
 
   <div class="partners-ticker-wrapper">

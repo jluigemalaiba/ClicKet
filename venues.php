@@ -226,7 +226,7 @@ $venues = [
     <div class="container-xl px-4">
       <div class="category-listing-header" style="padding-top:56px;">
         <div>
-          <p class="category-kicker">Trusted by Organizers</p>
+          <p class="category-kicker">Our Trusted</p>
           <h2 class="category-title">Venues <span>&amp; Arenas</span></h2>
         </div>
       </div>
