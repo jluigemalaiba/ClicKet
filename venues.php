@@ -20,6 +20,18 @@ $venues = [
     ['file' => 'Solaire.png',    'name' => 'Solaire Resort Entertainment City',       'location' => 'Paranaque City',     'type' => 'Resort theater',               'capacity' => '~1,700'],
     ['file' => 'TP.png',         'name' => 'Tanghalang Pilipino',                     'location' => 'Pasay City',         'type' => 'Cultural theater',             'capacity' => '~600'],
 ];
+
+$venueHeroPhotos = [
+    ['file' => 'metro_place.jpg',     'name' => 'Metropolitan Theater'],
+    ['file' => 'munti_place.jpg',     'name' => 'Muntinlupa Sports Center'],
+    ['file' => 'filoil_place.jpg',    'name' => 'Filoil EcoOil Centre'],
+    ['file' => 'tanghalan_place.jpg', 'name' => 'Tanghalang Pilipino'],
+    ['file' => 'nuvali_place.jpg',    'name' => 'Nuvali'],
+    ['file' => 'phil_place.jpg',      'name' => 'Philippine Arena'],
+    ['file' => 'newport_place.jpg',   'name' => 'Newport Performing Arts Theater'],
+    ['file' => 'rwm_place.jpg',       'name' => 'Resorts World Manila'],
+    ['file' => 'moa_place.jpg',       'name' => 'MOA Arena'],
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,6 +47,136 @@ $venues = [
   <link rel="stylesheet" href="css/category-pages.css">
   <link rel="stylesheet" href="css/partners-footer.css">
   <style>
+    .venues-hero-showcase {
+      position: relative;
+      min-height: 640px;
+      padding: 142px 0 84px;
+      overflow: hidden;
+      background: var(--dark-bg);
+      color: var(--white);
+      isolation: isolate;
+    }
+    .venues-hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: -3;
+      background-size: cover;
+      background-position: center;
+      opacity: .34;
+      filter: saturate(1.12) contrast(1.08);
+      transform: scale(1.04);
+      transition: background-image .55s ease, opacity .35s ease, transform .75s ease;
+    }
+    .venues-hero-showcase::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(circle at 74% 55%, rgba(232,22,43,.28), transparent 36%),
+        linear-gradient(90deg, rgba(20,20,20,.98) 0%, rgba(20,20,20,.92) 33%, rgba(20,20,20,.58) 50%);
+    }
+    .venues-hero-showcase::after {
+      content: '';
+      position: absolute;
+      inset: auto 0 0;
+      height: 20px;
+      z-index: -1;
+    }
+    .venues-hero-layout {
+      display: grid;
+      grid-template-columns: minmax(300px, 0.9fr) minmax(520px, 1.1fr);
+      gap: clamp(34px, 5vw, 68px);
+      align-items: center;
+    }
+    .venues-hero-copy { max-width: 520px; }
+    .venues-hero-kicker {
+      margin: 0 0 18px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.78);
+    }
+    .venues-hero-title {
+      margin: 0 0 22px;
+      font-family: var(--font-display);
+      font-size: clamp(72px, 9vw, 122px);
+      line-height: .82;
+      letter-spacing: 1px;
+      color: #f4eeee;
+      text-shadow: 0 18px 44px rgba(0,0,0,.35);
+    }
+    .venues-hero-text {
+      max-width: 430px;
+      margin: 0 0 26px;
+      color: rgba(255,255,255,.72);
+      font-size: 15px;
+      line-height: 1.72;
+    }
+    .venues-hero-actions { display: flex; flex-wrap: wrap; gap: 18px; }
+    .venues-hero-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 46px;
+      padding: 0 22px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 800;
+      transition: transform .22s ease, background .22s ease, color .22s ease;
+    }
+    .venues-hero-btn:hover { transform: translateY(-2px); }
+    .venues-hero-btn-primary { background: var(--red-primary); color: var(--white); }
+    .venues-hero-btn-primary:hover { background: var(--red-light); box-shadow: var(--glow-red); }
+    .venues-hero-btn-light { background: var(--white); color: var(--gray-900); }
+    .venues-hero-collage {
+      position: relative;
+      min-height: 430px;
+      display: grid;
+      grid-template-columns: repeat(3, 188px);
+      grid-auto-rows: 118px;
+      gap: 14px;
+      align-items: stretch;
+      justify-content: end;
+      padding-right: clamp(0px, 2vw, 0px);
+      align-content: center;
+    }
+    .venue-place-card {
+      position: relative;
+      overflow: hidden;
+      width: 188px;
+      height: 118px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 12px 34px rgba(0,0,0,.28);
+      cursor: pointer;
+      transform: translateZ(0);
+    }
+    .venue-place-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform .65s var(--ease), filter .35s ease;
+      will-change: transform;
+    }
+    .venue-place-card:hover img,
+    .venue-place-card:focus-visible img {
+      transform: scale(1.16);
+      filter: saturate(1.18) contrast(1.08);
+    }
+    .venue-place-card:hover,
+    .venue-place-card:focus-visible { z-index: 4; outline: none; }
+    .venue-place-card-1 { grid-column: 1 / 2; grid-row: 1 / 2; border-radius: 30px 16px 30px 30px; }
+    .venue-place-card-2 { grid-column: 2 / 3; grid-row: 1 / 2; }
+    .venue-place-card-3 { grid-column: 3 / 4; grid-row: 1 / 2; border-radius: 16px 30px 30px 16px; }
+    .venue-place-card-4 { grid-column: 1 / 2; grid-row: 2 / 3; transform: translateX(-54px); border-radius: 30px 16px 16px 30px; }
+    .venue-place-card-5 { grid-column: 2 / 3; grid-row: 2 / 3; transform: translateX(-54px); }
+    .venue-place-card-6 { grid-column: 3 / 4; grid-row: 2 / 3; transform: translateX(-54px); border-radius: 16px 30px 30px 16px; }
+    .venue-place-card-7 { grid-column: 1 / 2; grid-row: 3 / 4; border-radius: 30px 16px 30px 30px; }
+    .venue-place-card-8 { grid-column: 2 / 3; grid-row: 3 / 4; }
+    .venue-place-card-9 { grid-column: 3 / 4; grid-row: 3 / 4; border-radius: 16px 30px 30px 16px; }
     .venue-arc-stage {
       position: relative;
       display: flex;
@@ -168,7 +310,17 @@ $venues = [
       box-shadow: 0 0 0 5px rgba(232,22,43,.1);
     }
     .arc-resume-hint { font-size: .78rem; color: var(--gray-400); margin: 10px 0 0; }
+    @media (max-width: 991px) {
+      .venues-hero-showcase { padding: 124px 0 72px; }
+      .venues-hero-layout { grid-template-columns: 1fr; }
+      .venues-hero-copy { max-width: 680px; }
+      .venues-hero-collage { grid-template-columns: repeat(4, 1fr); grid-auto-rows: 96px; justify-content: stretch; }
+      .venue-place-card { width: auto; height: 112px; grid-column: auto !important; grid-row: auto !important; transform: none !important; border-radius: 22px !important; }
+    }
     @media (max-width: 767px) {
+      .venues-hero-showcase { min-height: auto; padding: 112px 0 60px; }
+      .venues-hero-title { font-size: clamp(62px, 19vw, 86px); }
+      .venues-hero-collage { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 104px; gap: 12px; }
       .venue-arc-stage {
         min-height: 360px;
         margin-top: 0;
@@ -203,20 +355,33 @@ $venues = [
 <?php require_once __DIR__ . '/includes/navbar.php'; ?>
 
 <main>
-  <section class="category-hero" aria-label="Venues banner">
-    <div class="category-hero-media" style="--hero-bg: url('<?= htmlspecialchars(landscapeUrl('featured', 32)) ?>');" aria-hidden="true"></div>
+  <section class="venues-hero-showcase" aria-label="Venues banner">
+    <div class="venues-hero-bg" id="venuesHeroBg" style="background-image:url('assets/metro_place.jpg');" aria-hidden="true"></div>
     <div class="container-xl px-4">
-      <div class="category-hero-content">
-        <h1 class="category-hero-title">Partner <span>Venues</span></h1>
-        <p class="category-hero-copy">
-          Explore the arenas, theaters, halls, and event grounds that host ClicKet concerts, stage shows, and game-day moments.
-        </p>
-        <div class="category-hero-actions">
-      <a href="#venueGrid" class="btn-primary">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Browse Venues
-      </a>
-          <a href="events.php" class="btn-outline">All Events</a>
+      <div class="venues-hero-layout">
+        <div class="venues-hero-copy">
+          <p class="venues-hero-kicker" style="color: var(--red-dark);">ClicKet Venues</p>
+          <h1 class="venues-hero-title">VENUES<br><span style="color: var(--red-primary);">REDEFINED</span></h1>
+          <p class="venues-hero-text">
+            Discover partner arenas, theaters, halls, and event grounds built for concerts, stage shows, and game-day moments.
+          </p>
+          <div class="venues-hero-actions">
+            <a href="#venueGrid" class="venues-hero-btn venues-hero-btn-primary">Browse Venues</a>
+            <a href="events.php" class="venues-hero-btn venues-hero-btn-light">All Events</a>
+          </div>
+        </div>
+        <div class="venues-hero-collage" aria-label="Featured venue photos">
+          <?php foreach ($venueHeroPhotos as $i => $photo): ?>
+            <button
+              class="venue-place-card venue-place-card-<?= ($i % 9) + 1 ?>"
+              type="button"
+              data-bg="assets/<?= htmlspecialchars($photo['file']) ?>"
+              data-venue="<?= htmlspecialchars($photo['name']) ?>"
+              aria-label="Preview <?= htmlspecialchars($photo['name']) ?>"
+            >
+              <img src="assets/<?= htmlspecialchars($photo['file']) ?>" alt="<?= htmlspecialchars($photo['name']) ?>" loading="eager" draggable="false">
+            </button>
+          <?php endforeach; ?>
         </div>
       </div>
     </div>
@@ -379,6 +544,28 @@ $venues = [
   function venueEventsUrl(name) {
     return 'events.php?venue=' + encodeURIComponent(name);
   }
+
+
+  var heroBg = document.getElementById('venuesHeroBg');
+  var placeCards = document.querySelectorAll('.venue-place-card');
+  placeCards.forEach(function (card) {
+    function previewVenue() {
+      if (heroBg && card.dataset.bg) {
+        heroBg.style.backgroundImage = "url('" + card.dataset.bg + "')";
+        heroBg.style.transform = 'scale(1.08)';
+      }
+    }
+    function settleVenue() {
+      if (heroBg) heroBg.style.transform = 'scale(1.04)';
+    }
+    card.addEventListener('mouseenter', previewVenue);
+    card.addEventListener('focus', previewVenue);
+    card.addEventListener('mouseleave', settleVenue);
+    card.addEventListener('blur', settleVenue);
+    card.addEventListener('click', function () {
+      window.location.href = venueEventsUrl(card.dataset.venue || '');
+    });
+  });
 
   items.forEach(function (el) {
     function pauseOnItem() {
