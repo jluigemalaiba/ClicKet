@@ -4,6 +4,10 @@ require_once __DIR__ . '/includes/log.php';
 $mode = $_GET['mode'] ?? 'login';
 $errors = [];
 $notif = pullFlashMessage();
+$returnTo = trim((string) ($_GET['return'] ?? $_POST['return'] ?? ''));
+if ($returnTo !== '' && !preg_match('/^(checkout|ticket|show)\.php\?[A-Za-z0-9_=&%.-]+$/', $returnTo)) {
+    $returnTo = '';
+}
 
 if (isset($_GET['logout'])) {
     logoutUser();
@@ -39,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             : 'Welcome back' . ($firstName !== '' ? ', ' . $firstName : '') . '!';
 
         setFlashMessage('success', $message);
-        header('Location: index.php');
+        header('Location: ' . ($returnTo !== '' ? $returnTo : 'index.php'));
         exit;
     }
 
@@ -501,6 +505,7 @@ if (!$user && $mode === 'account') {
 
         <form class="auth-form" method="post" action="auth.php" id="authForm" novalidate>
           <input type="hidden" name="mode" id="authModeInput" value="<?= $mode === 'signup' ? 'signup' : 'login' ?>">
+          <input type="hidden" name="return" value="<?= htmlspecialchars($returnTo) ?>">
 
           <div class="field-group auth-signup-field <?= $mode === 'signup' ? '' : 'auth-field--hidden' ?>">
             <label class="field-label" for="nameField">Username</label>

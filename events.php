@@ -984,7 +984,7 @@ $heroTickets = [
             data-venue="<?= htmlspecialchars($event['venue']) ?>"
             data-search="<?= htmlspecialchars(strtolower($event['title'] . ' ' . $event['categoryLabel'] . ' ' . $event['type'] . ' ' . $event['venue'] . ' ' . $event['sub'])) ?>"
           >
-            <div class="events-card-poster">
+            <a class="events-card-poster" href="show.php?event=<?= urlencode($event['id']) ?>" aria-label="View <?= htmlspecialchars($event['title']) ?>">
               <img src="<?= htmlspecialchars($event['poster']) ?>" alt="<?= htmlspecialchars($event['title']) ?> poster" loading="lazy">
               <div class="events-card-badges">
                 <span class="events-category-badge"><?= htmlspecialchars($event['categoryLabel']) ?></span>
@@ -993,10 +993,10 @@ $heroTickets = [
                 <span><?= htmlspecialchars($event['type']) ?></span>
                 <strong><?= htmlspecialchars($event['title']) ?></strong>
               </div>
-            </div>
+            </a>
 
             <div class="events-card-body">
-              <h3 class="events-card-title"><?= htmlspecialchars($event['title']) ?></h3>
+              <h3 class="events-card-title"><a href="show.php?event=<?= urlencode($event['id']) ?>"><?= htmlspecialchars($event['title']) ?></a></h3>
 
               <div class="events-meta">
                 <div class="events-meta-row">
@@ -1019,7 +1019,7 @@ $heroTickets = [
                 <div class="events-stars" aria-label="<?= (int) $event['rating'] ?> out of 5 stars">
                   <?= eventPageStars((int) $event['rating']) ?>
                 </div>
-                <a href="auth.php?mode=login&amp;event=<?= urlencode($event['id']) ?>" class="events-book-btn">Book Now</a>
+                <a href="show.php?event=<?= urlencode($event['id']) ?>" class="events-book-btn">View Event</a>
               </div>
             </div>
           </article>

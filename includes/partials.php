@@ -12,11 +12,12 @@ function renderEventCard(array $event, string $category, int $idx): void {
     $title  = htmlspecialchars($event['title']);
     $venue  = htmlspecialchars($event['venue']);
     $date   = htmlspecialchars($event['date']);
-    $price  = htmlspecialchars($event['price']);
+    $price  = htmlspecialchars($event['price'] ?? 'PHP 500');
+    $detailUrl = htmlspecialchars(eventDetailUrl($category, $idx));
 ?>
-    <div class="event-card">
+    <div class="event-card" role="group" aria-label="<?= $title ?>">
       <!-- Poster -->
-      <div class="event-poster">
+      <a class="event-poster" href="<?= $detailUrl ?>">
         <img src="<?= $poster ?>" alt="<?= $title ?>" loading="lazy">
         <div class="event-poster-overlay">
           <div class="event-poster-top">
@@ -26,11 +27,11 @@ function renderEventCard(array $event, string $category, int $idx): void {
             <span class="event-quick-title"><?= $title ?></span>
           </div>
         </div>
-      </div>
+      </a>
 
       <!-- Info -->
       <div class="event-info">
-        <h3 class="event-title"><?= $title ?></h3>
+        <h3 class="event-title"><a href="<?= $detailUrl ?>"><?= $title ?></a></h3>
         <div class="event-meta">
           <div class="event-meta-row">
             <!-- Calendar icon -->
@@ -59,9 +60,7 @@ function renderEventCard(array $event, string $category, int $idx): void {
 
         <div class="event-footer">
           <div class="event-stars" aria-label="Rating"><?= $stars ?></div>
-          <button type="button" class="event-book-btn" onclick="cartManager.addItem({id: 'event-<?= htmlspecialchars($event['id'] ?? $idx); ?>', title: '<?= htmlspecialchars($event['title']); ?>', category: '<?= htmlspecialchars($category); ?>', price: '<?= htmlspecialchars($price); ?>', image: '<?= htmlspecialchars($poster); ?>'})">
-            Book Now
-          </button>
+          <a class="event-book-btn" href="<?= $detailUrl ?>">View Event</a>
         </div>
       </div>
     </div>
@@ -75,15 +74,16 @@ function renderFeaturedCard(array $event, int $pos): void {
     $title    = htmlspecialchars($event['title']);
     $sub      = htmlspecialchars($event['sub']);
     $category = htmlspecialchars($event['category']);
+    $detailUrl = htmlspecialchars(eventDetailUrlByTitle($event['title']));
 ?>
-    <div class="feat-card" data-pos="<?= $pos ?>">
+    <a class="feat-card" data-pos="<?= $pos ?>" href="<?= $detailUrl ?>" aria-label="View <?= $title ?>">
       <img src="<?= $poster ?>" alt="<?= $title ?>" loading="lazy">
       <div class="feat-card-overlay">
         <span class="feat-card-category"><?= $category ?></span>
         <div class="feat-card-title"><?= $title ?></div>
         <div class="feat-card-sub"><?= $sub ?></div>
       </div>
-    </div>
+    </a>
 <?php }
 
 /**
@@ -132,8 +132,8 @@ function renderCategoryShowcase(
           </p>
           <p class="showcase-description"><?= htmlspecialchars($description) ?></p>
           <div class="showcase-actions">
-            <a href="auth.php?mode=login" class="btn-primary showcase-book">
-              Book Now
+            <a href="<?= htmlspecialchars(eventDetailUrl($category, 0)) ?>" class="btn-primary showcase-book">
+              View Event
             </a>
             <a href="<?= htmlspecialchars($seeAllUrl) ?>" class="btn-outline showcase-see-all">See More</a>
           </div>
@@ -159,9 +159,9 @@ function renderCategoryShowcase(
                   $type = $event['type'] ?? $label;
                   $rating = (int)($event['rating'] ?? 4);
               ?>
-                <button
+                <a
                   class="showcase-card <?= $idx === 0 ? 'active' : '' ?>"
-                  type="button"
+                  href="<?= htmlspecialchars(eventDetailUrl($category, $idx)) ?>"
                   data-type="<?= htmlspecialchars($type) ?>"
                   data-title="<?= htmlspecialchars($event['title']) ?>"
                   data-date="<?= htmlspecialchars($event['date']) ?>"
@@ -170,14 +170,14 @@ function renderCategoryShowcase(
                   data-rating="<?= $rating ?>"
                   data-category="<?= htmlspecialchars($label) ?>"
                   data-image="<?= landscapeUrl($category, $idx + 10) ?>"
-                  data-link="event-detail.php?id=<?= $idx ?>"
+                  data-link="<?= htmlspecialchars(eventDetailUrl($category, $idx)) ?>"
                 >
                   <img src="<?= posterUrl($category, $idx + 10) ?>" alt="<?= htmlspecialchars($event['title']) ?>" loading="lazy">
                   <span class="showcase-card-overlay">
                     <span class="showcase-card-type"><?= htmlspecialchars($type) ?></span>
                     <strong><?= htmlspecialchars($event['title']) ?></strong>
                   </span>
-                </button>
+                </a>
               <?php endforeach; ?>
             </div>
 

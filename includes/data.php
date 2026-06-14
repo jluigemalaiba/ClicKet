@@ -25,6 +25,36 @@ function landscapeUrl(string $category, int $seed): string {
     return "https://picsum.photos/seed/{$id}/1200/650";
 }
 
+function eventDetailUrl(string $category, int $index): string {
+    $categoryKey = match ($category) {
+        'concert' => 'concerts',
+        'sports' => 'sports',
+        default => $category,
+    };
+
+    return 'show.php?event=' . rawurlencode($categoryKey . '-' . ($index + 1));
+}
+
+function eventDetailUrlByTitle(string $title): string {
+    global $concert_events, $theater_events, $sports_events;
+
+    $catalogs = [
+        'concerts' => $concert_events ?? [],
+        'theater' => $theater_events ?? [],
+        'sports' => $sports_events ?? [],
+    ];
+
+    foreach ($catalogs as $category => $events) {
+        foreach ($events as $index => $event) {
+            if (strcasecmp((string) ($event['title'] ?? ''), $title) === 0) {
+                return eventDetailUrl($category, $index);
+            }
+        }
+    }
+
+    return 'events.php?search=' . rawurlencode($title);
+}
+
 // Featured events
 $featured_events = [
   ['title'=>'BTS Permission to Dance Manila','sub'=>'International','category'=>'Concert','venue'=>'MOA Arena','date'=>'Nov 15, 2025','price'=>'PHP 12,000','poster'=>posterUrl('featured',1)],
