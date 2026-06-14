@@ -66,11 +66,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       position: relative;
       padding: 0;
       overflow: hidden;
-      background: #fff;
+      background:
+        radial-gradient(circle at 88% 0%, rgba(232,22,43,.065) 0 260px, transparent 261px),
+        radial-gradient(circle at 21% 100%, rgba(232,22,43,.065) 0 190px, transparent 191px),
+        #fff;
       color: var(--text-primary);
       border-bottom: 3px solid var(--red-primary);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
       min-height: 340px;
     }
 
@@ -79,15 +80,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       display: flex;
       flex-direction: column;
       justify-content: center;
+      max-width: 1320px;
+      min-height: 340px;
+      margin: 0 auto;
       padding: 120px max(24px, calc((100vw - 1320px) / 2 + 24px)) 60px max(24px, calc((100vw - 1320px) / 2 + 24px));
     }
 
     /* Right: decorative accent panel */
     .contact-hero-right {
       position: relative;
-      background: var(--gray-50, #f9f9f9);
+      display: none;
+      background:
+        radial-gradient(circle at 72% 8%, rgba(232,22,43,.075) 0 250px, transparent 251px),
+        transparent;
       overflow: hidden;
-      display: flex;
       align-items: center;
       justify-content: center;
     }
@@ -96,10 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       content: '';
       position: absolute;
       inset: 0;
-      background-image:
-        linear-gradient(rgba(232,22,43,.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(232,22,43,.06) 1px, transparent 1px);
-      background-size: 40px 40px;
+      background: radial-gradient(circle at 8% 100%, rgba(232,22,43,.055) 0 145px, transparent 146px);
     }
 
     .contact-hero-deco {
@@ -183,14 +186,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     @media (max-width: 991px) {
       .contact-hero {
-        grid-template-columns: 1fr;
         min-height: auto;
       }
       .contact-hero-right {
         display: none;
       }
       .contact-hero-left {
+        min-height: auto;
         padding: 120px 20px 48px;
+      }
+      .contact-hero {
+        background:
+          radial-gradient(circle at 108% 2%, rgba(232,22,43,.065) 0 150px, transparent 151px),
+          radial-gradient(circle at 8% 100%, rgba(232,22,43,.065) 0 115px, transparent 116px),
+          #fff;
       }
     }
 

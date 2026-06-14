@@ -125,7 +125,8 @@ function supportIcon(string $id): string {
       padding: 158px 0 74px;
       overflow: hidden;
       background:
-        linear-gradient(135deg, rgba(232,22,43,.1) 0%, rgba(255,255,255,0) 36%),
+        radial-gradient(circle at 88% 0%, rgba(232,22,43,.065) 0 260px, transparent 261px),
+        radial-gradient(circle at 21% 100%, rgba(232,22,43,.065) 0 190px, transparent 191px),
         linear-gradient(180deg, #fff 0%, var(--light-bg) 100%);
       border-bottom: 1px solid var(--gray-200);
     }

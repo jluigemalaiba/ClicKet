@@ -116,10 +116,11 @@ $lastUpdated = 'June 2025';
       min-height: 460px;
       padding: 0;
       overflow: hidden;
-      background: #fff;
+      background:
+        radial-gradient(circle at 88% 0%, rgba(232,22,43,.065) 0 260px, transparent 261px),
+        radial-gradient(circle at 21% 100%, rgba(232,22,43,.065) 0 190px, transparent 191px),
+        #fff;
       color: var(--text-primary);
-      display: grid;
-      grid-template-columns: 1fr 1fr;
       border-bottom: 3px solid var(--red-primary);
     }
 
@@ -130,6 +131,9 @@ $lastUpdated = 'June 2025';
       display: flex;
       flex-direction: column;
       justify-content: center;
+      max-width: 1320px;
+      min-height: 460px;
+      margin: 0 auto;
       padding: 160px max(24px, calc((100vw - 1320px) / 2 + 24px)) 72px max(24px, calc((100vw - 1320px) / 2 + 24px));
     }
 
@@ -137,11 +141,12 @@ $lastUpdated = 'June 2025';
     .acc-hero-right {
       position: relative;
       overflow: hidden;
+      display: none;
     }
 
     /* Subtle grid lines across whole hero */
     .acc-hero::before {
-      content: '';
+      content: none;
       position: absolute;
       inset: 0;
       background-image:
@@ -254,10 +259,10 @@ $lastUpdated = 'June 2025';
     /* ── RESPONSIVE ── */
     @media (max-width: 991px) {
       .acc-hero {
-        grid-template-columns: 1fr;
         min-height: auto;
       }
       .acc-hero-left {
+        min-height: auto;
         padding: 120px 24px 48px;
       }
       .acc-hero-right {
@@ -266,6 +271,12 @@ $lastUpdated = 'June 2025';
     }
 
     @media (max-width: 576px) {
+      .acc-hero {
+        background:
+          radial-gradient(circle at 108% 2%, rgba(232,22,43,.065) 0 150px, transparent 151px),
+          radial-gradient(circle at 8% 100%, rgba(232,22,43,.065) 0 115px, transparent 116px),
+          #fff;
+      }
       .acc-hero-left {
         padding: 100px 20px 40px;
       }

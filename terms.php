@@ -111,8 +111,13 @@ $termsSections = [
     }
 
     .terms-hero {
+      position: relative;
       padding: 158px 0 66px;
-      background: linear-gradient(180deg, #fff 0%, var(--light-bg) 100%);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 88% 0%, rgba(232,22,43,.065) 0 260px, transparent 261px),
+        radial-gradient(circle at 21% 100%, rgba(232,22,43,.065) 0 190px, transparent 191px),
+        linear-gradient(180deg, #fff 0%, var(--light-bg) 100%);
       border-bottom: 1px solid var(--gray-200);
     }
 
@@ -313,6 +318,10 @@ $termsSections = [
     @media (max-width: 640px) {
       .terms-hero {
         padding: 132px 0 48px;
+        background:
+          radial-gradient(circle at 108% 2%, rgba(232,22,43,.065) 0 150px, transparent 151px),
+          radial-gradient(circle at 8% 100%, rgba(232,22,43,.065) 0 115px, transparent 116px),
+          linear-gradient(180deg, #fff 0%, var(--light-bg) 100%);
       }
 
       .terms-section {

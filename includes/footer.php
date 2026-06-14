@@ -85,7 +85,6 @@
       </p>
       <nav class="footer-bottom-links">
         <a href="privacy.php">Privacy Policy</a>
-        <a href="terms.php">Terms of Use</a>
         <a href="#">Cookie Policy</a>
         <a href="accessibility.php">Accessibility</a>
       </nav>
