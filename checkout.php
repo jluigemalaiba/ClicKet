@@ -32,24 +32,6 @@ foreach ($selection['seats'] as $seat) {
 
 $serviceFee = count($seatRows) * 75;
 $total = $subtotal + $serviceFee;
-$confirmed = false;
-$bookingReference = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isLoggedIn()) {
-    $bookingReference = 'CK-' . strtoupper(substr(hash('sha256', session_id() . $eventKey . microtime(true)), 0, 10));
-    $_SESSION['clicket_bookings'][] = [
-        'reference' => $bookingReference,
-        'event' => $eventKey,
-        'event_title' => $event['title'],
-        'seats' => $seatRows,
-        'total' => $total,
-        'non_transferable' => true,
-        'booked_at' => date('c'),
-    ];
-    unset($_SESSION['clicket_ticket_selection']);
-    $confirmed = true;
-}
-
 $performanceDateLabel = trim((string) ($selection['performance_date'] ?? ''));
 $performanceTimeLabel = trim((string) ($selection['performance_time'] ?? ''));
 if ($performanceDateLabel === '') {
@@ -84,16 +66,6 @@ $returnUrl = 'checkout.php?event=' . rawurlencode($eventKey) . '&performance=' .
     </div>
   </header>
 
-  <?php if ($confirmed): ?>
-    <main class="checkout-success">
-      <span class="checkout-success-icon">✓</span>
-      <p class="ticket-panel-kicker">Booking confirmed</p>
-      <h1>Your seats are secured</h1>
-      <p><?= htmlspecialchars($event['title']) ?> tickets are now linked to <?= htmlspecialchars(currentUser()['email'] ?? 'your ClicKet account') ?> and cannot be transferred.</p>
-      <span class="checkout-reference"><?= htmlspecialchars($bookingReference) ?></span>
-      <a class="checkout-action" href="auth.php?mode=account">View My Tickets</a>
-    </main>
-  <?php else: ?>
     <main class="checkout-shell">
       <div class="checkout-heading">
         <div><p>Final review</p><h1>Review your booking</h1></div>
@@ -134,7 +106,7 @@ $returnUrl = 'checkout.php?event=' . rawurlencode($eventKey) . '&performance=' .
           <div class="checkout-policy">By continuing, you confirm that these tickets are for your account and are non-transferable. Seat availability remains subject to final confirmation.</div>
 
           <?php if (isLoggedIn()): ?>
-            <form method="post">
+            <form method="get" action="payment.php">
               <input type="hidden" name="event" value="<?= htmlspecialchars($eventKey) ?>">
               <input type="hidden" name="performance" value="<?= $performanceIndex ?>">
               <button class="checkout-action" type="submit">Confirm booking</button>
@@ -145,6 +117,5 @@ $returnUrl = 'checkout.php?event=' . rawurlencode($eventKey) . '&performance=' .
         </aside>
       </div>
     </main>
-  <?php endif; ?>
 </body>
 </html>

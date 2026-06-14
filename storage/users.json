@@ -96,5 +96,12 @@
         "email": "zyl@gmail.com",
         "password": "$2y$10$uI8nHEXuB\/ekwnbGLQ8ZFebMKo7mAoN03q\/wyBe84UQT8pYscMUI.",
         "created_at": "2026-06-10T16:10:21+02:00"
+    },
+    {
+        "id": "674703f12ee8f37d",
+        "name": "Ariana",
+        "email": "shuazyl@gmail.com",
+        "password": "$2y$10$u\/r9h79K0LzM43Su3Fr7XePXg1FnQgXQ9NsXcHlQXGK4bR7z9Q2Iy",
+        "created_at": "2026-06-14T10:49:51+02:00"
     }
 ]
