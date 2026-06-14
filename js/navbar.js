@@ -459,7 +459,7 @@
 
   /* Close dropdown when profile panel opens */
   document.addEventListener('show.bs.offcanvas', (e) => {
-    if (e.target?.id === 'profileEditPanel') {
+    if (['profileEditPanel', 'orderHistoryPanel', 'favoritesPanel', 'myTicketsPanel'].includes(e.target?.id)) {
       document.querySelectorAll('.nav-profile .dropdown-menu.show').forEach((m) => {
         const dropdownEl = m.closest('.dropdown');
         if (dropdownEl) {
@@ -472,6 +472,22 @@
       });
     }
   });
+
+  const orderPanel = document.getElementById('orderHistoryPanel');
+  const query = new URLSearchParams(window.location.search);
+  if (orderPanel && query.get('panel') === 'orders' && window.bootstrap?.Offcanvas) {
+    bootstrap.Offcanvas.getOrCreateInstance(orderPanel).show();
+  }
+
+  const ticketsPanel = document.getElementById('myTicketsPanel');
+  if (ticketsPanel && query.get('panel') === 'tickets' && window.bootstrap?.Offcanvas) {
+    bootstrap.Offcanvas.getOrCreateInstance(ticketsPanel).show();
+  }
+
+  const favoritesPanel = document.getElementById('favoritesPanel');
+  if (favoritesPanel && query.get('panel') === 'favorites' && window.bootstrap?.Offcanvas) {
+    bootstrap.Offcanvas.getOrCreateInstance(favoritesPanel).show();
+  }
 
   /* ─── Toast Notification ────────────────────────────────────────────────── */
 

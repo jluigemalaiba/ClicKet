@@ -12,7 +12,7 @@ if (!$resolved) {
 }
 
 $event = $resolved['event'];
-$venueProfile = clicketVenueProfile($event['venue']);
+$venueProfile = clicketVenueProfile($event['venue'], $resolved['categoryKey']);
 $categories = clicketTicketCategories();
 $performanceIndex = max(0, (int) ($_GET['performance'] ?? 0));
 $performanceDate = $resolved['date'];
@@ -222,6 +222,7 @@ $ticketConfig = [
   </main>
 
   <script id="ticketConfig" type="application/json"><?= json_encode($ticketConfig, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
+  <script src="js/ticket-topbar.js"></script>
   <script src="js/ticket.js"></script>
 </body>
 </html>

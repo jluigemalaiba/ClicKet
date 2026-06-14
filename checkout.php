@@ -117,5 +117,6 @@ $returnUrl = 'checkout.php?event=' . rawurlencode($eventKey) . '&performance=' .
         </aside>
       </div>
     </main>
+    <script src="js/ticket-topbar.js"></script>
 </body>
 </html>

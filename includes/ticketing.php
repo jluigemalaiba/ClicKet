@@ -228,9 +228,47 @@ function clicketOutdoorProfile(): array {
     ];
 }
 
-function clicketVenueProfile(string $venue): array {
-    $profiles = clicketVenueProfiles();
+function clicketVenueMap(string $venue, string $categoryKey): array {
+    $variant = $categoryKey === 'sports' ? 'sports' : 'concert';
+    $maps = [
+        'MOA Arena' => [
+            'concert' => ['mapKey' => 'moa-concert', 'mapType' => 'end-stage', 'stageLabel' => 'Main Stage', 'subtitle' => 'End-stage arena concert layout'],
+            'sports' => ['mapKey' => 'moa-sports', 'mapType' => 'court', 'stageLabel' => 'Ring / Court', 'subtitle' => 'Center-floor arena sports layout'],
+        ],
+        'Philippine Arena' => [
+            'concert' => ['mapKey' => 'philippine-concert', 'mapType' => 'end-stage', 'stageLabel' => 'Concert Stage', 'subtitle' => 'Large-capacity concert bowl layout'],
+            'sports' => ['mapKey' => 'philippine-sports', 'mapType' => 'court', 'stageLabel' => 'Playing Court', 'subtitle' => 'Large-capacity arena sports layout'],
+        ],
+        'Smart Araneta Coliseum' => [
+            'concert' => ['mapKey' => 'araneta-concert', 'mapType' => 'end-stage', 'stageLabel' => 'Main Stage', 'subtitle' => 'End-stage coliseum concert layout'],
+            'sports' => ['mapKey' => 'araneta-sports', 'mapType' => 'court', 'stageLabel' => 'Playing Court', 'subtitle' => 'Center-court coliseum sports layout'],
+        ],
+        'Newport Performing Arts Theater' => ['default' => ['mapKey' => 'newport', 'mapType' => 'theater']],
+        'Metropolitan Theater' => ['default' => ['mapKey' => 'metropolitan', 'mapType' => 'theater-reverse']],
+        'Solaire Resort Entertainment City' => ['default' => ['mapKey' => 'solaire', 'mapType' => 'theater-reverse']],
+        'Tanghalang Pilipino' => ['default' => ['mapKey' => 'tanghalan', 'mapType' => 'theater-round']],
+        'Resorts World Manila' => ['default' => ['mapKey' => 'resorts', 'mapType' => 'end-stage']],
+        'Samsung Hall' => ['default' => ['mapKey' => 'samsung', 'mapType' => 'theater-reverse']],
+        'Philsports Arena' => ['default' => ['mapKey' => 'philsports', 'mapType' => 'court']],
+        'Filoil EcoOil Centre' => ['default' => ['mapKey' => 'filoil', 'mapType' => 'court']],
+        'Cuneta Astrodome' => ['default' => ['mapKey' => 'cuneta', 'mapType' => 'court']],
+        'Muntinlupa Sports Center' => ['default' => ['mapKey' => 'muntinlupa', 'mapType' => 'court']],
+        'Ninoy Aquino Stadium and Rizal Memorial' => ['default' => ['mapKey' => 'ninoy', 'mapType' => 'court']],
+        'Nuvali' => ['default' => ['mapKey' => 'nuvali', 'mapType' => 'tennis', 'stageLabel' => 'Competition Court', 'subtitle' => 'Open-air competition court layout']],
+    ];
 
-    return $profiles[$venue] ?? clicketHallProfile($venue);
+    $venueMaps = $maps[$venue] ?? [];
+    $map = $venueMaps[$variant] ?? $venueMaps['default'] ?? [
+        'mapKey' => 'generic-' . ($categoryKey ?: 'event'),
+        'mapType' => $categoryKey === 'sports' ? 'court' : 'end-stage',
+    ];
+
+    return $map + ['mapVariant' => isset($venueMaps[$variant]) ? $variant : 'venue'];
 }
 
+function clicketVenueProfile(string $venue, string $categoryKey = ''): array {
+    $profiles = clicketVenueProfiles();
+    $profile = $profiles[$venue] ?? clicketHallProfile($venue);
+
+    return array_merge($profile, clicketVenueMap($venue, $categoryKey));
+}

@@ -2,10 +2,11 @@
 require_once __DIR__ . '/includes/log.php';
 
 $mode = $_GET['mode'] ?? 'login';
+$mode = $mode === 'signup' ? 'signup' : 'login';
 $errors = [];
 $notif = pullFlashMessage();
 $returnTo = trim((string) ($_GET['return'] ?? $_POST['return'] ?? ''));
-if ($returnTo !== '' && !preg_match('/^(checkout|ticket|show)\.php\?[A-Za-z0-9_=&%.-]+$/', $returnTo)) {
+if ($returnTo !== '' && !preg_match('/^(checkout|ticket|show|events)\.php\?[A-Za-z0-9_=&%.-]+$/', $returnTo)) {
     $returnTo = '';
 }
 
@@ -52,12 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $user = currentUser();
 
-if ($user && $mode !== 'account') {
-    $mode = 'account';
-}
-
-if (!$user && $mode === 'account') {
-    $mode = 'login';
+if ($user) {
+    header('Location: index.php');
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -80,7 +78,7 @@ if (!$user && $mode === 'account') {
     }
   </style>
 </head>
-<body class="auth-body auth-mode-<?= $mode === 'signup' ? 'signup' : ($mode === 'account' ? 'account' : 'login') ?>">
+<body class="auth-body auth-mode-<?= $mode === 'signup' ? 'signup' : 'login' ?>">
 
 <!-- ============================================================
      FLASH NOTIFICATION BAR
@@ -428,35 +426,7 @@ if (!$user && $mode === 'account') {
        GLASSMORPHIC FORM PANEL — centered on screen
        ============================================================ -->
   <main class="glass-wrap">
-    <div class="glass-card auth-panel" data-auth-mode="<?= $mode === 'signup' ? 'signup' : ($mode === 'account' ? 'account' : 'login') ?>">
-
-      <?php if ($mode === 'account' && $user): ?>
-        <!-- ====================================================
-             ACCOUNT VIEW
-             ==================================================== -->
-        <div class="gc-header">
-          <p class="gc-eyebrow">My Account</p>
-          <h2 class="gc-title">Hello, <?= htmlspecialchars($user['name']) ?></h2>
-          <p class="gc-copy">You are signed in and ready to continue booking. Your ticket activity is available below.</p>
-        </div>
-
-        <div class="account-summary">
-          <div class="account-summary-item">
-            <span class="account-summary-label">Account Status</span>
-            <strong class="account-summary-value account-summary-value--active">Active</strong>
-          </div>
-          <div class="account-summary-item">
-            <span class="account-summary-label">Email</span>
-            <strong class="account-summary-value"><?= htmlspecialchars($user['email']) ?></strong>
-          </div>
-        </div>
-
-        <div class="gc-actions">
-          <a href="index.php#concerts" class="btn-primary">Browse Events</a>
-          <a href="auth.php?logout=1" class="btn-ghost">Log Out</a>
-        </div>
-
-      <?php else: ?>
+    <div class="glass-card auth-panel" data-auth-mode="<?= $mode === 'signup' ? 'signup' : 'login' ?>">
         <!-- ====================================================
              LOGIN / SIGNUP FORM
              ==================================================== -->
@@ -597,8 +567,6 @@ if (!$user && $mode === 'account') {
           By continuing, you agree to ClicKet's <a href="terms.php">Terms</a> and <a href="#">Privacy Policy</a>.
         </p>
 
-      <?php endif; ?>
-
     </div><!-- /glass-card -->
   </main>
 
@@ -627,7 +595,7 @@ if (!$user && $mode === 'account') {
   const panel = document.querySelector('.auth-panel');
   const modeLinks = document.querySelectorAll('[data-auth-switch]');
   const motionAllowed = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const canAnimateAuthMode = panel && panel.dataset.authMode !== 'account';
+  const canAnimateAuthMode = Boolean(panel);
   const modeInput = document.getElementById('authModeInput');
   const signupFields = document.querySelectorAll('.auth-signup-field');
   const authAlert = document.querySelector('.auth-alert');

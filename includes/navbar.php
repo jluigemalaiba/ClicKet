@@ -1,7 +1,13 @@
 <?php
 // includes/navbar.php — ClicKet Top Navigation with Dynamic Active State
 require_once __DIR__ . '/log.php';
+require_once __DIR__ . '/order-history-data.php';
+require_once __DIR__ . '/ticket-data.php';
+require_once __DIR__ . '/favorite-data.php';
 $navUser = currentUser();
+$navOrderHistory = $navUser ? clicketOrdersForUser((string) ($navUser['id'] ?? '')) : [];
+$navTickets = $navUser ? clicketTicketsForUser((string) ($navUser['id'] ?? '')) : [];
+$navFavorites = $navUser ? clicketFavoritesForUser((string) ($navUser['id'] ?? '')) : [];
 $navUserLabel = userDisplayName($navUser);
 $navUserInitial = $navUserLabel !== '' ? strtoupper(substr($navUserLabel, 0, 1)) : 'U';
 $currentPage = basename($_SERVER['PHP_SELF']);
@@ -17,6 +23,11 @@ $navEventsLabel = ($currentPage === 'events.php' && isset($navEventLabels[$navCa
 $navSearchValue = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
 $navFlash = pullFlashMessage();
 ?>
+<?php if ($navUser): ?>
+<link rel="stylesheet" href="css/order-history.css">
+<link rel="stylesheet" href="css/my-tickets.css">
+<link rel="stylesheet" href="css/favorites.css">
+<?php endif; ?>
 <nav class="navbar-clicket navbar navbar-expand-xl">
   <div class="navbar-inner">
 
@@ -94,24 +105,24 @@ $navFlash = pullFlashMessage();
                   <strong>Profile</strong>
                 </span>
               </button>
-              <a class="nav-profile-item" href="auth.php?mode=account">
+              <button class="nav-profile-item nav-order-history-trigger" type="button" data-bs-toggle="offcanvas" data-bs-target="#orderHistoryPanel" aria-controls="orderHistoryPanel">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                 <span>
                   <strong>Order History</strong>
                 </span>
-              </a>
-              <a class="nav-profile-item" href="auth.php?mode=account">
+              </button>
+              <button class="nav-profile-item nav-favorites-trigger" type="button" data-bs-toggle="offcanvas" data-bs-target="#favoritesPanel" aria-controls="favoritesPanel">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"/></svg>
                 <span>
                   <strong>Favorite</strong>
                 </span>
-              </a>
-              <a class="nav-profile-item" href="auth.php?mode=account">
+              </button>
+              <button class="nav-profile-item nav-my-tickets-trigger" type="button" data-bs-toggle="offcanvas" data-bs-target="#myTicketsPanel" aria-controls="myTicketsPanel">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a3 3 0 0 0 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 0 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
                 <span>
                   <strong>My Tickets</strong>
                 </span>
-              </a>
+              </button>
 
               <div class="nav-profile-divider"></div>
 
@@ -320,7 +331,80 @@ $navFlash = pullFlashMessage();
     </button>
   </div>
 </div>
+
+<!-- Order History Panel -->
+<div class="offcanvas offcanvas-end order-history-panel" tabindex="-1" id="orderHistoryPanel" aria-labelledby="orderHistoryPanelLabel">
+  <div class="order-history-panel__header offcanvas-header">
+    <div>
+      <p>My purchases</p>
+      <h5 id="orderHistoryPanelLabel">Order History</h5>
+      <span><?= count($navOrderHistory) ?> <?= count($navOrderHistory) === 1 ? 'confirmed order' : 'confirmed orders' ?></span>
+    </div>
+    <button type="button" class="order-history-panel__close" data-bs-dismiss="offcanvas" aria-label="Close order history">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="order-history-panel__body offcanvas-body">
+    <?php
+    $orderHistory = $navOrderHistory;
+    $orderHistoryCompact = true;
+    require __DIR__ . '/order-history-ui.php';
+    ?>
+  </div>
+</div>
+
+<!-- Favorites Panel -->
+<div class="offcanvas offcanvas-end favorites-panel" tabindex="-1" id="favoritesPanel" aria-labelledby="favoritesPanelLabel">
+  <div class="favorites-panel__header offcanvas-header">
+    <div>
+      <p>Saved events</p>
+      <h5 id="favoritesPanelLabel">Favorites</h5>
+      <span data-favorites-count><?= count($navFavorites) ?> <?= count($navFavorites) === 1 ? 'saved event' : 'saved events' ?></span>
+    </div>
+    <button type="button" class="favorites-panel__close" data-bs-dismiss="offcanvas" aria-label="Close favorites">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="favorites-panel__body offcanvas-body">
+    <?php
+    $favorites = $navFavorites;
+    require __DIR__ . '/favorites-ui.php';
+    ?>
+  </div>
+</div>
+
+<!-- My Tickets Panel -->
+<div class="offcanvas offcanvas-end my-tickets-panel" tabindex="-1" id="myTicketsPanel" aria-labelledby="myTicketsPanelLabel">
+  <div class="my-tickets-panel__header offcanvas-header">
+    <div>
+      <p>Ready for admission</p>
+      <h5 id="myTicketsPanelLabel">My Tickets</h5>
+      <span><?= count($navTickets) ?> <?= count($navTickets) === 1 ? 'valid ticket' : 'valid tickets' ?></span>
+    </div>
+    <button type="button" class="my-tickets-panel__close" data-bs-dismiss="offcanvas" aria-label="Close My Tickets">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="my-tickets-panel__body offcanvas-body">
+    <?php
+    $myTickets = $navTickets;
+    require __DIR__ . '/my-tickets-ui.php';
+    ?>
+  </div>
+</div>
+
+<?php
+$orderHistory = $navOrderHistory;
+require __DIR__ . '/order-details-modal.php';
+$myTickets = $navTickets;
+require __DIR__ . '/ticket-details-panel.php';
+?>
 <?php endif; ?>
 
 <script src="js/navbar.js" defer></script>
+<script src="js/favorites.js" defer></script>
+<?php if ($navUser): ?>
+<script src="js/order-history.js" defer></script>
+<script src="js/my-tickets.js" defer></script>
+<?php endif; ?>
 

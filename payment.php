@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/includes/ticketing.php';
 require_once __DIR__ . '/includes/log.php';
+require_once __DIR__ . '/includes/order-history-data.php';
+require_once __DIR__ . '/includes/ticket-data.php';
 
 $status = trim((string) ($_GET['status'] ?? ''));
 $lastBooking = $_SESSION['clicket_last_booking'] ?? null;
@@ -132,11 +134,12 @@ if (in_array($status, ['processing', 'success'], true)) {
         <div class="receipt-actions" aria-label="Receipt actions">
           <button class="receipt-action receipt-action--primary" id="downloadReceipt" type="button">Download Receipt</button>
           <button class="receipt-action" id="printReceipt" type="button">Print Receipt</button>
-          <a class="receipt-action" href="auth.php?mode=account">View My Tickets</a>
+          <a class="receipt-action" href="index.php?panel=tickets">View My Tickets</a>
           <a class="receipt-action" href="index.php">Back to Home</a>
         </div>
       </main>
       <script src="js/vendor/html2pdf.bundle.min.js" defer></script>
+      <script src="js/ticket-topbar.js" defer></script>
       <script src="js/payment.js" defer></script>
     </body>
     </html>
@@ -250,11 +253,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $paymentAccount = $qrReference;
         }
 
-        $bookingReference = 'CK-' . strtoupper(substr(hash('sha256', session_id() . $eventKey . microtime(true)), 0, 10));
+        $currentBuyer = currentUser();
+        $orderSeed = session_id() . $eventKey . microtime(true);
+        $orderId = 'CKO-' . strtoupper(substr(hash('sha256', $orderSeed), 0, 10));
+        $paymentReference = 'PAY-' . strtoupper(substr(hash('sha256', $orderSeed . $paymentMethod), 0, 12));
+        $seatRows = array_map(function (array $seat, int $index) use ($orderId): array {
+            $seat['ticket_code'] = 'TKT-' . strtoupper(substr(hash('sha256', $orderId . '-' . $index), 0, 12));
+            return $seat;
+        }, $seatRows, array_keys($seatRows));
         $booking = [
-            'reference' => $bookingReference,
+            'order_id' => $orderId,
+            'reference' => $paymentReference,
+            'payment_reference' => $paymentReference,
+            'user_id' => (string) ($currentBuyer['id'] ?? ''),
+            'buyer_name' => (string) ($currentBuyer['name'] ?? ''),
+            'buyer_email' => (string) ($currentBuyer['email'] ?? ''),
             'event' => $eventKey,
             'event_title' => $event['title'],
+            'event_poster' => $resolved['poster'],
+            'event_banner' => $resolved['banner'],
             'event_date' => trim((string) ($selection['performance_date'] ?? '')) ?: $resolved['date']->format('l, F j, Y'),
             'event_time' => trim((string) ($selection['performance_time'] ?? '')) ?: $resolved['time'],
             'venue' => $event['venue'],
@@ -271,15 +288,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'payment_account' => $paymentAccount,
             'proof_of_payment' => $proofName,
             'non_transferable' => true,
+            'payment_status' => 'Paid',
+            'order_status' => 'Confirmed',
             'booked_at' => (new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('c'),
         ];
+        $booking = clicketHydrateOrderTickets($booking);
 
+        if (!clicketSaveOrder($booking)) {
+            $paymentError = 'Your payment was approved, but the order record could not be saved. Please contact support before retrying.';
+        } else {
         $_SESSION['clicket_bookings'][] = $booking;
         $_SESSION['clicket_last_booking'] = $booking;
         unset($_SESSION['clicket_ticket_selection']);
 
         header('Location: payment.php?status=processing');
         exit;
+        }
     }
 }
 ?>
@@ -476,6 +500,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </aside>
     </form>
   </main>
+  <script src="js/ticket-topbar.js" defer></script>
   <script src="js/payment.js" defer></script>
 </body>
 </html>

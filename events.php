@@ -2,6 +2,12 @@
 // events.php - ClicKet Events Listing Page
 require_once __DIR__ . '/includes/data.php';
 require_once __DIR__ . '/includes/log.php';
+require_once __DIR__ . '/includes/favorite-data.php';
+
+$eventsUser = currentUser();
+$eventFavoriteIds = $eventsUser
+    ? clicketFavoriteIdsForUser((string) ($eventsUser['id'] ?? ''))
+    : [];
 
 function eventPageStars(int $rating): string {
     $rating = max(0, min(5, $rating));
@@ -96,6 +102,7 @@ $heroTickets = [
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/navbar.css">
+  <link rel="stylesheet" href="css/favorites.css">
   <link rel="stylesheet" href="css/partners-footer.css">
 
   <style>
@@ -982,8 +989,17 @@ $heroTickets = [
             data-date="<?= (int) $event['dateValue'] ?>"
             data-title="<?= htmlspecialchars(strtolower($event['title'])) ?>"
             data-venue="<?= htmlspecialchars($event['venue']) ?>"
-            data-search="<?= htmlspecialchars(strtolower($event['title'] . ' ' . $event['categoryLabel'] . ' ' . $event['type'] . ' ' . $event['venue'] . ' ' . $event['sub'])) ?>"
+            data-search="<?= htmlspecialchars(strtolower($event['title'] . ' ' . $event['categoryLabel'] . ' ' . $event['type'] . ' ' . $event['venue'] . ' ' . $event['sub'] . ' ticket tickets available availability book booking')) ?>"
           >
+            <button
+              class="events-favorite-btn <?= in_array($event['id'], $eventFavoriteIds, true) ? 'is-favorite' : '' ?>"
+              type="button"
+              data-favorite-toggle="<?= htmlspecialchars($event['id']) ?>"
+              aria-label="<?= in_array($event['id'], $eventFavoriteIds, true) ? 'Remove from favorites' : 'Add to favorites' ?>"
+              aria-pressed="<?= in_array($event['id'], $eventFavoriteIds, true) ? 'true' : 'false' ?>"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+            </button>
             <a class="events-card-poster" href="show.php?event=<?= urlencode($event['id']) ?>" aria-label="View <?= htmlspecialchars($event['title']) ?>">
               <img src="<?= htmlspecialchars($event['poster']) ?>" alt="<?= htmlspecialchars($event['title']) ?> poster" loading="lazy">
               <div class="events-card-badges">
@@ -1229,7 +1245,8 @@ $heroTickets = [
     getCards().forEach(card => {
       const matchesCategory = selectedCategory === 'all' || card.dataset.category === selectedCategory;
       const matchesVenue = selectedVenue === 'all' || card.dataset.venue === selectedVenue;
-      const matchesSearch = !searchQuery || card.dataset.search.includes(searchQuery);
+      const searchTerms = searchQuery.split(/\s+/).filter(Boolean);
+      const matchesSearch = !searchTerms.length || searchTerms.every(term => card.dataset.search.includes(term));
       const shouldShow = matchesCategory && matchesVenue && matchesSearch;
       card.hidden = !shouldShow;
       if (shouldShow) {
