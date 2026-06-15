@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (receipt && downloadReceipt) {
     downloadReceipt.addEventListener('click', async () => {
-      const reference = receipt.querySelector('.receipt-reference-row strong')?.textContent.trim() || 'clicket';
+      const reference = receipt.dataset.reference || 'clicket';
       const filename = `${reference.replace(/[^a-z0-9-]/gi, '_')}-receipt.pdf`;
 
       if (typeof window.html2pdf !== 'function') {
@@ -14,7 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       downloadReceipt.disabled = true;
-      downloadReceipt.textContent = 'Generating PDF...';
+      const downloadLabel = downloadReceipt.querySelector('span');
+      if (downloadLabel) downloadLabel.textContent = 'Generating PDF...';
       receipt.classList.add('is-exporting-pdf');
 
       try {
@@ -37,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } finally {
         receipt.classList.remove('is-exporting-pdf');
         downloadReceipt.disabled = false;
-        downloadReceipt.textContent = 'Download Receipt';
+        if (downloadLabel) downloadLabel.textContent = 'Download Receipt';
       }
     });
   }

@@ -2,11 +2,16 @@
 
 require_once __DIR__ . '/includes/ticketing.php';
 require_once __DIR__ . '/includes/log.php';
+require_once __DIR__ . '/includes/reservation.php';
 
 $eventKey = trim((string) ($_GET['event'] ?? $_POST['event'] ?? ''));
 $performanceIndex = max(0, min(3, (int) ($_GET['performance'] ?? $_POST['performance'] ?? 0)));
 $resolved = clicketResolveEvent($eventKey);
 $selection = $_SESSION['clicket_ticket_selection'] ?? null;
+
+if (is_array($selection) && !clicketReservationIsActive($eventKey, $performanceIndex)) {
+    clicketRedirectExpiredReservation($eventKey, $performanceIndex);
+}
 
 if (!$resolved || !is_array($selection) || ($selection['event'] ?? '') !== $eventKey || empty($selection['seats'])) {
     header('Location: ticket.php?event=' . rawurlencode($eventKey));
@@ -57,6 +62,10 @@ $returnUrl = 'checkout.php?event=' . rawurlencode($eventKey) . '&performance=' .
       <img src="assets/Name_Logo.png" alt="ClicKet">
     </a>
     <div class="ticket-progress">
+      <div class="ticket-session-clock" aria-label="Time remaining to complete payment">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span data-reservation-timer data-expires-at="<?= (int) (clicketReservation()['expires_at'] ?? 0) * 1000 ?>" data-expiry-url="<?= htmlspecialchars(clicketReservationExpiryUrl($eventKey, $performanceIndex)) ?>">--:--</span>
+      </div>
       <ol>
         <li><span>1</span><b>Seats</b></li>
         <li class="is-active"><span>2</span><b>Review</b></li>
@@ -118,5 +127,6 @@ $returnUrl = 'checkout.php?event=' . rawurlencode($eventKey) . '&performance=' .
       </div>
     </main>
     <script src="js/ticket-topbar.js"></script>
+    <script src="js/reservation-timer.js"></script>
 </body>
 </html>

@@ -4,6 +4,7 @@ require_once __DIR__ . '/includes/ticketing.php';
 require_once __DIR__ . '/includes/log.php';
 require_once __DIR__ . '/includes/order-history-data.php';
 require_once __DIR__ . '/includes/ticket-data.php';
+require_once __DIR__ . '/includes/reservation.php';
 
 $status = trim((string) ($_GET['status'] ?? ''));
 $lastBooking = $_SESSION['clicket_last_booking'] ?? null;
@@ -68,78 +69,120 @@ if (in_array($status, ['processing', 'success'], true)) {
       <link rel="stylesheet" href="css/ticket.css">
     </head>
     <body class="checkout-page">
-      <header class="ticket-topbar">
-        <a class="ticket-brand" href="index.php"><img src="assets/Icon_Logo.png" alt=""><img src="assets/Name_Logo.png" alt="ClicKet"></a>
-        <div class="ticket-progress" aria-label="Checkout progress">
-          <ol><li><span>1</span><b>Seats</b></li><li><span>2</span><b>Review</b></li><li><span>3</span><b>Payment</b></li><li class="is-active"><span>4</span><b>Done</b></li></ol>
-        </div>
-      </header>
       <main class="receipt-shell">
-        <section class="receipt-card" id="receiptSection" aria-labelledby="receipt-title">
-          <div class="receipt-header">
-            <div>
-              <p class="ticket-panel-kicker">Payment successful</p>
-              <h1 id="receipt-title">Purchase Receipt</h1>
-              <p>Your booking is confirmed and your tickets are ready.</p>
+        <section class="receipt-card" id="receiptSection" data-reference="<?= htmlspecialchars($lastBooking['reference'] ?? '') ?>" aria-labelledby="receipt-title">
+          <h1 class="receipt-visually-hidden" id="receipt-title">ClicKet transaction receipt</h1>
+          <header class="receipt-company">
+            <div class="receipt-company-brand">
+              <a href="index.php" aria-label="ClicKet home">
+                <img class="receipt-company-icon" src="assets/Icon_Logo.png" alt="">
+                <img class="receipt-company-name" src="assets/Name_Logo.png" alt="ClicKet">
+              </a>
+              <p>Web-based ticketing for concerts, theater, and sports events.</p>
             </div>
-            <span class="receipt-success-icon" aria-hidden="true">&#10003;</span>
-          </div>
+            <address class="receipt-company-details">
+              <strong>ClicKet Ticketing Services</strong>
+              <span>Sto. Tomas City, Batangas, Philippines</span>
+              <span><a href="contact.php">Customer Support</a> &middot; <a href="help.php">Help Center</a></span>
+              <span>Electronic receipt &middot; Asia/Manila (PHT)</span>
+            </address>
+          </header>
 
-          <div class="receipt-reference-row">
-            <div><span>Reference number</span><strong><?= htmlspecialchars($lastBooking['reference'] ?? '') ?></strong></div>
-            <div><span>Transaction date</span><strong><?= htmlspecialchars($receiptTransactionDate) ?></strong></div>
-          </div>
-
-          <div class="receipt-event">
-            <p class="ticket-panel-kicker">Event details</p>
-            <h2><?= htmlspecialchars($lastBooking['event_title'] ?? 'ClicKet Event') ?></h2>
-            <div class="receipt-event-meta">
-              <div><span>Date and time</span><strong><?= htmlspecialchars(trim(($lastBooking['event_date'] ?? 'See ticket details') . ' ' . ($lastBooking['event_time'] ?? ''))) ?></strong></div>
-              <div><span>Venue</span><strong><?= htmlspecialchars($lastBooking['venue'] ?? 'See ticket details') ?></strong></div>
-            </div>
-          </div>
-
-          <div class="receipt-tickets">
-            <p class="ticket-panel-kicker">Ticket details</p>
-            <?php foreach ($receiptSeats as $seat): ?>
-              <article class="receipt-ticket-row">
+          <div class="receipt-body">
+            <section class="receipt-section" aria-labelledby="receipt-booking-heading">
+              <div class="receipt-section-heading">
                 <div>
-                  <strong><?= htmlspecialchars($seat['section'] ?? '') ?>, Row <?= htmlspecialchars($seat['row'] ?? '') ?>, Seat <?= htmlspecialchars($seat['number'] ?? '') ?></strong>
-                  <span><?= htmlspecialchars($seat['category'] ?? 'Ticket') ?> &middot; Non-transferable</span>
+                  <p class="ticket-panel-kicker">Booking summary</p>
+                  <h2 id="receipt-booking-heading"><?= htmlspecialchars($lastBooking['event_title'] ?? 'ClicKet Event') ?></h2>
                 </div>
-                <b>PHP <?= number_format((int) ($seat['price'] ?? 0)) ?></b>
-              </article>
-            <?php endforeach; ?>
-          </div>
+                <span><?= count($receiptSeats) ?> <?= count($receiptSeats) === 1 ? 'ticket' : 'tickets' ?></span>
+              </div>
 
-          <div class="receipt-payment">
-            <div class="receipt-payment-method">
-              <span>Payment method</span>
-              <strong><?= htmlspecialchars($receiptPaymentMethod) ?></strong>
-              <?php if (!empty($lastBooking['payment_account'])): ?><small><?= htmlspecialchars($lastBooking['payment_account']) ?></small><?php endif; ?>
-            </div>
-            <div class="receipt-totals">
-              <div><span>Tickets</span><strong>PHP <?= number_format($receiptSubtotal) ?></strong></div>
-              <div><span>Service fee</span><strong>PHP <?= number_format($receiptServiceFee) ?></strong></div>
-              <div class="is-total"><span>Total amount paid</span><strong>PHP <?= number_format((int) ($lastBooking['total'] ?? 0)) ?></strong></div>
-            </div>
+              <dl class="receipt-detail-grid">
+                <div><dt>Order ID</dt><dd><?= htmlspecialchars($lastBooking['order_id'] ?? '') ?></dd></div>
+                <div><dt>Payment date &amp; time</dt><dd><?= htmlspecialchars($receiptTransactionDate) ?></dd></div>
+                <div><dt>Event date &amp; time</dt><dd><?= htmlspecialchars(trim(($lastBooking['event_date'] ?? 'See ticket details') . ' ' . ($lastBooking['event_time'] ?? ''))) ?></dd></div>
+                <div><dt>Venue</dt><dd><?= htmlspecialchars($lastBooking['venue'] ?? 'See ticket details') ?></dd></div>
+                <div><dt>Payment method</dt><dd><?= htmlspecialchars($receiptPaymentMethod) ?><?php if (!empty($lastBooking['payment_account'])): ?><small><?= htmlspecialchars($lastBooking['payment_account']) ?></small><?php endif; ?></dd></div>
+                <div><dt>Reference number</dt><dd class="receipt-mono"><?= htmlspecialchars($lastBooking['payment_reference'] ?? $lastBooking['reference'] ?? '') ?></dd></div>
+              </dl>
+            </section>
+
+            <section class="receipt-section receipt-customer-section" aria-labelledby="receipt-customer-heading">
+              <div class="receipt-section-heading receipt-section-heading--compact">
+                <div>
+                  <p class="ticket-panel-kicker">Billing summary</p>
+                  <h2 id="receipt-customer-heading">Customer details</h2>
+                </div>
+              </div>
+              <dl class="receipt-customer-grid">
+                <div><dt>Customer name</dt><dd><?= htmlspecialchars($lastBooking['buyer_name'] ?? 'ClicKet account holder') ?></dd></div>
+                <div><dt>Account email</dt><dd><?= htmlspecialchars($lastBooking['buyer_email'] ?? '') ?></dd></div>
+                <div><dt>Payment information</dt><dd><?= htmlspecialchars($receiptPaymentMethod) ?><?php if (!empty($lastBooking['payment_account'])): ?> &middot; <?= htmlspecialchars($lastBooking['payment_account']) ?><?php endif; ?></dd></div>
+              </dl>
+            </section>
+
+            <section class="receipt-section receipt-seat-section" aria-labelledby="receipt-seat-heading">
+              <div class="receipt-section-heading receipt-section-heading--compact">
+                <div>
+                  <p class="ticket-panel-kicker">Selected seats</p>
+                  <h2 id="receipt-seat-heading"><?= count($receiptSeats) ?> <?= count($receiptSeats) === 1 ? 'Seat' : 'Seats' ?></h2>
+                </div>
+              </div>
+              <div class="receipt-seat-list">
+                <?php foreach ($receiptSeats as $seat): ?>
+                  <article class="receipt-seat-row">
+                    <span class="receipt-seat-number"><?= htmlspecialchars($seat['number'] ?? '') ?></span>
+                    <div>
+                      <strong><?= htmlspecialchars($seat['section'] ?? '') ?> &middot; Row <?= htmlspecialchars($seat['row'] ?? '') ?></strong>
+                      <span><?= htmlspecialchars($seat['category'] ?? 'Ticket') ?></span>
+                      <?php if (!empty($seat['ticket_code'])): ?><small>Ticket no. <?= htmlspecialchars($seat['ticket_code']) ?></small><?php endif; ?>
+                    </div>
+                    <b>PHP <?= number_format((int) ($seat['price'] ?? 0)) ?></b>
+                  </article>
+                <?php endforeach; ?>
+              </div>
+            </section>
+
+            <section class="receipt-payment" aria-label="Payment breakdown">
+              <div>
+                <p class="ticket-panel-kicker">Payment breakdown</p>
+                <p class="receipt-payment-note">This receipt confirms your completed transaction.</p>
+              </div>
+              <div class="receipt-totals">
+                <div><span>Tickets (<?= count($receiptSeats) ?>)</span><strong>PHP <?= number_format($receiptSubtotal) ?></strong></div>
+                <div><span>Service fee</span><strong>PHP <?= number_format($receiptServiceFee) ?></strong></div>
+                <div class="is-total"><span>Total paid</span><strong>PHP <?= number_format((int) ($lastBooking['total'] ?? 0)) ?></strong></div>
+              </div>
+            </section>
           </div>
 
           <div class="receipt-footer">
-            <img src="assets/Icon_Logo.png" alt="">
-            <span>ClicKet electronic receipt</span>
+            <span>This computer-generated receipt is valid without a signature.</span>
+            <span>Thank you for booking with ClicKet.</span>
           </div>
         </section>
 
         <div class="receipt-actions" aria-label="Receipt actions">
-          <button class="receipt-action receipt-action--primary" id="downloadReceipt" type="button">Download Receipt</button>
-          <button class="receipt-action" id="printReceipt" type="button">Print Receipt</button>
-          <a class="receipt-action" href="index.php?panel=tickets">View My Tickets</a>
-          <a class="receipt-action" href="index.php">Back to Home</a>
+          <button class="receipt-action" id="downloadReceipt" type="button">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v11m0 0 4-4m-4 4-4-4M5 20h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Download Receipt</span>
+          </button>
+          <button class="receipt-action" id="printReceipt" type="button">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 14h10v6H7z" stroke="currentColor" stroke-width="1.8"/></svg>
+            Print Receipt
+          </button>
+          <a class="receipt-action" href="index.php?panel=tickets">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5V9a3 3 0 0 0 0 6v1.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5V15a3 3 0 0 0 0-6V7.5Z" stroke="currentColor" stroke-width="1.8"/><path d="M13.5 8.5h3M13.5 12h3M13.5 15.5h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            View My Tickets
+          </a>
+          <a class="receipt-action" href="index.php">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 11 8-7 8 7v9h-6v-6h-4v6H4v-9Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            Back to Home
+          </a>
         </div>
       </main>
       <script src="js/vendor/html2pdf.bundle.min.js" defer></script>
-      <script src="js/ticket-topbar.js" defer></script>
       <script src="js/payment.js" defer></script>
     </body>
     </html>
@@ -151,6 +194,10 @@ $eventKey = trim((string) ($_GET['event'] ?? $_POST['event'] ?? ''));
 $performanceIndex = max(0, min(3, (int) ($_GET['performance'] ?? $_POST['performance'] ?? 0)));
 $resolved = clicketResolveEvent($eventKey);
 $selection = $_SESSION['clicket_ticket_selection'] ?? null;
+
+if (is_array($selection) && !clicketReservationIsActive($eventKey, $performanceIndex)) {
+    clicketRedirectExpiredReservation($eventKey, $performanceIndex);
+}
 
 if (!$resolved || !isLoggedIn() || !is_array($selection) || ($selection['event'] ?? '') !== $eventKey || empty($selection['seats'])) {
     header('Location: checkout.php?event=' . rawurlencode($eventKey) . '&performance=' . $performanceIndex);
@@ -292,17 +339,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'order_status' => 'Confirmed',
             'booked_at' => (new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('c'),
         ];
-        $booking = clicketHydrateOrderTickets($booking);
+
+        if (!clicketReservationIsActive($eventKey, $performanceIndex)) {
+            clicketRedirectExpiredReservation($eventKey, $performanceIndex);
+        }
+        $booking = \clicketHydrateOrderTickets($booking);
 
         if (!clicketSaveOrder($booking)) {
-            $paymentError = 'Your payment was approved, but the order record could not be saved. Please contact support before retrying.';
+            $paymentError = 'The order could not be completed because one or more seats are no longer available. Please return to seat selection or contact support.';
         } else {
-        $_SESSION['clicket_bookings'][] = $booking;
-        $_SESSION['clicket_last_booking'] = $booking;
-        unset($_SESSION['clicket_ticket_selection']);
+            $_SESSION['clicket_bookings'][] = $booking;
+            $_SESSION['clicket_last_booking'] = $booking;
+            clicketClearReservation();
 
-        header('Location: payment.php?status=processing');
-        exit;
+            header('Location: payment.php?status=processing');
+            exit;
         }
     }
 }
@@ -322,6 +373,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <img src="assets/Name_Logo.png" alt="ClicKet">
     </a>
     <div class="ticket-progress" aria-label="Checkout progress">
+      <div class="ticket-session-clock" aria-label="Time remaining to complete payment">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span data-reservation-timer data-expires-at="<?= (int) (clicketReservation()['expires_at'] ?? 0) * 1000 ?>" data-expiry-url="<?= htmlspecialchars(clicketReservationExpiryUrl($eventKey, $performanceIndex)) ?>">--:--</span>
+      </div>
       <ol>
         <li><span>1</span><b>Seats</b></li>
         <li><span>2</span><b>Review</b></li>
@@ -501,6 +556,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
   </main>
   <script src="js/ticket-topbar.js" defer></script>
+  <script src="js/reservation-timer.js" defer></script>
   <script src="js/payment.js" defer></script>
 </body>
 </html>

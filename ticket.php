@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/includes/ticketing.php';
 require_once __DIR__ . '/includes/log.php';
+require_once __DIR__ . '/includes/reservation.php';
+require_once __DIR__ . '/includes/order-history-data.php';
 
 $eventKey = trim((string) ($_GET['event'] ?? ''));
 $resolved = clicketResolveEvent($eventKey);
@@ -15,6 +17,11 @@ $event = $resolved['event'];
 $venueProfile = clicketVenueProfile($event['venue'], $resolved['categoryKey']);
 $categories = clicketTicketCategories();
 $performanceIndex = max(0, (int) ($_GET['performance'] ?? 0));
+$reservationExpired = ($_GET['reservation'] ?? '') === 'expired';
+if ($reservationExpired) {
+    clicketClearReservation();
+}
+$reservation = clicketStartReservation($eventKey, $performanceIndex);
 $performanceDate = $resolved['date'];
 $performanceTime = $resolved['time'];
 
@@ -27,6 +34,11 @@ if ($resolved['categoryKey'] === 'theater' && $performanceIndex > 0) {
     ];
     [$performanceDate, $performanceTime] = $theaterSlots[min($performanceIndex, 3)];
 }
+
+$unavailableSeatIds = array_values(array_unique(array_merge(
+    clicketBookedSeatIds($eventKey, $performanceDate->format('l, F j, Y'), $performanceTime),
+    clicketHeldSeatIds($eventKey, $performanceIndex)
+)));
 
 $basePrice = (int) preg_replace('/\D/', '', (string) ($event['price'] ?? '2500'));
 if ($basePrice < 500) {
@@ -63,6 +75,8 @@ $ticketConfig = [
     'venue' => $venueProfile,
     'categories' => $categoryPayload,
     'selectionLimit' => 4,
+    'reservationExpired' => $reservationExpired,
+    'unavailableSeatIds' => $unavailableSeatIds,
 ];
 ?>
 <!DOCTYPE html>
@@ -85,7 +99,7 @@ $ticketConfig = [
     <div class="ticket-progress" aria-label="Ticket purchase progress">
       <div class="ticket-session-clock">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-        <span id="ticketTimer">15:00</span>
+        <span id="ticketTimer" data-reservation-timer data-expires-at="<?= (int) $reservation['expires_at'] * 1000 ?>" data-expiry-url="<?= htmlspecialchars(clicketReservationExpiryUrl($eventKey, $performanceIndex)) ?>">15:00</span>
       </div>
       <ol>
         <li class="is-active"><span>1</span><b>Seats</b></li>
@@ -97,6 +111,12 @@ $ticketConfig = [
   </header>
 
   <main class="ticket-shell">
+    <?php if ($reservationExpired): ?>
+      <div class="reservation-expired-notice" role="alert">
+        <strong>Your reservation expired.</strong>
+        <span>The pending order was cancelled and your selected seats were released. Please choose your seats again.</span>
+      </div>
+    <?php endif; ?>
     <section class="ticket-workspace">
       <div class="ticket-event-mobile">
         <img src="<?= htmlspecialchars($resolved['poster']) ?>" alt="">
@@ -223,6 +243,7 @@ $ticketConfig = [
 
   <script id="ticketConfig" type="application/json"><?= json_encode($ticketConfig, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
   <script src="js/ticket-topbar.js"></script>
+  <script src="js/reservation-timer.js"></script>
   <script src="js/ticket.js"></script>
 </body>
 </html>

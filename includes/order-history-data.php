@@ -62,6 +62,24 @@ function clicketSaveOrder(array $order): bool {
             }
         }
 
+        $newSeatIds = array_column(is_array($order['seats'] ?? null) ? $order['seats'] : [], 'id');
+        foreach ($orders as $existingOrder) {
+            $activeOrder = strtolower((string) ($existingOrder['payment_status'] ?? '')) === 'paid'
+                && in_array(strtolower((string) ($existingOrder['order_status'] ?? '')), ['confirmed', 'completed'], true);
+            if (
+                !$activeOrder
+                || ($existingOrder['event'] ?? '') !== ($order['event'] ?? '')
+                || ($existingOrder['event_date'] ?? '') !== ($order['event_date'] ?? '')
+                || ($existingOrder['event_time'] ?? '') !== ($order['event_time'] ?? '')
+            ) {
+                continue;
+            }
+            $existingSeatIds = array_column(is_array($existingOrder['seats'] ?? null) ? $existingOrder['seats'] : [], 'id');
+            if (array_intersect($newSeatIds, $existingSeatIds)) {
+                return false;
+            }
+        }
+
         $orders[] = $order;
         rewind($handle);
         ftruncate($handle, 0);
@@ -73,6 +91,25 @@ function clicketSaveOrder(array $order): bool {
     }
 
     return $saved;
+}
+
+function clicketBookedSeatIds(string $eventKey, string $eventDate, string $eventTime): array {
+    $seatIds = [];
+    foreach (clicketReadOrders() as $order) {
+        $activeOrder = strtolower((string) ($order['payment_status'] ?? '')) === 'paid'
+            && in_array(strtolower((string) ($order['order_status'] ?? '')), ['confirmed', 'completed'], true);
+        if (
+            !$activeOrder
+            || ($order['event'] ?? '') !== $eventKey
+            || ($order['event_date'] ?? '') !== $eventDate
+            || ($order['event_time'] ?? '') !== $eventTime
+        ) {
+            continue;
+        }
+        $seatIds = array_merge($seatIds, array_column(is_array($order['seats'] ?? null) ? $order['seats'] : [], 'id'));
+    }
+
+    return array_values(array_unique(array_filter(array_map('strval', $seatIds))));
 }
 
 function clicketOrdersForUser(string $userId): array {

@@ -114,5 +114,361 @@
                 "price": 12000
             }
         ]
+    },
+    {
+        "order_id": "CKO-F4872BD2E0",
+        "reference": "PAY-28C8136E7771",
+        "payment_reference": "PAY-28C8136E7771",
+        "user_id": "874ec58c38fa38b8",
+        "buyer_name": "JunhuiWen",
+        "buyer_email": "wenjunhui@gmail.com",
+        "event": "sports-1",
+        "event_title": "PBA Finals Game 7",
+        "event_poster": "https://picsum.photos/seed/3010/400/600",
+        "event_banner": "https://picsum.photos/seed/3010/1200/650",
+        "event_date": "Friday, December 5, 2025",
+        "event_time": "7:30 PM",
+        "venue": "Smart Araneta Coliseum",
+        "seats": [
+            {
+                "id": "patron-a-A-3",
+                "section": "Patron A",
+                "row": "A",
+                "number": "3",
+                "category": "VIP",
+                "price": 2500,
+                "ticket_code": "TKT-14619385A271"
+            },
+            {
+                "id": "patron-a-A-4",
+                "section": "Patron A",
+                "row": "A",
+                "number": "4",
+                "category": "VIP",
+                "price": 2500,
+                "ticket_code": "TKT-1E4C6F6EDBB8"
+            },
+            {
+                "id": "patron-a-A-5",
+                "section": "Patron A",
+                "row": "A",
+                "number": "5",
+                "category": "VIP",
+                "price": 2500,
+                "ticket_code": "TKT-93FB13924E8F"
+            }
+        ],
+        "subtotal": 7500,
+        "service_fee": 225,
+        "total": 7725,
+        "payment_method": "mastercard",
+        "payment_method_label": "Mastercard",
+        "payment_account": "card ending in 1111",
+        "proof_of_payment": "",
+        "non_transferable": true,
+        "payment_status": "Paid",
+        "order_status": "Confirmed",
+        "booked_at": "2026-06-15T05:16:06+08:00",
+        "voucher": {
+            "voucher_id": "VCH-0C4B786B0F5B",
+            "format_version": 1,
+            "issued_at": "2026-06-15T05:16:06+08:00",
+            "notice": "Tickets are non-transferable and linked to the purchasing ClicKet account."
+        },
+        "tickets": [
+            {
+                "ticket_id": "TKT-14619385A271",
+                "voucher_id": "VCH-00F483FE53A5",
+                "validation_code": "VAL-3C01264E58E962F1",
+                "barcode_value": "TKT-14619385A271",
+                "status": "Valid",
+                "issued_at": "2026-06-15T05:16:06+08:00",
+                "section": "Patron A",
+                "row": "A",
+                "number": "3",
+                "category": "VIP",
+                "price": 2500
+            },
+            {
+                "ticket_id": "TKT-1E4C6F6EDBB8",
+                "voucher_id": "VCH-26508C57A547",
+                "validation_code": "VAL-D2C73C0302B6B127",
+                "barcode_value": "TKT-1E4C6F6EDBB8",
+                "status": "Valid",
+                "issued_at": "2026-06-15T05:16:06+08:00",
+                "section": "Patron A",
+                "row": "A",
+                "number": "4",
+                "category": "VIP",
+                "price": 2500
+            },
+            {
+                "ticket_id": "TKT-93FB13924E8F",
+                "voucher_id": "VCH-D9C08852CD85",
+                "validation_code": "VAL-58CC5E4DC2C731E0",
+                "barcode_value": "TKT-93FB13924E8F",
+                "status": "Valid",
+                "issued_at": "2026-06-15T05:16:06+08:00",
+                "section": "Patron A",
+                "row": "A",
+                "number": "5",
+                "category": "VIP",
+                "price": 2500
+            }
+        ]
+    },
+    {
+        "order_id": "CKO-FD60B641BC",
+        "reference": "PAY-1990E7F178D6",
+        "payment_reference": "PAY-1990E7F178D6",
+        "user_id": "874ec58c38fa38b8",
+        "buyer_name": "JunhuiWen",
+        "buyer_email": "wenjunhui@gmail.com",
+        "event": "sports-1",
+        "event_title": "PBA Finals Game 7",
+        "event_poster": "https://picsum.photos/seed/3010/400/600",
+        "event_banner": "https://picsum.photos/seed/3010/1200/650",
+        "event_date": "Friday, December 5, 2025",
+        "event_time": "7:30 PM",
+        "venue": "Smart Araneta Coliseum",
+        "seats": [
+            {
+                "id": "patron-a-A-3",
+                "section": "Patron A",
+                "row": "A",
+                "number": "3",
+                "category": "VIP",
+                "price": 2500,
+                "ticket_code": "TKT-CC0B83A145D8"
+            },
+            {
+                "id": "patron-a-A-4",
+                "section": "Patron A",
+                "row": "A",
+                "number": "4",
+                "category": "VIP",
+                "price": 2500,
+                "ticket_code": "TKT-52B355173D01"
+            }
+        ],
+        "subtotal": 5000,
+        "service_fee": 150,
+        "total": 5150,
+        "payment_method": "mastercard",
+        "payment_method_label": "Mastercard",
+        "payment_account": "card ending in 1111",
+        "proof_of_payment": "",
+        "non_transferable": true,
+        "payment_status": "Paid",
+        "order_status": "Confirmed",
+        "booked_at": "2026-06-15T05:30:50+08:00",
+        "voucher": {
+            "voucher_id": "VCH-9FF8975A8DE0",
+            "format_version": 1,
+            "issued_at": "2026-06-15T05:30:50+08:00",
+            "notice": "Tickets are non-transferable and linked to the purchasing ClicKet account."
+        },
+        "tickets": [
+            {
+                "ticket_id": "TKT-CC0B83A145D8",
+                "voucher_id": "VCH-19E5F213D128",
+                "validation_code": "VAL-570FB388300DE2A0",
+                "barcode_value": "TKT-CC0B83A145D8",
+                "status": "Valid",
+                "issued_at": "2026-06-15T05:30:50+08:00",
+                "section": "Patron A",
+                "row": "A",
+                "number": "3",
+                "category": "VIP",
+                "price": 2500
+            },
+            {
+                "ticket_id": "TKT-52B355173D01",
+                "voucher_id": "VCH-5A6F56088E44",
+                "validation_code": "VAL-D4335C8BB72C4ABF",
+                "barcode_value": "TKT-52B355173D01",
+                "status": "Valid",
+                "issued_at": "2026-06-15T05:30:50+08:00",
+                "section": "Patron A",
+                "row": "A",
+                "number": "4",
+                "category": "VIP",
+                "price": 2500
+            }
+        ]
+    },
+    {
+        "order_id": "CKO-F10D638A6C",
+        "reference": "PAY-9C235DCC2AD2",
+        "payment_reference": "PAY-9C235DCC2AD2",
+        "user_id": "874ec58c38fa38b8",
+        "buyer_name": "JunhuiWen",
+        "buyer_email": "wenjunhui@gmail.com",
+        "event": "sports-1",
+        "event_title": "PBA Finals Game 7",
+        "event_poster": "https://picsum.photos/seed/3010/400/600",
+        "event_banner": "https://picsum.photos/seed/3010/1200/650",
+        "event_date": "Friday, December 5, 2025",
+        "event_time": "7:30 PM",
+        "venue": "Smart Araneta Coliseum",
+        "seats": [
+            {
+                "id": "patron-a-A-4",
+                "section": "Patron A",
+                "row": "A",
+                "number": "4",
+                "category": "VIP",
+                "price": 2500,
+                "ticket_code": "TKT-A7000408575F"
+            }
+        ],
+        "subtotal": 2500,
+        "service_fee": 75,
+        "total": 2575,
+        "payment_method": "visa",
+        "payment_method_label": "Visa",
+        "payment_account": "card ending in 1111",
+        "proof_of_payment": "",
+        "non_transferable": true,
+        "payment_status": "Paid",
+        "order_status": "Confirmed",
+        "booked_at": "2026-06-15T05:45:10+08:00",
+        "voucher": {
+            "voucher_id": "VCH-D3EF2EC3AEF4",
+            "format_version": 1,
+            "issued_at": "2026-06-15T05:45:10+08:00",
+            "notice": "Tickets are non-transferable and linked to the purchasing ClicKet account."
+        },
+        "tickets": [
+            {
+                "ticket_id": "TKT-A7000408575F",
+                "voucher_id": "VCH-81D76C9B8F96",
+                "validation_code": "VAL-1A54199EA14F2FB8",
+                "barcode_value": "TKT-A7000408575F",
+                "status": "Valid",
+                "issued_at": "2026-06-15T05:45:10+08:00",
+                "section": "Patron A",
+                "row": "A",
+                "number": "4",
+                "category": "VIP",
+                "price": 2500
+            }
+        ]
+    },
+    {
+        "order_id": "CKO-1A5500CA49",
+        "reference": "PAY-46C3EAB2AEBD",
+        "payment_reference": "PAY-46C3EAB2AEBD",
+        "user_id": "874ec58c38fa38b8",
+        "buyer_name": "JunhuiWen",
+        "buyer_email": "wenjunhui@gmail.com",
+        "event": "concerts-1",
+        "event_title": "BTS Permission to Dance Manila",
+        "event_poster": "https://picsum.photos/seed/1010/400/600",
+        "event_banner": "https://picsum.photos/seed/1010/1200/650",
+        "event_date": "Saturday, November 15, 2025",
+        "event_time": "6:00 PM",
+        "venue": "MOA Arena",
+        "seats": [
+            {
+                "id": "lower-102-D-2",
+                "section": "Lower 102",
+                "row": "D",
+                "number": "2",
+                "category": "Platinum",
+                "price": 9850,
+                "ticket_code": "TKT-647460486B1A"
+            }
+        ],
+        "subtotal": 9850,
+        "service_fee": 75,
+        "total": 9925,
+        "payment_method": "jcb",
+        "payment_method_label": "JCB",
+        "payment_account": "card ending in 1111",
+        "proof_of_payment": "",
+        "non_transferable": true,
+        "payment_status": "Paid",
+        "order_status": "Confirmed",
+        "booked_at": "2026-06-15T06:26:29+08:00",
+        "voucher": {
+            "voucher_id": "VCH-F46CA6D494CE",
+            "format_version": 1,
+            "issued_at": "2026-06-15T06:26:29+08:00",
+            "notice": "Tickets are non-transferable and linked to the purchasing ClicKet account."
+        },
+        "tickets": [
+            {
+                "ticket_id": "TKT-647460486B1A",
+                "voucher_id": "VCH-B79D4887A0CB",
+                "validation_code": "VAL-FB52B0E8E877651A",
+                "barcode_value": "TKT-647460486B1A",
+                "status": "Valid",
+                "issued_at": "2026-06-15T06:26:29+08:00",
+                "section": "Lower 102",
+                "row": "D",
+                "number": "2",
+                "category": "Platinum",
+                "price": 9850
+            }
+        ]
+    },
+    {
+        "order_id": "CKO-B0B51DB3DE",
+        "reference": "PAY-A5A19DFB3056",
+        "payment_reference": "PAY-A5A19DFB3056",
+        "user_id": "874ec58c38fa38b8",
+        "buyer_name": "JunhuiWen",
+        "buyer_email": "wenjunhui@gmail.com",
+        "event": "theater-1",
+        "event_title": "Miss Saigon",
+        "event_poster": "https://picsum.photos/seed/2010/400/600",
+        "event_banner": "https://picsum.photos/seed/2010/1200/650",
+        "event_date": "Wednesday, October 22, 2025",
+        "event_time": "7:00 PM",
+        "venue": "Newport Performing Arts Theater",
+        "seats": [
+            {
+                "id": "orchestra-center-C-8",
+                "section": "Orchestra Center",
+                "row": "C",
+                "number": "8",
+                "category": "VIP",
+                "price": 1800,
+                "ticket_code": "TKT-78367A0A8BD1"
+            }
+        ],
+        "subtotal": 1800,
+        "service_fee": 75,
+        "total": 1875,
+        "payment_method": "jcb",
+        "payment_method_label": "JCB",
+        "payment_account": "card ending in 1111",
+        "proof_of_payment": "",
+        "non_transferable": true,
+        "payment_status": "Paid",
+        "order_status": "Confirmed",
+        "booked_at": "2026-06-15T07:24:26+08:00",
+        "voucher": {
+            "voucher_id": "VCH-41CE59771FBB",
+            "format_version": 1,
+            "issued_at": "2026-06-15T07:24:26+08:00",
+            "notice": "Tickets are non-transferable and linked to the purchasing ClicKet account."
+        },
+        "tickets": [
+            {
+                "ticket_id": "TKT-78367A0A8BD1",
+                "voucher_id": "VCH-ADC5E1BF37B6",
+                "validation_code": "VAL-02DD670F45944411",
+                "barcode_value": "TKT-78367A0A8BD1",
+                "status": "Valid",
+                "issued_at": "2026-06-15T07:24:26+08:00",
+                "section": "Orchestra Center",
+                "row": "C",
+                "number": "8",
+                "category": "VIP",
+                "price": 1800
+            }
+        ]
     }
 ]

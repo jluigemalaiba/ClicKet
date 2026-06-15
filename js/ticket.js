@@ -18,9 +18,10 @@
   const suggestion = document.getElementById('bestSuggestion');
   const suggestionLabel = document.getElementById('bestSuggestionLabel');
   const storageKey = `clicket_selected_seats_${config.event.key}`;
-  const timerKey = `clicket_event_timer_${config.event.key}`;
+  if (config.reservationExpired) sessionStorage.removeItem(storageKey);
   const ns = 'http://www.w3.org/2000/svg';
   const activePointers = new Map();
+  const unavailableSeatIds = new Set(config.unavailableSeatIds || []);
 
   const state = {
     seats: [],
@@ -235,7 +236,7 @@
         const row = String.fromCharCode(65 + rowIndex);
         const id = `${section.id}-${row}-${seatNumber}`;
         const random = deterministicNumber(`${config.event.key}-${id}`);
-        const unavailable = random % 100 < 28;
+        const unavailable = random % 100 < 28 || unavailableSeatIds.has(id);
         const cx = startX + seatPitch * columnIndex;
         const cy = startY + seatPitch * rowIndex;
         const seat = {
@@ -533,29 +534,6 @@
       .replaceAll("'", '&#039;');
   }
 
-  function startTimer() {
-    const timer = document.getElementById('ticketTimer');
-    let expiresAt = Number(sessionStorage.getItem(timerKey));
-    if (!expiresAt || expiresAt <= Date.now()) {
-      expiresAt = Date.now() + 15 * 60 * 1000;
-      sessionStorage.setItem(timerKey, String(expiresAt));
-    }
-
-    const update = () => {
-      const remaining = Math.max(0, expiresAt - Date.now());
-      const seconds = Math.ceil(remaining / 1000);
-      timer.textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-      if (remaining <= 0) {
-        timer.textContent = 'Expired';
-        continueButton.disabled = true;
-        showStatus('Your booking window expired. Return to the event page to restart.');
-        window.clearInterval(interval);
-      }
-    };
-    update();
-    const interval = window.setInterval(update, 1000);
-  }
-
   document.getElementById('categoryBar').addEventListener('click', event => {
     const button = event.target.closest('[data-category]');
     if (button) setCategory(button.dataset.category);
@@ -705,6 +683,10 @@
         }),
       });
       const result = await response.json();
+      if (result.expired && result.redirect) {
+        window.location.replace(result.redirect);
+        return;
+      }
       if (!response.ok || !result.success) throw new Error(result.message || 'Unable to save seats.');
       window.location.href = result.redirect;
     } catch (error) {
@@ -715,5 +697,4 @@
   });
 
   renderMap();
-  startTimer();
 })();

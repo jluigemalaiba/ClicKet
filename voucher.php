@@ -24,14 +24,13 @@ if (!$voucherRecord) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($ticketId) ?> Voucher | ClicKet</title>
-  <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/voucher.css">
 </head>
 <body class="voucher-page">
   <div class="voucher-toolbar">
     <a href="index.php?panel=tickets">Back to My Tickets</a>
     <div>
-      <button type="button" id="voucherPrint">Print Voucher</button>
+      <button type="button" id="voucherPrint">Print Form</button>
       <button type="button" class="is-primary" id="voucherPdf">Download PDF</button>
     </div>
   </div>
