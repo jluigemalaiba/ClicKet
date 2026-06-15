@@ -193,14 +193,15 @@ function clicketCourtProfile(string $name): array {
 
 function clicketCunetaProfile(): array {
     $sections = [];
-    $number = 101;
 
     foreach ([
-        ['tier' => 'lower', 'count' => 8, 'capacity' => 200, 'category' => 'vip', 'label' => 'Lower Box'],
-        ['tier' => 'upper', 'count' => 12, 'capacity' => 200, 'category' => 'platinum', 'label' => 'Upper Box'],
-        ['tier' => 'general', 'count' => 16, 'capacity' => 125, 'category' => 'general', 'label' => 'General Admission'],
+        ['tier' => 'floor', 'start' => 101, 'count' => 16, 'capacity' => 100, 'category' => 'vip', 'label' => 'Floor Seating', 'mapColor' => '#166f83'],
+        ['tier' => 'lower', 'start' => 201, 'count' => 16, 'capacity' => 200, 'category' => 'gold', 'label' => 'Lower Box', 'mapColor' => '#f2c542'],
+        ['tier' => 'upper', 'start' => 301, 'count' => 16, 'capacity' => 300, 'category' => 'platinum', 'label' => 'Upper Box', 'mapColor' => '#178ba0'],
+        ['tier' => 'general', 'start' => 401, 'count' => 16, 'capacity' => 150, 'category' => 'general', 'label' => 'General Admission', 'mapColor' => '#b61f36'],
     ] as $tier) {
         for ($index = 0; $index < $tier['count']; $index++) {
+            $number = $tier['start'] + $index;
             $sections[] = [
                 'id' => 'cuneta-' . $tier['tier'] . '-' . $number,
                 'label' => $tier['label'] . ' ' . $number,
@@ -208,17 +209,17 @@ function clicketCunetaProfile(): array {
                 'category' => $tier['category'],
                 'tier' => $tier['tier'],
                 'capacity' => $tier['capacity'],
+                'mapColor' => $tier['mapColor'],
                 'zone' => 'ring-' . $tier['tier'],
             ];
-            $number++;
         }
     }
 
     return [
         'layout' => 'court',
         'stageLabel' => 'Basketball Court',
-        'subtitle' => 'Concentric Astrodome arena-bowl layout',
-        'capacity' => 6000,
+        'subtitle' => 'Cuneta Astrodome four-tier arena bowl',
+        'capacity' => 12000,
         'sections' => $sections,
     ];
 }
@@ -227,9 +228,42 @@ function clicketMoaSportsProfile(): array {
     $sections = [];
 
     foreach ([
-        ['tier' => 'lower', 'start' => 101, 'count' => 16, 'capacity' => 400, 'category' => 'vip', 'label' => 'Lower Bowl'],
-        ['tier' => 'club', 'start' => 201, 'count' => 16, 'capacity' => 100, 'category' => 'gold', 'label' => 'Club Premium'],
-        ['tier' => 'upper', 'start' => 301, 'count' => 32, 'capacity' => 250, 'category' => 'silver', 'label' => 'Upper Bowl'],
+        [
+            'tier' => 'lower',
+            'start' => 101,
+            'count' => 16,
+            'capacity' => 300,
+            'category' => 'vip',
+            'label' => 'Lower Bowl',
+            'colors' => ['#607d2f', '#9b236f', '#173b70', '#9ca1a8', '#8f1d2c', '#28a6a0', '#9ca424', '#5a5bb5'],
+        ],
+        [
+            'tier' => 'suite',
+            'start' => 201,
+            'count' => 16,
+            'capacity' => 100,
+            'category' => 'platinum',
+            'label' => 'Lower Concourse Suite',
+            'colors' => ['#a76c91', '#d2b62f', '#1680c5', '#bd2638'],
+        ],
+        [
+            'tier' => 'club',
+            'start' => 221,
+            'count' => 16,
+            'capacity' => 200,
+            'category' => 'gold',
+            'label' => 'Club Level',
+            'colors' => ['#f3cc28', '#29a568', '#f0a45f', '#b64055'],
+        ],
+        [
+            'tier' => 'upper',
+            'start' => 301,
+            'count' => 32,
+            'capacity' => 200,
+            'category' => 'silver',
+            'label' => 'Upper Bowl',
+            'colors' => ['#123c75', '#17758b', '#efc0ad', '#343537'],
+        ],
     ] as $tier) {
         for ($index = 0; $index < $tier['count']; $index++) {
             $number = $tier['start'] + $index;
@@ -240,6 +274,7 @@ function clicketMoaSportsProfile(): array {
                 'category' => $tier['category'],
                 'tier' => $tier['tier'],
                 'capacity' => $tier['capacity'],
+                'mapColor' => $tier['colors'][$index % count($tier['colors'])],
                 'zone' => 'ring-' . $tier['tier'],
             ];
         }
@@ -250,6 +285,40 @@ function clicketMoaSportsProfile(): array {
         'stageLabel' => 'Basketball Court',
         'subtitle' => 'MOA Arena 16,000-seat sports bowl',
         'capacity' => 16000,
+        'sections' => $sections,
+    ];
+}
+
+function clicketMoaConcertProfile(): array {
+    $sections = [];
+
+    foreach ([
+        ['tier' => 'standing', 'start' => 1, 'count' => 2, 'capacity' => 900, 'category' => 'vip', 'label' => 'VIP Standing', 'colors' => ['#ef8fb4', '#b1248d']],
+        ['tier' => 'patron', 'start' => 101, 'count' => 4, 'capacity' => 400, 'category' => 'platinum', 'label' => 'Patron Floor', 'colors' => ['#8a326f', '#78d5dc', '#85845a', '#5b61b9']],
+        ['tier' => 'lower', 'start' => 201, 'count' => 12, 'capacity' => 350, 'category' => 'gold', 'label' => 'Lower Box', 'colors' => ['#2357d5', '#178d36', '#8b179e', '#9c912e']],
+        ['tier' => 'upper', 'start' => 301, 'count' => 12, 'capacity' => 300, 'category' => 'silver', 'label' => 'Upper Box', 'colors' => ['#f7e77a', '#f47d2b', '#c62855', '#3857b7']],
+        ['tier' => 'general', 'start' => 401, 'count' => 6, 'capacity' => 300, 'category' => 'general', 'label' => 'General Admission', 'colors' => ['#d11f50', '#ef7b27', '#8a1a91']],
+    ] as $tier) {
+        for ($index = 0; $index < $tier['count']; $index++) {
+            $number = $tier['start'] + $index;
+            $sections[] = [
+                'id' => 'moa-concert-' . $tier['tier'] . '-' . $number,
+                'label' => $tier['label'] . ' ' . $number,
+                'number' => $tier['tier'] === 'standing' ? ($index === 0 ? 'LEFT' : 'RIGHT') : (string) $number,
+                'category' => $tier['category'],
+                'tier' => $tier['tier'],
+                'capacity' => $tier['capacity'],
+                'mapColor' => $tier['colors'][$index % count($tier['colors'])],
+                'zone' => 'concert-' . $tier['tier'],
+            ];
+        }
+    }
+
+    return [
+        'layout' => 'arena',
+        'stageLabel' => 'Stage',
+        'subtitle' => 'MOA Arena 13,000-seat end-stage concert layout',
+        'capacity' => 13000,
         'sections' => $sections,
     ];
 }
@@ -314,7 +383,7 @@ function clicketVenueMap(string $venue, string $categoryKey): array {
         'Samsung Hall' => ['default' => ['mapKey' => 'samsung', 'mapType' => 'theater-reverse']],
         'Philsports Arena' => ['default' => ['mapKey' => 'philsports', 'mapType' => 'court']],
         'Filoil EcoOil Centre' => ['default' => ['mapKey' => 'filoil', 'mapType' => 'court']],
-        'Cuneta Astrodome' => ['default' => ['mapKey' => 'cuneta', 'mapType' => 'cuneta-bowl', 'stageLabel' => 'Basketball Court', 'subtitle' => 'Concentric Astrodome arena-bowl layout', 'capacity' => 6000]],
+        'Cuneta Astrodome' => ['default' => ['mapKey' => 'cuneta', 'mapType' => 'cuneta-bowl', 'stageLabel' => 'Basketball Court', 'subtitle' => 'Cuneta Astrodome four-tier arena bowl', 'capacity' => 12000]],
         'Muntinlupa Sports Center' => ['default' => ['mapKey' => 'muntinlupa', 'mapType' => 'court']],
         'Ninoy Aquino Stadium and Rizal Memorial' => ['default' => ['mapKey' => 'ninoy', 'mapType' => 'court']],
         'Nuvali' => ['default' => ['mapKey' => 'nuvali', 'mapType' => 'tennis', 'stageLabel' => 'Competition Court', 'subtitle' => 'Open-air competition court layout']],
@@ -331,9 +400,13 @@ function clicketVenueMap(string $venue, string $categoryKey): array {
 
 function clicketVenueProfile(string $venue, string $categoryKey = ''): array {
     $profiles = clicketVenueProfiles();
-    $profile = $venue === 'MOA Arena' && $categoryKey === 'sports'
-        ? clicketMoaSportsProfile()
-        : ($profiles[$venue] ?? clicketHallProfile($venue));
+    if ($venue === 'MOA Arena' && $categoryKey === 'sports') {
+        $profile = clicketMoaSportsProfile();
+    } elseif ($venue === 'MOA Arena' && $categoryKey === 'concerts') {
+        $profile = clicketMoaConcertProfile();
+    } else {
+        $profile = $profiles[$venue] ?? clicketHallProfile($venue);
+    }
 
     return array_merge($profile, clicketVenueMap($venue, $categoryKey));
 }

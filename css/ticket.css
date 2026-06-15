@@ -212,6 +212,7 @@ a { color: inherit; text-decoration: none; }
 #seatMap { display: block; width: 100%; height: 100%; user-select: none; }
 .ticket-map-hint {
   position: absolute;
+  z-index: 9;
   left: 16px;
   bottom: 16px;
   padding: 8px 11px;
@@ -224,6 +225,7 @@ a { color: inherit; text-decoration: none; }
 }
 .ticket-map-controls {
   position: absolute;
+  z-index: 12;
   top: 16px;
   right: 16px;
   display: grid;
@@ -232,6 +234,8 @@ a { color: inherit; text-decoration: none; }
   border-radius: 14px;
   background: rgba(255,255,255,.94);
   box-shadow: 0 10px 25px rgba(0,0,0,.08);
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 .ticket-map-controls button {
   display: grid;
@@ -242,13 +246,22 @@ a { color: inherit; text-decoration: none; }
   background: transparent;
   color: #27282d;
   font-size: 23px;
+  pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
 }
 .ticket-map-controls button:last-child { border-bottom: 0; }
 .ticket-map-controls button:hover { background: #f2f2f3; color: var(--ticket-red); }
+.ticket-map-controls button:focus,
+.ticket-map-controls button:focus-visible {
+  outline: none;
+  background: #f2f2f3;
+  color: var(--ticket-red);
+}
 .ticket-map-controls svg { width: 18px; height: 18px; }
 .ticket-seat-tooltip {
   position: absolute;
-  z-index: 8;
+  z-index: 11;
   width: min(400px, calc(100% - 24px));
   overflow: visible;
   border: 1px solid #d9d9dd;
@@ -262,7 +275,7 @@ a { color: inherit; text-decoration: none; }
 .ticket-seat-tooltip::before {
   position: absolute;
   top: -8px;
-  left: 48%;
+  left: var(--tooltip-arrow-left, 48%);
   width: 16px;
   height: 16px;
   background: #fff;
@@ -299,6 +312,14 @@ a { color: inherit; text-decoration: none; }
 }
 .ticket-category[hidden] { display: none !important; }
 .cuneta-court { fill: #cf805b; stroke: #a95f40; }
+.moa-sports-court {
+  fill: #f7f4ed;
+  stroke: #35383d;
+  stroke-width: 16;
+}
+.moa-sports-court ~ .cuneta-court-line {
+  stroke: #555960;
+}
 .cuneta-court-label {
   fill: #fff;
   font-size: 64px;
@@ -307,30 +328,111 @@ a { color: inherit; text-decoration: none; }
   text-anchor: middle;
   text-transform: uppercase;
 }
-.cuneta-section-wedge {
-  fill: color-mix(in srgb, var(--section-color) 15%, white);
-  stroke: #fff;
-  stroke-width: 12;
-  transition: fill .18s ease, stroke .18s ease, filter .18s ease;
+.moa-court-label {
+  fill: #34383e;
+  font-size: 54px;
 }
-.cuneta-section:hover .cuneta-section-wedge,
-.cuneta-section.is-focused .cuneta-section-wedge {
-  fill: color-mix(in srgb, var(--section-color) 25%, white);
-  stroke: var(--section-color);
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,.08));
+.moa-court-side-label {
+  fill: #4f5359;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-anchor: middle;
 }
-.cuneta-section-number {
-  fill: #292a30;
+.moa-concert-stage {
+  fill: #858585;
+  stroke: #16171a;
+  stroke-width: 18;
+  pointer-events: none;
+}
+.moa-concert-stage-label {
+  fill: #f2a8bf;
+  font-size: 92px;
+  font-weight: 800;
+  letter-spacing: 5px;
+  text-anchor: middle;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.moa-concert-catwalk {
+  fill: #ef91b4;
+  stroke: #16171a;
+  stroke-width: 28;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.moa-concert-floor-section {
+  stroke-width: 22;
+}
+.moa-tech-booth {
+  fill: #3d3d40;
+  stroke: #151518;
+  stroke-width: 14;
+  pointer-events: none;
+}
+.moa-tech-booth-label {
+  fill: #ef9bb8;
   font-size: 38px;
   font-weight: 800;
+  letter-spacing: 2px;
   text-anchor: middle;
   pointer-events: none;
 }
-.cuneta-section .map-seat { r: 7px; stroke-width: 1.2; }
-.cuneta-section .map-seat:hover,
-.cuneta-section .map-seat:focus-visible { r: 10px; }
-.cuneta-section .map-seat.is-selected { r: 11px; }
-.cuneta-section .map-seat-check { stroke-width: 2.4; }
+.moa-standing-label {
+  fill: #19191c;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.moa-venue-side-label {
+  fill: #383a40;
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 7px;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.cuneta-section-wedge {
+  fill: var(--section-color);
+  stroke: #fff;
+  stroke-width: 16;
+  opacity: .92;
+  cursor: pointer;
+  transition: opacity .18s ease, filter .18s ease;
+}
+.cuneta-section:hover .cuneta-section-wedge {
+  opacity: 1;
+  filter: brightness(1.06);
+}
+.cuneta-section.is-active-section .cuneta-section-wedge {
+  opacity: 1;
+  filter: brightness(1.16) saturate(1.12) drop-shadow(0 0 18px color-mix(in srgb, var(--section-color) 60%, transparent));
+}
+.cuneta-section,
+.cuneta-section:focus,
+.cuneta-section:focus-visible {
+  outline: none;
+}
+.cuneta-section-number {
+  fill: #fff;
+  font-size: 34px;
+  font-weight: 800;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: rgba(0,0,0,.38);
+  stroke-width: 7px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.cuneta-seat-layer .map-seat {
+  stroke-width: .8;
+}
+.cuneta-seat-layer .map-seat:hover,
+.cuneta-seat-layer .map-seat:focus-visible { r: 8px; }
+.cuneta-seat-layer .map-seat.is-selected { r: 8px; }
+.cuneta-seat-layer .map-seat-check { stroke-width: 2.4; }
 .cuneta-gate rect { fill: #182b50; stroke: #fff; stroke-width: 12; }
 .cuneta-gate text {
   fill: #fff;
@@ -340,6 +442,20 @@ a { color: inherit; text-decoration: none; }
   text-anchor: middle;
 }
 .cuneta-court-line { stroke-width: 12; }
+#mapCanvas > * {
+  transition: opacity .16s ease;
+}
+#mapCanvas.is-cuneta-seat-view > :not(.cuneta-seat-layer) {
+  opacity: 0;
+  pointer-events: none;
+}
+#mapCanvas.is-cuneta-seat-view .cuneta-seat-layer {
+  opacity: 1;
+}
+.ticket-map-viewport:has(.cuneta-seat-layer) .ticket-map-hint {
+  background: rgba(22,43,80,.94);
+  color: #fff;
+}
 .map-section-label {
   fill: var(--section-color);
   font-size: 11px;

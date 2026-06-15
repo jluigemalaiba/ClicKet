@@ -8,6 +8,7 @@
   const svg = document.getElementById('seatMap');
   const canvas = document.getElementById('mapCanvas');
   const viewport = document.getElementById('mapViewport');
+  const mapHint = document.getElementById('mapHint');
   const tooltip = document.getElementById('seatTooltip');
   const selectedList = document.getElementById('selectedSeats');
   const selectedCount = document.getElementById('selectedCount');
@@ -22,7 +23,30 @@
   const ns = 'http://www.w3.org/2000/svg';
   const activePointers = new Map();
   const unavailableSeatIds = new Set(config.unavailableSeatIds || []);
-  const mapDimensions = config.venue.mapKey === 'cuneta'
+  const isDetailedBowl = ['cuneta', 'moa-sports', 'moa-concert'].includes(config.venue.mapKey);
+  const detailedBowlTiers = {
+    cuneta: {
+      floor: { innerRx: 980, innerRy: 625, outerRx: 1235, outerRy: 815, columns: 16 },
+      lower: { innerRx: 1300, innerRy: 865, outerRx: 1570, outerRy: 1065, columns: 18 },
+      upper: { innerRx: 1650, innerRy: 1120, outerRx: 2025, outerRy: 1395, columns: 20 },
+      general: { innerRx: 2110, innerRy: 1470, outerRx: 2325, outerRy: 1650, columns: 18 },
+    },
+    'moa-sports': {
+      lower: { innerRx: 950, innerRy: 620, outerRx: 1370, outerRy: 900, columns: 18 },
+      suite: { innerRx: 1460, innerRy: 970, outerRx: 1640, outerRy: 1090, columns: 12 },
+      club: { innerRx: 1730, innerRy: 1160, outerRx: 1950, outerRy: 1315, columns: 16 },
+      upper: { innerRx: 2050, innerRy: 1400, outerRx: 2380, outerRy: 1665, columns: 16 },
+    },
+    'moa-concert': {
+      standing: { columns: 18 },
+      patron: { columns: 16 },
+      lower: { innerRx: 1120, innerRy: 720, outerRx: 1490, outerRy: 1000, columns: 18 },
+      upper: { innerRx: 1580, innerRy: 1080, outerRx: 1940, outerRy: 1340, columns: 18 },
+      general: { innerRx: 2040, innerRy: 1420, outerRx: 2350, outerRy: 1660, columns: 18 },
+    },
+  };
+  const bowlTiers = detailedBowlTiers[config.venue.mapKey] || null;
+  const mapDimensions = isDetailedBowl
     ? { width: 5000, height: 3600, centerX: 2500, centerY: 1800, maxZoom: 10 }
     : { width: 1000, height: 720, centerX: 500, centerY: 360, maxZoom: 4 };
   svg.setAttribute('viewBox', `0 0 ${mapDimensions.width} ${mapDimensions.height}`);
@@ -42,6 +66,11 @@
     suggestionOffset: 0,
     pinchDistance: 0,
     sectionBounds: new Map(),
+    sectionCenters: new Map(),
+    activeSectionId: null,
+    dragMoved: false,
+    pointerDownSectionId: null,
+    pointerCaptured: false,
   };
 
   const zoneLayouts = {
@@ -177,6 +206,17 @@
     return Math.abs(hash >>> 0);
   }
 
+  function rowName(index) {
+    let value = index + 1;
+    let label = '';
+    while (value > 0) {
+      value -= 1;
+      label = String.fromCharCode(65 + (value % 26)) + label;
+      value = Math.floor(value / 26);
+    }
+    return label;
+  }
+
   function sectionPosition(section, index) {
     const positions = zoneLayouts[config.venue.mapKey] || zoneLayouts['moa-concert'];
     return positions[section.zone] || [150 + (index % 3) * 250, 180 + Math.floor(index / 3) * 170, 210, 130];
@@ -246,7 +286,7 @@
 
   function appendInteractiveSeat(group, section, sectionIndex, rowIndex, columnIndex, cx, cy, includeCheck = true) {
     const category = config.categories[section.category];
-    const row = String.fromCharCode(65 + rowIndex);
+    const row = rowName(rowIndex);
     const seatNumber = columnIndex + 1;
     const id = `${section.id}-${row}-${seatNumber}`;
     const random = deterministicNumber(`${config.event.key}-${id}`);
@@ -292,33 +332,115 @@
     });
   }
 
+  function bowlSectionGap(tierName) {
+    if (config.venue.mapKey === 'moa-concert') {
+      return tierName === 'general' ? 5.5 : 4.2;
+    }
+    if (config.venue.mapKey === 'moa-sports') {
+      return tierName === 'upper' ? 2.6 : 4.4;
+    }
+    return tierName === 'general' ? 3.4 : 4.2;
+  }
+
+  function moaConcertFloorBox(section) {
+    const tierSections = config.venue.sections.filter(item => item.tier === section.tier);
+    const index = tierSections.findIndex(item => item.id === section.id);
+    if (section.tier === 'standing') {
+      return index === 0
+        ? [1810, 660, 560, 720]
+        : [2630, 660, 560, 720];
+    }
+    const boxes = [
+      [1770, 1510, 335, 620],
+      [2120, 1510, 335, 620],
+      [2545, 1510, 335, 620],
+      [2895, 1510, 335, 620],
+    ];
+    return boxes[index];
+  }
+
+  function bowlSectionAngles(section, tierSections, sectionIndex) {
+    if (config.venue.mapKey === 'moa-concert') {
+      const span = 170;
+      const angleStep = span / tierSections.length;
+      const gap = bowlSectionGap(section.tier);
+      return [
+        5 + sectionIndex * angleStep + gap / 2,
+        5 + (sectionIndex + 1) * angleStep - gap / 2,
+      ];
+    }
+    const angleStep = 360 / tierSections.length;
+    const gap = bowlSectionGap(section.tier);
+    return [
+      -90 + sectionIndex * angleStep + gap / 2,
+      -90 + (sectionIndex + 1) * angleStep - gap / 2,
+    ];
+  }
+
   function renderCunetaBowl() {
     const cx = mapDimensions.centerX;
     const cy = mapDimensions.centerY;
-    const tiers = {
-      lower: { innerRx: 1120, innerRy: 720, outerRx: 1550, outerRy: 1040, rows: 10, seats: 20 },
-      upper: { innerRx: 1660, innerRy: 1130, outerRx: 2050, outerRy: 1400, rows: 10, seats: 20 },
-      general: { innerRx: 2160, innerRy: 1490, outerRx: 2350, outerRy: 1650, rows: 5, seats: 25 },
-    };
+    const tiers = bowlTiers;
+    const isMoa = config.venue.mapKey === 'moa-sports';
+    const isMoaConcert = config.venue.mapKey === 'moa-concert';
 
-    canvas.appendChild(svgNode('ellipse', { cx, cy, rx: 1050, ry: 650, class: 'cuneta-walkway' }));
-    canvas.appendChild(svgNode('ellipse', { cx, cy, rx: 1605, ry: 1085, class: 'cuneta-walkway' }));
-    canvas.appendChild(svgNode('ellipse', { cx, cy, rx: 2105, ry: 1445, class: 'cuneta-walkway' }));
+    if (isMoaConcert) {
+      renderDetailedBowlSections();
+      renderMoaConcertStage();
+      return;
+    }
 
-    const court = svgNode('rect', { x: 1750, y: 1370, width: 1500, height: 860, rx: 28, class: 'map-court cuneta-court' });
+    const walkways = isMoa
+      ? [[1415, 930], [1685, 1120], [1995, 1350]]
+      : [[1265, 840], [1610, 1092], [2068, 1432]];
+    walkways.forEach(([rx, ry]) => {
+      canvas.appendChild(svgNode('ellipse', { cx, cy, rx, ry, class: 'cuneta-walkway' }));
+    });
+
+    const court = svgNode('rect', {
+      x: isMoa ? 1760 : 1740,
+      y: isMoa ? 1390 : 1325,
+      width: isMoa ? 1480 : 1520,
+      height: isMoa ? 820 : 950,
+      rx: isMoa ? 8 : 24,
+      class: `map-court cuneta-court${isMoa ? ' moa-sports-court' : ''}`,
+    });
     canvas.appendChild(court);
-    canvas.appendChild(svgNode('line', { x1: cx, y1: 1370, x2: cx, y2: 2230, class: 'map-court-line cuneta-court-line' }));
-    canvas.appendChild(svgNode('circle', { cx, cy, r: 175, class: 'map-court-line cuneta-court-line' }));
-    const courtLabel = svgNode('text', { x: cx, y: cy + 28, class: 'cuneta-court-label' });
+    const courtTop = isMoa ? 1390 : 1325;
+    const courtBottom = isMoa ? 2210 : 2275;
+    canvas.appendChild(svgNode('line', { x1: cx, y1: courtTop, x2: cx, y2: courtBottom, class: 'map-court-line cuneta-court-line' }));
+    canvas.appendChild(svgNode('circle', { cx, cy, r: isMoa ? 125 : 175, class: 'map-court-line cuneta-court-line' }));
+    canvas.appendChild(svgNode('rect', { x: isMoa ? 1760 : 1740, y: 1580, width: isMoa ? 300 : 330, height: isMoa ? 440 : 460, class: 'map-court-line cuneta-court-line' }));
+    canvas.appendChild(svgNode('rect', { x: isMoa ? 2940 : 2930, y: 1580, width: isMoa ? 300 : 330, height: isMoa ? 440 : 460, class: 'map-court-line cuneta-court-line' }));
+    canvas.appendChild(svgNode('circle', { cx: isMoa ? 1980 : 1980, cy, r: isMoa ? 105 : 125, class: 'map-court-line cuneta-court-line' }));
+    canvas.appendChild(svgNode('circle', { cx: isMoa ? 3020 : 3020, cy, r: isMoa ? 105 : 125, class: 'map-court-line cuneta-court-line' }));
+    const courtLabel = svgNode('text', {
+      x: cx,
+      y: cy + 28,
+      class: `cuneta-court-label${isMoa ? ' moa-court-label' : ''}`,
+    });
     courtLabel.textContent = config.venue.stageLabel;
     canvas.appendChild(courtLabel);
+    if (isMoa) {
+      const visitor = svgNode('text', { x: 1985, y: 2260, class: 'moa-court-side-label' });
+      visitor.textContent = 'VISITOR';
+      canvas.appendChild(visitor);
+      const home = svgNode('text', { x: 3015, y: 2260, class: 'moa-court-side-label' });
+      home.textContent = 'HOME';
+      canvas.appendChild(home);
+    }
 
-    const gates = [
-      { x: 2150, y: 15, w: 700, h: 120, label: 'NORTH ENTRY' },
-      { x: 2150, y: 3465, w: 700, h: 120, label: 'SOUTH ENTRY' },
-      { x: 15, y: 1510, w: 120, h: 580, label: 'WEST ENTRY', rotate: -90 },
-      { x: 4865, y: 1510, w: 120, h: 580, label: 'EAST ENTRY', rotate: 90 },
-    ];
+    const gates = isMoa
+      ? [
+          { x: 2150, y: 42, w: 700, h: 105, label: 'UPPER LEVEL' },
+          { x: 2150, y: 3453, w: 700, h: 105, label: 'UPPER LEVEL' },
+        ]
+      : [
+          { x: 2075, y: 18, w: 850, h: 128, label: 'ENTRY GATES' },
+          { x: 2075, y: 3454, w: 850, h: 128, label: 'ENTRY GATE' },
+          { x: 18, y: 1475, w: 128, h: 650, label: 'ENTRY GATES', rotate: -90 },
+          { x: 4854, y: 1475, w: 128, h: 650, label: 'ENTRY GATES', rotate: 90 },
+        ];
     gates.forEach(gate => {
       const group = svgNode('g', { class: 'cuneta-gate' });
       group.appendChild(svgNode('rect', { x: gate.x, y: gate.y, width: gate.w, height: gate.h, rx: 12 }));
@@ -334,58 +456,203 @@
       canvas.appendChild(group);
     });
 
+    renderDetailedBowlSections();
+  }
+
+  function renderMoaConcertStage() {
+    const stage = svgNode('rect', {
+      x: 1940,
+      y: 185,
+      width: 1120,
+      height: 410,
+      rx: 36,
+      class: 'moa-concert-stage',
+    });
+    canvas.appendChild(stage);
+    const stageLabel = svgNode('text', { x: 2500, y: 420, class: 'moa-concert-stage-label' });
+    stageLabel.textContent = config.venue.stageLabel;
+    canvas.appendChild(stageLabel);
+    canvas.appendChild(svgNode('path', {
+      d: 'M 2260 595 L 2260 1110 L 2740 1110 L 2740 595 L 2910 595 L 2910 1375 L 2090 1375 L 2090 595 Z',
+      class: 'moa-concert-catwalk',
+    }));
+    const booth = svgNode('rect', { x: 2250, y: 2180, width: 500, height: 125, rx: 14, class: 'moa-tech-booth' });
+    canvas.appendChild(booth);
+    const boothLabel = svgNode('text', { x: 2500, y: 2260, class: 'moa-tech-booth-label' });
+    boothLabel.textContent = 'TECH BOOTH';
+    canvas.appendChild(boothLabel);
+    const left = svgNode('text', { x: 2090, y: 1030, class: 'moa-standing-label' });
+    left.textContent = 'LEFT STANDING';
+    canvas.appendChild(left);
+    const right = svgNode('text', { x: 2910, y: 1030, class: 'moa-standing-label' });
+    right.textContent = 'RIGHT STANDING';
+    canvas.appendChild(right);
+    const pacificDrive = svgNode('text', {
+      x: 125,
+      y: 1880,
+      transform: 'rotate(-90 125 1880)',
+      class: 'moa-venue-side-label',
+    });
+    pacificDrive.textContent = 'PACIFIC DRIVE';
+    canvas.appendChild(pacificDrive);
+    const dioknoBoulevard = svgNode('text', {
+      x: 4875,
+      y: 1880,
+      transform: 'rotate(90 4875 1880)',
+      class: 'moa-venue-side-label',
+    });
+    dioknoBoulevard.textContent = 'DIOKNO BOULEVARD';
+    canvas.appendChild(dioknoBoulevard);
+  }
+
+  function renderDetailedBowlSections() {
+    const cx = mapDimensions.centerX;
+    const cy = mapDimensions.centerY;
+    const tiers = bowlTiers;
+
     Object.entries(tiers).forEach(([tierName, tier]) => {
       const sections = config.venue.sections.filter(section => section.tier === tierName);
-      const angleStep = 360 / sections.length;
-      const gap = tierName === 'general' ? 1.4 : 2.2;
 
       sections.forEach((section, sectionIndex) => {
         const globalIndex = config.venue.sections.findIndex(item => item.id === section.id);
-        const rawStartAngle = -90 + sectionIndex * angleStep;
-        const rawEndAngle = -90 + (sectionIndex + 1) * angleStep;
-        const startAngle = rawStartAngle + gap / 2;
-        const endAngle = rawEndAngle - gap / 2;
-        const middleAngle = (startAngle + endAngle) / 2;
         const category = config.categories[section.category];
+        const sectionColor = section.mapColor || category.color;
         const group = svgNode('g', {
           class: 'map-section cuneta-section',
           'data-section-id': section.id,
           'data-category': section.category,
-          style: `--section-color:${category.color}`,
+          style: `--section-color:${sectionColor}`,
+          tabindex: '0',
+          role: 'button',
+          'aria-label': `${section.label}, ${Number(section.capacity).toLocaleString()} seats. Select section to view seats.`,
         });
-        group.appendChild(svgNode('path', {
-          d: ringSegmentPath(cx, cy, tier.innerRx, tier.innerRy, tier.outerRx, tier.outerRy, startAngle, endAngle),
-          class: 'cuneta-section-wedge',
-        }));
+        let labelX;
+        let labelY;
+        let width;
+        let height;
 
-        for (let rowIndex = 0; rowIndex < tier.rows; rowIndex += 1) {
-          const radiusProgress = (rowIndex + 1) / (tier.rows + 1);
-          const rx = tier.innerRx + (tier.outerRx - tier.innerRx) * radiusProgress;
-          const ry = tier.innerRy + (tier.outerRy - tier.innerRy) * radiusProgress;
-          for (let seatIndex = 0; seatIndex < tier.seats; seatIndex += 1) {
-            const seatProgress = (seatIndex + 1) / (tier.seats + 1);
-            const angle = startAngle + (endAngle - startAngle) * seatProgress;
-            const [seatX, seatY] = ellipsePoint(cx, cy, rx, ry, angle);
-            appendInteractiveSeat(group, section, globalIndex, rowIndex, seatIndex, seatX, seatY, false);
-          }
+        if (config.venue.mapKey === 'moa-concert' && ['standing', 'patron'].includes(tierName)) {
+          const [x, y, boxWidth, boxHeight] = moaConcertFloorBox(section);
+          group.appendChild(svgNode('rect', {
+            x, y, width: boxWidth, height: boxHeight, rx: 24,
+            class: 'cuneta-section-wedge moa-concert-floor-section',
+          }));
+          labelX = x + boxWidth / 2;
+          labelY = y + boxHeight / 2;
+          width = boxWidth;
+          height = boxHeight;
+        } else {
+          const [startAngle, endAngle] = bowlSectionAngles(section, sections, sectionIndex);
+          const middleAngle = (startAngle + endAngle) / 2;
+          group.appendChild(svgNode('path', {
+            d: ringSegmentPath(cx, cy, tier.innerRx, tier.innerRy, tier.outerRx, tier.outerRy, startAngle, endAngle),
+            class: 'cuneta-section-wedge',
+          }));
+          const labelRx = (tier.innerRx + tier.outerRx) / 2;
+          const labelRy = (tier.innerRy + tier.outerRy) / 2;
+          [labelX, labelY] = ellipsePoint(cx, cy, labelRx, labelRy, middleAngle);
+          width = Math.max(430, (tier.outerRx - tier.innerRx) * 2.4);
+          height = Math.max(360, (tier.outerRy - tier.innerRy) * 2.4);
         }
 
-        const labelRx = tier.innerRx - 48;
-        const labelRy = tier.innerRy - 38;
-        const [labelX, labelY] = ellipsePoint(cx, cy, labelRx, labelRy, middleAngle);
         const number = svgNode('text', { x: labelX, y: labelY + 12, class: 'cuneta-section-number' });
         number.textContent = section.number;
         group.appendChild(number);
         canvas.appendChild(group);
 
-        state.sectionBounds.set(section.id, [
-          labelX - 450,
-          labelY - 330,
-          900,
-          660,
-        ]);
+        state.sectionBounds.set(section.id, [labelX - width / 2, labelY - height / 2, width, height]);
+        state.sectionCenters.set(section.id, [labelX, labelY]);
+        createCunetaSeatData(section, globalIndex);
       });
     });
+  }
+
+  function createCunetaSeatData(section, sectionIndex) {
+    const category = config.categories[section.category];
+    const columns = bowlTiers[section.tier].columns;
+    const rows = Math.ceil(Number(section.capacity) / columns);
+
+    for (let rowIndex = 0; rowIndex < rows; rowIndex += 1) {
+      for (let columnIndex = 0; columnIndex < columns; columnIndex += 1) {
+        const seatIndex = rowIndex * columns + columnIndex;
+        if (seatIndex >= Number(section.capacity)) break;
+        const row = rowName(rowIndex);
+        const seatNumber = columnIndex + 1;
+        const id = `${section.id}-${row}-${seatNumber}`;
+        const random = deterministicNumber(`${config.event.key}-${id}`);
+        const unavailable = random % 100 < 28 || unavailableSeatIds.has(id);
+        const seat = {
+          id,
+          sectionId: section.id,
+          section: section.label,
+          row,
+          number: String(seatNumber),
+          category: category.label,
+          categoryKey: section.category,
+          color: section.mapColor || category.color,
+          price: category.price,
+          unavailable,
+          rank: category.rank * 100000 + sectionIndex * 1000 + rowIndex * 100 + Math.abs(columnIndex - (columns - 1) / 2),
+          rowIndex,
+          columnIndex,
+        };
+        state.seats.push(seat);
+        state.seatById.set(id, seat);
+      }
+    }
+  }
+
+  function renderCunetaAllSeats(sectionId) {
+    canvas.querySelectorAll('.cuneta-seat-layer').forEach(layer => layer.remove());
+    config.venue.sections.forEach(section => {
+      const tier = bowlTiers[section.tier];
+      const tierSections = config.venue.sections.filter(item => item.tier === section.tier);
+      const sectionIndex = tierSections.findIndex(item => item.id === section.id);
+      const seats = state.seats.filter(seat => seat.sectionId === section.id);
+      const rows = Math.max(...seats.map(seat => seat.rowIndex)) + 1;
+      const columns = tier.columns;
+      const layer = svgNode('g', {
+        class: `cuneta-seat-layer${section.id === sectionId ? ' is-focus-section' : ''}`,
+        'data-seat-layer-for': section.id,
+        style: `--section-color:${section.mapColor || config.categories[section.category].color}`,
+      });
+
+      seats.forEach(seat => {
+        let seatX;
+        let seatY;
+        if (config.venue.mapKey === 'moa-concert' && ['standing', 'patron'].includes(section.tier)) {
+          const [x, y, width, height] = moaConcertFloorBox(section);
+          seatX = x + width * ((seat.columnIndex + 1) / (columns + 1));
+          seatY = y + height * ((seat.rowIndex + 1) / (rows + 1));
+        } else {
+          const [startAngle, endAngle] = bowlSectionAngles(section, tierSections, sectionIndex);
+          const radiusProgress = (seat.rowIndex + 1) / (rows + 1);
+          const rx = tier.innerRx + (tier.outerRx - tier.innerRx) * radiusProgress;
+          const ry = tier.innerRy + (tier.outerRy - tier.innerRy) * radiusProgress;
+          const seatProgress = (seat.columnIndex + 1) / (columns + 1);
+          const angle = startAngle + (endAngle - startAngle) * seatProgress;
+          [seatX, seatY] = ellipsePoint(mapDimensions.centerX, mapDimensions.centerY, rx, ry, angle);
+        }
+        layer.appendChild(svgNode('circle', {
+          cx: seatX,
+          cy: seatY,
+          r: section.id === sectionId ? 4.8 : 3.8,
+          fill: seat.color,
+          class: `map-seat${seat.unavailable ? ' is-unavailable' : ''}`,
+          tabindex: seat.unavailable ? '-1' : '0',
+          role: 'button',
+          'aria-pressed': 'false',
+          'aria-label': `${seat.section}, row ${seat.row}, seat ${seat.number}, ${seat.category}${seat.unavailable ? ', unavailable' : ''}`,
+          'data-seat-id': seat.id,
+        }));
+      });
+      canvas.appendChild(layer);
+    });
+
+    canvas.classList.add('is-cuneta-seat-view');
+    if (mapHint) mapHint.textContent = 'All venue seats are visible. The selected section is centered and highlighted.';
+    state.activeSectionId = sectionId;
+    renderSelection();
   }
 
   function createSeats(section, group, box, sectionIndex) {
@@ -496,8 +763,10 @@
     state.seats = [];
     state.seatById.clear();
     state.sectionBounds.clear();
+    state.sectionCenters.clear();
+    state.activeSectionId = null;
 
-    if (config.venue.mapKey === 'cuneta') {
+    if (isDetailedBowl) {
       renderCunetaBowl();
       restoreSelection();
       updateAvailability();
@@ -537,7 +806,7 @@
     let total = 0;
     Object.keys(config.categories).forEach(key => {
       let count = availableByCategory(key);
-      if (config.venue.capacity && config.venue.mapKey === 'cuneta') {
+      if (config.venue.capacity && isDetailedBowl) {
         const categorySections = config.venue.sections.filter(section => section.category === key);
         const categoryCapacity = categorySections.reduce((sum, section) => sum + Number(section.capacity || 0), 0);
         const renderedSeats = state.seats.filter(seat => seat.categoryKey === key);
@@ -569,30 +838,87 @@
     state.y = originY - (originY - state.y) * ratio;
     state.scale = clamped;
     applyTransform();
+    if (isDetailedBowl) {
+      if (state.scale < 1.65) {
+        canvas.querySelectorAll('.cuneta-seat-layer').forEach(layer => layer.remove());
+        canvas.classList.remove('is-cuneta-seat-view');
+        if (mapHint) {
+          const section = config.venue.sections.find(item => item.id === state.activeSectionId);
+          mapHint.textContent = section
+            ? `${section.label} highlighted. Continue zooming to view all venue seats.`
+            : 'Select a section to highlight it. Use + or scroll to zoom.';
+        }
+      } else if (!state.activeSectionId) {
+        activateNearestCunetaSection();
+      } else if (!canvas.classList.contains('is-cuneta-seat-view')) {
+        renderCunetaAllSeats(state.activeSectionId);
+      }
+    }
   }
 
   function resetMap() {
     state.scale = 1;
     state.x = 0;
     state.y = 0;
+    hideTooltip();
     applyTransform();
+    if (isDetailedBowl) {
+      state.activeSectionId = null;
+      canvas.querySelectorAll('.cuneta-seat-layer').forEach(layer => layer.remove());
+      canvas.querySelectorAll('.cuneta-section').forEach(group => group.classList.remove('is-active-section'));
+      canvas.classList.remove('is-cuneta-seat-view');
+      if (mapHint) mapHint.textContent = 'Select a section to view seats. Drag, scroll, or pinch to navigate.';
+    }
+  }
+
+  function activateNearestCunetaSection() {
+    const viewportCenterX = (mapDimensions.centerX - state.x) / state.scale;
+    const viewportCenterY = (mapDimensions.centerY - state.y) / state.scale;
+    let nearestId = null;
+    let nearestDistance = Infinity;
+    state.sectionCenters.forEach(([sectionX, sectionY], sectionId) => {
+      const distance = Math.hypot(sectionX - viewportCenterX, sectionY - viewportCenterY);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestId = sectionId;
+      }
+    });
+    if (nearestId) {
+      state.activeSectionId = nearestId;
+      renderCunetaAllSeats(nearestId);
+      showStatus('Seats are shown for the section nearest the center of the map.');
+    }
   }
 
   function focusSection(sectionId) {
     const section = config.venue.sections.find(item => item.id === sectionId);
     if (!section) return;
     const [x, y, width, height] = state.sectionBounds.get(sectionId) || sectionPosition(section, 0);
-    const targetScale = config.venue.mapKey === 'cuneta'
-      ? Math.min(6, Math.max(2.2, 1800 / Math.max(width, height)))
+    const targetScale = isDetailedBowl
+      ? Math.min(5.6, Math.max(3.25, 2100 / Math.max(width, height)))
       : Math.min(3, Math.max(1.65, 520 / Math.max(width, height)));
     state.scale = targetScale;
     state.x = mapDimensions.centerX - (x + width / 2) * targetScale;
     state.y = mapDimensions.centerY - (y + height / 2) * targetScale;
     applyTransform();
+    if (isDetailedBowl) renderCunetaAllSeats(sectionId);
+  }
+
+  function selectCunetaSection(sectionId) {
+    state.activeSectionId = sectionId;
+    canvas.querySelectorAll('.cuneta-section').forEach(group => {
+      group.classList.toggle('is-active-section', group.dataset.sectionId === sectionId);
+    });
+    const section = config.venue.sections.find(item => item.id === sectionId);
+    if (mapHint) mapHint.textContent = `${section?.label || 'Section'} highlighted. Use + or scroll to zoom into its seats.`;
+    showStatus(`${section?.label || 'Section'} highlighted. Zoom in when you are ready.`);
   }
 
   function setCategory(category) {
     state.category = category;
+    if (isDetailedBowl && canvas.classList.contains('is-cuneta-seat-view')) {
+      resetMap();
+    }
     document.querySelectorAll('.ticket-category').forEach(button => {
       button.classList.toggle('is-active', button.dataset.category === category);
     });
@@ -606,11 +932,12 @@
       section.classList.toggle('is-focused', matches && state.category !== 'all');
     });
 
-    if (state.category !== 'all') {
-      const first = config.venue.sections.find(section => section.category === state.category);
-      if (first) focusSection(first.id);
-    } else {
-      resetMap();
+    state.activeSectionId = null;
+    canvas.querySelectorAll('.cuneta-section').forEach(section => section.classList.remove('is-active-section'));
+    if (mapHint && isDetailedBowl) {
+      mapHint.textContent = state.category === 'all'
+        ? 'Select a section to highlight it. Use + or scroll to zoom.'
+        : 'Matching sections are highlighted. Select one section, then use + or scroll to zoom.';
     }
   }
 
@@ -735,7 +1062,7 @@
     showStatus('Best available seats have been added. You can still change them.');
   }
 
-  function showTooltip(seat, clientX, clientY) {
+  function showTooltip(seat, seatNode) {
     const price = seat.unavailable ? 'Unavailable' : `PHP ${seat.price.toLocaleString()}`;
     const fee = Math.max(50, Math.round(seat.price * .029 / 5) * 5);
     tooltip.style.setProperty('--tooltip-color', seat.unavailable ? '#c7c7cb' : seat.color);
@@ -756,9 +1083,12 @@
       </div>`;
     tooltip.hidden = false;
     const bounds = viewport.getBoundingClientRect();
+    const seatBounds = seatNode.getBoundingClientRect();
     const tooltipWidth = Math.min(400, bounds.width - 24);
-    const left = Math.min(bounds.width - tooltipWidth - 12, Math.max(12, clientX - bounds.left + 18));
-    const top = Math.min(bounds.height - 205, Math.max(12, clientY - bounds.top + 18));
+    const anchorX = seatBounds.left + seatBounds.width / 2 - bounds.left;
+    const left = Math.min(bounds.width - tooltipWidth - 12, Math.max(12, anchorX - tooltipWidth / 2));
+    const top = seatBounds.bottom - bounds.top + 14;
+    tooltip.style.setProperty('--tooltip-arrow-left', `${Math.max(18, Math.min(tooltipWidth - 18, anchorX - left))}px`);
     tooltip.style.left = `${left}px`;
     tooltip.style.top = `${top}px`;
   }
@@ -790,9 +1120,20 @@
   });
 
   document.querySelectorAll('[data-map-action]').forEach(button => {
-    button.addEventListener('click', () => {
-      if (button.dataset.mapAction === 'zoom-in') setZoom(state.scale * 1.25);
-      if (button.dataset.mapAction === 'zoom-out') setZoom(state.scale / 1.25);
+    button.addEventListener('pointerdown', event => {
+      event.stopPropagation();
+    });
+    button.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (button.dataset.mapAction === 'zoom-in') {
+        if (isDetailedBowl && state.activeSectionId && !canvas.classList.contains('is-cuneta-seat-view')) {
+          focusSection(state.activeSectionId);
+        } else {
+          setZoom(state.scale * 1.4);
+        }
+      }
+      if (button.dataset.mapAction === 'zoom-out') setZoom(state.scale / 1.4);
       if (button.dataset.mapAction === 'reset') resetMap();
     });
   });
@@ -806,20 +1147,22 @@
   }, { passive: false });
 
   viewport.addEventListener('pointerdown', event => {
-    if (event.target.matches('.map-seat')) return;
+    if (event.target.closest('.ticket-map-controls') || event.target.closest('.map-seat')) return;
     activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     state.dragging = true;
     state.pointerX = event.clientX;
     state.pointerY = event.clientY;
+    state.dragMoved = false;
+    state.pointerCaptured = false;
+    state.pointerDownSectionId = event.target.closest('[data-section-id]')?.dataset.sectionId || null;
     viewport.classList.add('is-dragging');
-    viewport.setPointerCapture(event.pointerId);
   });
 
   viewport.addEventListener('pointermove', event => {
     const seatNode = event.target.closest?.('[data-seat-id]');
     if (seatNode) {
       const seat = state.seatById.get(seatNode.dataset.seatId);
-      if (seat) showTooltip(seat, event.clientX, event.clientY);
+      if (seat) showTooltip(seat, seatNode);
     } else {
       hideTooltip();
     }
@@ -845,37 +1188,67 @@
     state.pinchDistance = 0;
     if (!state.dragging) return;
     const bounds = svg.getBoundingClientRect();
-    state.x += ((event.clientX - state.pointerX) / bounds.width) * mapDimensions.width;
-    state.y += ((event.clientY - state.pointerY) / bounds.height) * mapDimensions.height;
+    const moveX = event.clientX - state.pointerX;
+    const moveY = event.clientY - state.pointerY;
+    if (Math.hypot(moveX, moveY) > 3) {
+      state.dragMoved = true;
+      state.pointerDownSectionId = null;
+      if (!state.pointerCaptured) {
+        viewport.setPointerCapture(event.pointerId);
+        state.pointerCaptured = true;
+      }
+    }
+    state.x += (moveX / bounds.width) * mapDimensions.width;
+    state.y += (moveY / bounds.height) * mapDimensions.height;
     state.pointerX = event.clientX;
     state.pointerY = event.clientY;
     applyTransform();
   });
 
   viewport.addEventListener('pointerup', event => {
+    const sectionId = state.pointerDownSectionId;
+    const shouldActivateSection = Boolean(sectionId && !state.dragMoved && isDetailedBowl);
     activePointers.delete(event.pointerId);
     state.pinchDistance = 0;
     state.dragging = false;
+    state.pointerDownSectionId = null;
     viewport.classList.remove('is-dragging');
     if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+    state.pointerCaptured = false;
+    if (shouldActivateSection) {
+      focusSection(sectionId);
+      const section = config.venue.sections.find(item => item.id === sectionId);
+      showStatus(`${section?.label || 'Section'} selected. All venue seats are now visible.`);
+    }
   });
   viewport.addEventListener('pointercancel', event => {
     activePointers.delete(event.pointerId);
     state.pinchDistance = 0;
     state.dragging = false;
+    state.pointerDownSectionId = null;
+    state.pointerCaptured = false;
     viewport.classList.remove('is-dragging');
   });
   viewport.addEventListener('pointerleave', hideTooltip);
 
   canvas.addEventListener('click', event => {
     const seatNode = event.target.closest('[data-seat-id]');
-    if (seatNode) toggleSeat(seatNode.dataset.seatId);
+    if (seatNode) {
+      toggleSeat(seatNode.dataset.seatId);
+      return;
+    }
   });
   canvas.addEventListener('keydown', event => {
     const seatNode = event.target.closest('[data-seat-id]');
     if (seatNode && (event.key === 'Enter' || event.key === ' ')) {
       event.preventDefault();
       toggleSeat(seatNode.dataset.seatId);
+      return;
+    }
+    const sectionNode = event.target.closest('[data-section-id]');
+    if (sectionNode && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      focusSection(sectionNode.dataset.sectionId);
     }
   });
 

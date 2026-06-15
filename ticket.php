@@ -87,7 +87,7 @@ $ticketConfig = [
   <meta name="description" content="Choose seats for <?= htmlspecialchars($event['title']) ?> at <?= htmlspecialchars($event['venue']) ?>.">
   <title>Choose Tickets | <?= htmlspecialchars($event['title']) ?> | ClicKet</title>
   <link rel="stylesheet" href="css/variables.css">
-  <link rel="stylesheet" href="css/ticket.css">
+  <link rel="stylesheet" href="css/ticket.css?v=<?= filemtime(__DIR__ . '/css/ticket.css') ?>">
 </head>
 <body class="ticket-page">
   <header class="ticket-topbar">
@@ -166,7 +166,7 @@ $ticketConfig = [
           <svg id="seatMap" viewBox="0 0 1000 720" role="img" aria-label="Interactive seating map for <?= htmlspecialchars($event['venue']) ?>">
             <g id="mapCanvas"></g>
           </svg>
-          <div class="ticket-map-hint" id="mapHint">Drag to move. Scroll or pinch to zoom.</div>
+          <div class="ticket-map-hint" id="mapHint">Select a section to view seats. Drag, scroll, or pinch to navigate.</div>
           <div class="ticket-map-controls" aria-label="Map controls">
             <button type="button" data-map-action="zoom-in" aria-label="Zoom in">+</button>
             <button type="button" data-map-action="zoom-out" aria-label="Zoom out">-</button>
@@ -249,6 +249,6 @@ $ticketConfig = [
   <script id="ticketConfig" type="application/json"><?= json_encode($ticketConfig, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
   <script src="js/ticket-topbar.js"></script>
   <script src="js/reservation-timer.js"></script>
-  <script src="js/ticket.js"></script>
+  <script src="js/ticket.js?v=<?= filemtime(__DIR__ . '/js/ticket.js') ?>"></script>
 </body>
 </html>
