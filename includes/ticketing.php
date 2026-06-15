@@ -129,7 +129,7 @@ function clicketVenueProfiles(): array {
         'Samsung Hall' => clicketHallProfile('Samsung Hall'),
         'Philsports Arena' => clicketCourtProfile('Philsports Arena'),
         'Filoil EcoOil Centre' => clicketCourtProfile('Filoil EcoOil Centre'),
-        'Cuneta Astrodome' => clicketCourtProfile('Cuneta Astrodome'),
+        'Cuneta Astrodome' => clicketCunetaProfile(),
         'Muntinlupa Sports Center' => clicketCourtProfile('Muntinlupa Sports Center'),
         'Ninoy Aquino Stadium and Rizal Memorial' => clicketStadiumProfile(),
         'Nuvali' => clicketOutdoorProfile(),
@@ -188,6 +188,69 @@ function clicketCourtProfile(string $name): array {
             ['id' => 'upper-east', 'label' => 'Upper East', 'category' => 'silver', 'zone' => 'side-right'],
             ['id' => 'general', 'label' => 'General Admission', 'category' => 'bronze', 'zone' => 'rear'],
         ],
+    ];
+}
+
+function clicketCunetaProfile(): array {
+    $sections = [];
+    $number = 101;
+
+    foreach ([
+        ['tier' => 'lower', 'count' => 8, 'capacity' => 200, 'category' => 'vip', 'label' => 'Lower Box'],
+        ['tier' => 'upper', 'count' => 12, 'capacity' => 200, 'category' => 'platinum', 'label' => 'Upper Box'],
+        ['tier' => 'general', 'count' => 16, 'capacity' => 125, 'category' => 'general', 'label' => 'General Admission'],
+    ] as $tier) {
+        for ($index = 0; $index < $tier['count']; $index++) {
+            $sections[] = [
+                'id' => 'cuneta-' . $tier['tier'] . '-' . $number,
+                'label' => $tier['label'] . ' ' . $number,
+                'number' => (string) $number,
+                'category' => $tier['category'],
+                'tier' => $tier['tier'],
+                'capacity' => $tier['capacity'],
+                'zone' => 'ring-' . $tier['tier'],
+            ];
+            $number++;
+        }
+    }
+
+    return [
+        'layout' => 'court',
+        'stageLabel' => 'Basketball Court',
+        'subtitle' => 'Concentric Astrodome arena-bowl layout',
+        'capacity' => 6000,
+        'sections' => $sections,
+    ];
+}
+
+function clicketMoaSportsProfile(): array {
+    $sections = [];
+
+    foreach ([
+        ['tier' => 'lower', 'start' => 101, 'count' => 16, 'capacity' => 400, 'category' => 'vip', 'label' => 'Lower Bowl'],
+        ['tier' => 'club', 'start' => 201, 'count' => 16, 'capacity' => 100, 'category' => 'gold', 'label' => 'Club Premium'],
+        ['tier' => 'upper', 'start' => 301, 'count' => 32, 'capacity' => 250, 'category' => 'silver', 'label' => 'Upper Bowl'],
+    ] as $tier) {
+        for ($index = 0; $index < $tier['count']; $index++) {
+            $number = $tier['start'] + $index;
+            $sections[] = [
+                'id' => 'moa-' . $tier['tier'] . '-' . $number,
+                'label' => $tier['label'] . ' ' . $number,
+                'number' => (string) $number,
+                'category' => $tier['category'],
+                'tier' => $tier['tier'],
+                'capacity' => $tier['capacity'],
+                'zone' => 'ring-' . $tier['tier'],
+            ];
+        }
+    }
+
+    return [
+        'layout' => 'court',
+        'stageLabel' => 'Basketball Court',
+        'subtitle' => 'MOA Arena 16,000-seat sports bowl',
+        'capacity' => 16000,
+        'sections' => $sections,
     ];
 }
 
@@ -251,7 +314,7 @@ function clicketVenueMap(string $venue, string $categoryKey): array {
         'Samsung Hall' => ['default' => ['mapKey' => 'samsung', 'mapType' => 'theater-reverse']],
         'Philsports Arena' => ['default' => ['mapKey' => 'philsports', 'mapType' => 'court']],
         'Filoil EcoOil Centre' => ['default' => ['mapKey' => 'filoil', 'mapType' => 'court']],
-        'Cuneta Astrodome' => ['default' => ['mapKey' => 'cuneta', 'mapType' => 'court']],
+        'Cuneta Astrodome' => ['default' => ['mapKey' => 'cuneta', 'mapType' => 'cuneta-bowl', 'stageLabel' => 'Basketball Court', 'subtitle' => 'Concentric Astrodome arena-bowl layout', 'capacity' => 6000]],
         'Muntinlupa Sports Center' => ['default' => ['mapKey' => 'muntinlupa', 'mapType' => 'court']],
         'Ninoy Aquino Stadium and Rizal Memorial' => ['default' => ['mapKey' => 'ninoy', 'mapType' => 'court']],
         'Nuvali' => ['default' => ['mapKey' => 'nuvali', 'mapType' => 'tennis', 'stageLabel' => 'Competition Court', 'subtitle' => 'Open-air competition court layout']],
@@ -268,7 +331,9 @@ function clicketVenueMap(string $venue, string $categoryKey): array {
 
 function clicketVenueProfile(string $venue, string $categoryKey = ''): array {
     $profiles = clicketVenueProfiles();
-    $profile = $profiles[$venue] ?? clicketHallProfile($venue);
+    $profile = $venue === 'MOA Arena' && $categoryKey === 'sports'
+        ? clicketMoaSportsProfile()
+        : ($profiles[$venue] ?? clicketHallProfile($venue));
 
     return array_merge($profile, clicketVenueMap($venue, $categoryKey));
 }

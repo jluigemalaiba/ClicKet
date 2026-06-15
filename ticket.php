@@ -148,7 +148,12 @@ $ticketConfig = [
           <div>
             <p>Interactive venue map</p>
             <h1><?= htmlspecialchars($event['venue']) ?></h1>
-            <span><?= htmlspecialchars($venueProfile['subtitle']) ?></span>
+            <span>
+              <?= htmlspecialchars($venueProfile['subtitle']) ?>
+              <?php if (!empty($venueProfile['capacity'])): ?>
+                &middot; <?= number_format((int) $venueProfile['capacity']) ?>-seat capacity
+              <?php endif; ?>
+            </span>
           </div>
           <div class="ticket-map-legend">
             <span><i class="is-available"></i> Available</span>

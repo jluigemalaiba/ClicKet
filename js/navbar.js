@@ -19,16 +19,100 @@
   /* ─── Search Toggle ────────────────────────────────────────────────────── */
 
   const searchForms = document.querySelectorAll('.nav-search-form');
+  const searchDataNode = document.getElementById('navSearchEventData');
+  let searchEvents = [];
+  try {
+    searchEvents = JSON.parse(searchDataNode?.textContent || '[]');
+  } catch (error) {
+    searchEvents = [];
+  }
 
   function closeSearch(form) {
     const input = form.querySelector('input[type="search"]');
+    const suggestions = form.querySelector('.nav-search-suggestions');
     form.classList.remove('is-open');
+    suggestions.hidden = true;
+    input?.setAttribute('aria-expanded', 'false');
     if (input) input.blur();
   }
 
   searchForms.forEach((form) => {
     const input  = form.querySelector('input[type="search"]');
     const button = form.querySelector('.nav-search-btn');
+    const clearButton = form.querySelector('.nav-search-clear');
+    const suggestions = form.querySelector('.nav-search-suggestions');
+    const suggestionList = form.querySelector('.nav-search-suggestions-list');
+    let activeIndex = -1;
+
+    const suggestionLinks = () => Array.from(suggestionList.querySelectorAll('.nav-search-suggestion'));
+
+    const setActiveSuggestion = (nextIndex) => {
+      const links = suggestionLinks();
+      if (!links.length) return;
+      activeIndex = (nextIndex + links.length) % links.length;
+      links.forEach((link, index) => {
+        const active = index === activeIndex;
+        link.classList.toggle('is-active', active);
+        link.setAttribute('aria-selected', String(active));
+      });
+      links[activeIndex].scrollIntoView({ block: 'nearest' });
+    };
+
+    const closeSuggestions = () => {
+      suggestions.hidden = true;
+      input.setAttribute('aria-expanded', 'false');
+      activeIndex = -1;
+    };
+
+    const renderSuggestions = () => {
+      const query = input.value.trim().toLocaleLowerCase();
+      clearButton.hidden = query === '';
+      form.classList.toggle('has-value', query !== '');
+
+      if (!query) {
+        suggestionList.replaceChildren();
+        closeSuggestions();
+        return;
+      }
+
+      const matches = searchEvents.filter((event) => [
+        event.title,
+        event.performer,
+        event.venue,
+        event.category,
+        event.type,
+      ].some((value) => String(value || '').toLocaleLowerCase().includes(query)));
+
+      suggestionList.replaceChildren();
+      activeIndex = -1;
+
+      if (!matches.length) {
+        const empty = document.createElement('div');
+        empty.className = 'nav-search-empty';
+        empty.innerHTML = '<strong>No matching events</strong><span>Press Enter to search all events.</span>';
+        suggestionList.appendChild(empty);
+      } else {
+        matches.forEach((event) => {
+          const link = document.createElement('a');
+          link.className = 'nav-search-suggestion';
+          link.href = event.url;
+          link.setAttribute('role', 'option');
+          link.setAttribute('aria-selected', 'false');
+          link.innerHTML = `
+            <span class="nav-search-suggestion-poster" aria-hidden="true">${escapeSearchText(String(event.category || 'E').charAt(0))}</span>
+            <span class="nav-search-suggestion-copy">
+              <strong>${escapeSearchText(event.title)}</strong>
+              <span>${escapeSearchText(event.date)} &middot; ${escapeSearchText(event.venue)}</span>
+            </span>
+            <span class="nav-search-suggestion-type">${escapeSearchText(event.category)}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>`;
+          suggestionList.appendChild(link);
+        });
+      }
+
+      suggestions.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    };
 
     button.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -45,11 +129,49 @@
     });
 
     form.addEventListener('click', (e) => e.stopPropagation());
-    input.addEventListener('focus', () => form.classList.add('is-open'));
+    input.addEventListener('focus', () => {
+      form.classList.add('is-open');
+      if (input.value.trim()) renderSuggestions();
+    });
+    input.addEventListener('input', renderSuggestions);
     input.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeSearch(form);
+      if (e.key === 'ArrowDown' && !suggestions.hidden) {
+        e.preventDefault();
+        setActiveSuggestion(activeIndex + 1);
+      } else if (e.key === 'ArrowUp' && !suggestions.hidden) {
+        e.preventDefault();
+        setActiveSuggestion(activeIndex - 1);
+      } else if (e.key === 'Enter' && activeIndex >= 0) {
+        e.preventDefault();
+        suggestionLinks()[activeIndex]?.click();
+      } else if (e.key === 'Escape') {
+        if (!suggestions.hidden) {
+          closeSuggestions();
+        } else {
+          closeSearch(form);
+        }
+      }
+    });
+
+    clearButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      input.value = '';
+      form.classList.remove('has-value');
+      clearButton.hidden = true;
+      suggestionList.replaceChildren();
+      closeSuggestions();
+      input.focus();
     });
   });
+
+  function escapeSearchText(value) {
+    return String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
 
   document.addEventListener('click', (e) => {
     searchForms.forEach((form) => {

@@ -22,9 +22,14 @@
   const ns = 'http://www.w3.org/2000/svg';
   const activePointers = new Map();
   const unavailableSeatIds = new Set(config.unavailableSeatIds || []);
+  const mapDimensions = config.venue.mapKey === 'cuneta'
+    ? { width: 5000, height: 3600, centerX: 2500, centerY: 1800, maxZoom: 10 }
+    : { width: 1000, height: 720, centerX: 500, centerY: 360, maxZoom: 4 };
+  svg.setAttribute('viewBox', `0 0 ${mapDimensions.width} ${mapDimensions.height}`);
 
   const state = {
     seats: [],
+    seatById: new Map(),
     selected: [],
     category: 'all',
     scale: 1,
@@ -36,6 +41,7 @@
     bestQuantity: 2,
     suggestionOffset: 0,
     pinchDistance: 0,
+    sectionBounds: new Map(),
   };
 
   const zoneLayouts = {
@@ -72,7 +78,7 @@
       'lower-left': [225, 180, 125, 205], 'lower-right': [650, 180, 125, 205],
       'side-left': [105, 220, 100, 170], 'side-right': [795, 220, 100, 170],
       'upper-left': [180, 420, 245, 120], 'upper-right': [575, 420, 245, 120],
-      rear: [355, 545, 290, 105],
+      rear: [355, 575, 290, 105],
     },
     'araneta-sports': {
       'floor-left': [300, 255, 120, 200], 'floor-right': [580, 255, 120, 200],
@@ -217,28 +223,220 @@
     canvas.appendChild(label);
   }
 
+  function ellipsePoint(cx, cy, rx, ry, degrees) {
+    const radians = degrees * Math.PI / 180;
+    return [cx + Math.cos(radians) * rx, cy + Math.sin(radians) * ry];
+  }
+
+  function ringSegmentPath(cx, cy, innerRx, innerRy, outerRx, outerRy, startAngle, endAngle) {
+    const steps = 6;
+    const outer = [];
+    const inner = [];
+
+    for (let step = 0; step <= steps; step += 1) {
+      const angle = startAngle + ((endAngle - startAngle) * step / steps);
+      outer.push(ellipsePoint(cx, cy, outerRx, outerRy, angle));
+      inner.unshift(ellipsePoint(cx, cy, innerRx, innerRy, angle));
+    }
+
+    return [...outer, ...inner]
+      .map(([x, y], index) => `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`)
+      .join(' ') + ' Z';
+  }
+
+  function appendInteractiveSeat(group, section, sectionIndex, rowIndex, columnIndex, cx, cy, includeCheck = true) {
+    const category = config.categories[section.category];
+    const row = String.fromCharCode(65 + rowIndex);
+    const seatNumber = columnIndex + 1;
+    const id = `${section.id}-${row}-${seatNumber}`;
+    const random = deterministicNumber(`${config.event.key}-${id}`);
+    const unavailable = random % 100 < 28 || unavailableSeatIds.has(id);
+    const seat = {
+      id,
+      sectionId: section.id,
+      section: section.label,
+      row,
+      number: String(seatNumber),
+      category: category.label,
+      categoryKey: section.category,
+      color: category.color,
+      price: category.price,
+      unavailable,
+      rank: category.rank * 100000 + sectionIndex * 1000 + rowIndex * 100 + columnIndex,
+      rowIndex,
+      columnIndex,
+    };
+    state.seats.push(seat);
+    state.seatById.set(id, seat);
+
+    const circle = svgNode('circle', {
+      cx, cy, r: 6.4, fill: category.color,
+      class: `map-seat${unavailable ? ' is-unavailable' : ''}`,
+      tabindex: unavailable ? '-1' : '0',
+      role: 'button',
+      'aria-pressed': 'false',
+      'aria-label': `${section.label}, row ${row}, seat ${seatNumber}, ${category.label}${unavailable ? ', unavailable' : ''}`,
+      'data-seat-id': id,
+    });
+    group.appendChild(circle);
+    if (includeCheck) group.appendChild(createSeatCheck(circle, id));
+  }
+
+  function createSeatCheck(circle, id) {
+    const cx = Number(circle.getAttribute('cx'));
+    const cy = Number(circle.getAttribute('cy'));
+    return svgNode('path', {
+      d: `M ${cx - 4.2} ${cy - .2} L ${cx - 1} ${cy + 3.3} L ${cx + 4.8} ${cy - 3.8}`,
+      class: 'map-seat-check',
+      'data-seat-check': id,
+    });
+  }
+
+  function renderCunetaBowl() {
+    const cx = mapDimensions.centerX;
+    const cy = mapDimensions.centerY;
+    const tiers = {
+      lower: { innerRx: 1120, innerRy: 720, outerRx: 1550, outerRy: 1040, rows: 10, seats: 20 },
+      upper: { innerRx: 1660, innerRy: 1130, outerRx: 2050, outerRy: 1400, rows: 10, seats: 20 },
+      general: { innerRx: 2160, innerRy: 1490, outerRx: 2350, outerRy: 1650, rows: 5, seats: 25 },
+    };
+
+    canvas.appendChild(svgNode('ellipse', { cx, cy, rx: 1050, ry: 650, class: 'cuneta-walkway' }));
+    canvas.appendChild(svgNode('ellipse', { cx, cy, rx: 1605, ry: 1085, class: 'cuneta-walkway' }));
+    canvas.appendChild(svgNode('ellipse', { cx, cy, rx: 2105, ry: 1445, class: 'cuneta-walkway' }));
+
+    const court = svgNode('rect', { x: 1750, y: 1370, width: 1500, height: 860, rx: 28, class: 'map-court cuneta-court' });
+    canvas.appendChild(court);
+    canvas.appendChild(svgNode('line', { x1: cx, y1: 1370, x2: cx, y2: 2230, class: 'map-court-line cuneta-court-line' }));
+    canvas.appendChild(svgNode('circle', { cx, cy, r: 175, class: 'map-court-line cuneta-court-line' }));
+    const courtLabel = svgNode('text', { x: cx, y: cy + 28, class: 'cuneta-court-label' });
+    courtLabel.textContent = config.venue.stageLabel;
+    canvas.appendChild(courtLabel);
+
+    const gates = [
+      { x: 2150, y: 15, w: 700, h: 120, label: 'NORTH ENTRY' },
+      { x: 2150, y: 3465, w: 700, h: 120, label: 'SOUTH ENTRY' },
+      { x: 15, y: 1510, w: 120, h: 580, label: 'WEST ENTRY', rotate: -90 },
+      { x: 4865, y: 1510, w: 120, h: 580, label: 'EAST ENTRY', rotate: 90 },
+    ];
+    gates.forEach(gate => {
+      const group = svgNode('g', { class: 'cuneta-gate' });
+      group.appendChild(svgNode('rect', { x: gate.x, y: gate.y, width: gate.w, height: gate.h, rx: 12 }));
+      const labelX = gate.x + gate.w / 2;
+      const labelY = gate.y + gate.h / 2 + 3;
+      const label = svgNode('text', {
+        x: labelX,
+        y: labelY,
+        transform: gate.rotate ? `rotate(${gate.rotate} ${labelX} ${labelY})` : '',
+      });
+      label.textContent = gate.label;
+      group.appendChild(label);
+      canvas.appendChild(group);
+    });
+
+    Object.entries(tiers).forEach(([tierName, tier]) => {
+      const sections = config.venue.sections.filter(section => section.tier === tierName);
+      const angleStep = 360 / sections.length;
+      const gap = tierName === 'general' ? 1.4 : 2.2;
+
+      sections.forEach((section, sectionIndex) => {
+        const globalIndex = config.venue.sections.findIndex(item => item.id === section.id);
+        const rawStartAngle = -90 + sectionIndex * angleStep;
+        const rawEndAngle = -90 + (sectionIndex + 1) * angleStep;
+        const startAngle = rawStartAngle + gap / 2;
+        const endAngle = rawEndAngle - gap / 2;
+        const middleAngle = (startAngle + endAngle) / 2;
+        const category = config.categories[section.category];
+        const group = svgNode('g', {
+          class: 'map-section cuneta-section',
+          'data-section-id': section.id,
+          'data-category': section.category,
+          style: `--section-color:${category.color}`,
+        });
+        group.appendChild(svgNode('path', {
+          d: ringSegmentPath(cx, cy, tier.innerRx, tier.innerRy, tier.outerRx, tier.outerRy, startAngle, endAngle),
+          class: 'cuneta-section-wedge',
+        }));
+
+        for (let rowIndex = 0; rowIndex < tier.rows; rowIndex += 1) {
+          const radiusProgress = (rowIndex + 1) / (tier.rows + 1);
+          const rx = tier.innerRx + (tier.outerRx - tier.innerRx) * radiusProgress;
+          const ry = tier.innerRy + (tier.outerRy - tier.innerRy) * radiusProgress;
+          for (let seatIndex = 0; seatIndex < tier.seats; seatIndex += 1) {
+            const seatProgress = (seatIndex + 1) / (tier.seats + 1);
+            const angle = startAngle + (endAngle - startAngle) * seatProgress;
+            const [seatX, seatY] = ellipsePoint(cx, cy, rx, ry, angle);
+            appendInteractiveSeat(group, section, globalIndex, rowIndex, seatIndex, seatX, seatY, false);
+          }
+        }
+
+        const labelRx = tier.innerRx - 48;
+        const labelRy = tier.innerRy - 38;
+        const [labelX, labelY] = ellipsePoint(cx, cy, labelRx, labelRy, middleAngle);
+        const number = svgNode('text', { x: labelX, y: labelY + 12, class: 'cuneta-section-number' });
+        number.textContent = section.number;
+        group.appendChild(number);
+        canvas.appendChild(group);
+
+        state.sectionBounds.set(section.id, [
+          labelX - 450,
+          labelY - 330,
+          900,
+          660,
+        ]);
+      });
+    });
+  }
+
   function createSeats(section, group, box, sectionIndex) {
     const [x, y, width, height] = box;
     const category = config.categories[section.category];
     const seatRadius = 7;
-    const seatPitch = 23;
-    const labelSpace = 30;
-    const columns = Math.max(3, Math.min(9, Math.floor((width - 28) / seatPitch) + 1));
-    const rows = Math.max(2, Math.min(5, Math.floor((height - labelSpace - 18) / seatPitch) + 1));
-    const gridWidth = (columns - 1) * seatPitch;
+    const seatPitch = 27;
+    const columns = Math.max(3, Math.min(13, Math.floor((width - 18) / seatPitch) + 1));
+    const rows = Math.max(2, Math.min(8, Math.floor((height - 12) / seatPitch) + 1));
+    const baseGridWidth = (columns - 1) * seatPitch;
     const gridHeight = (rows - 1) * seatPitch;
-    const startX = x + (width - gridWidth) / 2;
-    const startY = y + labelSpace + Math.max(8, (height - labelSpace - gridHeight) / 2);
+    const centerX = x + width / 2;
+    const startY = y + Math.max(6, (height - gridHeight) / 2);
+    const isFloorBlock = /^floor-/i.test(section.zone);
+    const isLeftWing = !isFloorBlock && /left|west/i.test(section.zone);
+    const isRightWing = !isFloorBlock && /right|east/i.test(section.zone);
+    const isCenter = /center|rear/i.test(section.zone);
+    const reverseFan = config.venue.mapType === 'theater-reverse';
 
     for (let rowIndex = 0; rowIndex < rows; rowIndex += 1) {
+      const rowProgress = rows === 1 ? 0 : rowIndex / (rows - 1);
+      const fanProgress = reverseFan ? 1 - rowProgress : rowProgress;
+      const rowScale = isCenter ? .76 + fanProgress * .24 : .9 + fanProgress * .1;
+      const rowWidth = baseGridWidth * rowScale;
+      const rowStartX = centerX - rowWidth / 2;
+      const wingShift = isLeftWing
+        ? (rowIndex - (rows - 1) / 2) * 4.4
+        : isRightWing
+          ? ((rows - 1) / 2 - rowIndex) * 4.4
+          : 0;
+      const row = String.fromCharCode(65 + rowIndex);
+      const rowY = startY + seatPitch * rowIndex;
+      let firstSeatX = 0;
+      let lastSeatX = 0;
+
       for (let columnIndex = 0; columnIndex < columns; columnIndex += 1) {
         const seatNumber = columnIndex + 1;
-        const row = String.fromCharCode(65 + rowIndex);
         const id = `${section.id}-${row}-${seatNumber}`;
         const random = deterministicNumber(`${config.event.key}-${id}`);
         const unavailable = random % 100 < 28 || unavailableSeatIds.has(id);
-        const cx = startX + seatPitch * columnIndex;
-        const cy = startY + seatPitch * rowIndex;
+        const columnProgress = columns === 1 ? 0 : columnIndex / (columns - 1);
+        const cx = rowStartX + rowWidth * columnProgress + wingShift;
+        const curveDepth = isCenter ? Math.abs(columnIndex - (columns - 1) / 2) * 1.15 : 0;
+        const wingSlope = isLeftWing
+          ? columnIndex * 1.8
+          : isRightWing
+            ? (columns - 1 - columnIndex) * 1.8
+            : 0;
+        const cy = rowY + curveDepth + wingSlope;
+        if (columnIndex === 0) firstSeatX = cx;
+        if (columnIndex === columns - 1) lastSeatX = cx;
         const seat = {
           id,
           sectionId: section.id,
@@ -272,12 +470,41 @@
           'data-seat-check': id,
         }));
       }
+
+      const leftRowLabel = svgNode('text', {
+        x: firstSeatX - 14,
+        y: rowY + 3,
+        class: 'map-row-label',
+        'text-anchor': 'end',
+      });
+      leftRowLabel.textContent = row;
+      group.appendChild(leftRowLabel);
+
+      const rightRowLabel = svgNode('text', {
+        x: lastSeatX + 14,
+        y: rowY + 3,
+        class: 'map-row-label',
+        'text-anchor': 'start',
+      });
+      rightRowLabel.textContent = row;
+      group.appendChild(rightRowLabel);
     }
   }
 
   function renderMap() {
     canvas.replaceChildren();
     state.seats = [];
+    state.seatById.clear();
+    state.sectionBounds.clear();
+
+    if (config.venue.mapKey === 'cuneta') {
+      renderCunetaBowl();
+      restoreSelection();
+      updateAvailability();
+      applyCategoryFilter();
+      return;
+    }
+
     renderStage();
 
     config.venue.sections.forEach((section, index) => {
@@ -290,9 +517,8 @@
         'data-category': section.category,
         style: `--section-color:${category.color}`,
       });
-      group.appendChild(svgNode('rect', { x, y, width, height, rx: 20, class: 'map-section-bg' }));
       createSeats(section, group, box, index);
-      const label = svgNode('text', { x: x + width / 2, y: y + 18, class: 'map-section-label' });
+      const label = svgNode('text', { x: x + width / 2, y: y - 8, class: 'map-section-label' });
       label.textContent = section.label;
       group.appendChild(label);
       canvas.appendChild(group);
@@ -310,22 +536,34 @@
   function updateAvailability() {
     let total = 0;
     Object.keys(config.categories).forEach(key => {
-      const count = availableByCategory(key);
+      let count = availableByCategory(key);
+      if (config.venue.capacity && config.venue.mapKey === 'cuneta') {
+        const categorySections = config.venue.sections.filter(section => section.category === key);
+        const categoryCapacity = categorySections.reduce((sum, section) => sum + Number(section.capacity || 0), 0);
+        const renderedSeats = state.seats.filter(seat => seat.categoryKey === key);
+        const availableSeats = renderedSeats.filter(seat => !seat.unavailable);
+        count = renderedSeats.length
+          ? Math.round(categoryCapacity * (availableSeats.length / renderedSeats.length))
+          : 0;
+      }
       total += count;
       const node = document.querySelector(`[data-availability-for="${key}"]`);
       if (node) node.textContent = count;
       const button = document.querySelector(`[data-category="${key}"]`);
       if (button) button.hidden = count === 0;
     });
-    document.getElementById('totalAvailability').textContent = `${total} seats available`;
+    const totalNode = document.getElementById('totalAvailability');
+    totalNode.textContent = config.venue.capacity
+      ? `${total.toLocaleString()} available of ${Number(config.venue.capacity).toLocaleString()} seats`
+      : `${total} seats available`;
   }
 
   function applyTransform() {
     canvas.setAttribute('transform', `translate(${state.x} ${state.y}) scale(${state.scale})`);
   }
 
-  function setZoom(nextScale, originX = 500, originY = 360) {
-    const clamped = Math.max(.75, Math.min(4, nextScale));
+  function setZoom(nextScale, originX = mapDimensions.centerX, originY = mapDimensions.centerY) {
+    const clamped = Math.max(.75, Math.min(mapDimensions.maxZoom, nextScale));
     const ratio = clamped / state.scale;
     state.x = originX - (originX - state.x) * ratio;
     state.y = originY - (originY - state.y) * ratio;
@@ -343,11 +581,13 @@
   function focusSection(sectionId) {
     const section = config.venue.sections.find(item => item.id === sectionId);
     if (!section) return;
-    const [x, y, width, height] = sectionPosition(section, 0);
-    const targetScale = Math.min(3, Math.max(1.65, 520 / Math.max(width, height)));
+    const [x, y, width, height] = state.sectionBounds.get(sectionId) || sectionPosition(section, 0);
+    const targetScale = config.venue.mapKey === 'cuneta'
+      ? Math.min(6, Math.max(2.2, 1800 / Math.max(width, height)))
+      : Math.min(3, Math.max(1.65, 520 / Math.max(width, height)));
     state.scale = targetScale;
-    state.x = 500 - (x + width / 2) * targetScale;
-    state.y = 360 - (y + height / 2) * targetScale;
+    state.x = mapDimensions.centerX - (x + width / 2) * targetScale;
+    state.y = mapDimensions.centerY - (y + height / 2) * targetScale;
     applyTransform();
   }
 
@@ -379,7 +619,7 @@
   }
 
   function toggleSeat(id) {
-    const seat = state.seats.find(item => item.id === id);
+    const seat = state.seatById.get(id);
     if (!seat || seat.unavailable) return;
     const selectedIndex = state.selected.findIndex(item => item.id === id);
 
@@ -423,12 +663,22 @@
 
   function renderSelection() {
     const selectedIds = new Set(state.selected.map(seat => seat.id));
-    state.seats.forEach(seat => {
-      const selected = selectedIds.has(seat.id);
-      const element = seatElement(seat.id);
-      element?.classList.toggle('is-selected', selected);
-      element?.setAttribute('aria-pressed', String(selected));
-      canvas.querySelector(`[data-seat-check="${CSS.escape(seat.id)}"]`)?.classList.toggle('is-visible', selected);
+    canvas.querySelectorAll('.map-seat.is-selected').forEach(element => {
+      element.classList.remove('is-selected');
+      element.setAttribute('aria-pressed', 'false');
+    });
+    canvas.querySelectorAll('.map-seat-check.is-visible').forEach(check => check.classList.remove('is-visible'));
+    selectedIds.forEach(id => {
+      const element = seatElement(id);
+      if (!element) return;
+      element.classList.add('is-selected');
+      element.setAttribute('aria-pressed', 'true');
+      let check = canvas.querySelector(`[data-seat-check="${CSS.escape(id)}"]`);
+      if (!check) {
+        check = createSeatCheck(element, id);
+        element.parentNode.appendChild(check);
+      }
+      check.classList.add('is-visible');
     });
     selectedCount.textContent = `${state.selected.length} / ${config.selectionLimit}`;
     emptyState.hidden = state.selected.length > 0;
@@ -550,8 +800,8 @@
   viewport.addEventListener('wheel', event => {
     event.preventDefault();
     const bounds = svg.getBoundingClientRect();
-    const originX = ((event.clientX - bounds.left) / bounds.width) * 1000;
-    const originY = ((event.clientY - bounds.top) / bounds.height) * 720;
+    const originX = ((event.clientX - bounds.left) / bounds.width) * mapDimensions.width;
+    const originY = ((event.clientY - bounds.top) / bounds.height) * mapDimensions.height;
     setZoom(state.scale * (event.deltaY < 0 ? 1.12 : .89), originX, originY);
   }, { passive: false });
 
@@ -568,7 +818,7 @@
   viewport.addEventListener('pointermove', event => {
     const seatNode = event.target.closest?.('[data-seat-id]');
     if (seatNode) {
-      const seat = state.seats.find(item => item.id === seatNode.dataset.seatId);
+      const seat = state.seatById.get(seatNode.dataset.seatId);
       if (seat) showTooltip(seat, event.clientX, event.clientY);
     } else {
       hideTooltip();
@@ -583,8 +833,8 @@
       const distance = Math.hypot(second.x - first.x, second.y - first.y);
       if (state.pinchDistance > 0) {
         const bounds = svg.getBoundingClientRect();
-        const midpointX = ((first.x + second.x) / 2 - bounds.left) / bounds.width * 1000;
-        const midpointY = ((first.y + second.y) / 2 - bounds.top) / bounds.height * 720;
+        const midpointX = ((first.x + second.x) / 2 - bounds.left) / bounds.width * mapDimensions.width;
+        const midpointY = ((first.y + second.y) / 2 - bounds.top) / bounds.height * mapDimensions.height;
         setZoom(state.scale * (distance / state.pinchDistance), midpointX, midpointY);
       }
       state.pinchDistance = distance;
@@ -595,8 +845,8 @@
     state.pinchDistance = 0;
     if (!state.dragging) return;
     const bounds = svg.getBoundingClientRect();
-    state.x += ((event.clientX - state.pointerX) / bounds.width) * 1000;
-    state.y += ((event.clientY - state.pointerY) / bounds.height) * 720;
+    state.x += ((event.clientX - state.pointerX) / bounds.width) * mapDimensions.width;
+    state.y += ((event.clientY - state.pointerY) / bounds.height) * mapDimensions.height;
     state.pointerX = event.clientX;
     state.pointerY = event.clientY;
     applyTransform();

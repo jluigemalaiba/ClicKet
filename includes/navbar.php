@@ -4,6 +4,7 @@ require_once __DIR__ . '/log.php';
 require_once __DIR__ . '/order-history-data.php';
 require_once __DIR__ . '/ticket-data.php';
 require_once __DIR__ . '/favorite-data.php';
+require_once __DIR__ . '/data.php';
 $navUser = currentUser();
 $navOrderHistory = $navUser ? clicketOrdersForUser((string) ($navUser['id'] ?? '')) : [];
 $navTickets = $navUser ? clicketTicketsForUser((string) ($navUser['id'] ?? '')) : [];
@@ -21,6 +22,26 @@ $navEventsLabel = ($currentPage === 'events.php' && isset($navEventLabels[$navCa
     ? $navEventLabels[$navCategory]
     : 'Events';
 $navSearchValue = isset($_GET['search']) ? trim((string) $_GET['search']) : '';
+$navSearchEvents = [];
+foreach ([
+    'concerts' => ['events' => $concert_events, 'label' => 'Concert', 'poster' => 'concert'],
+    'theater' => ['events' => $theater_events, 'label' => 'Theater', 'poster' => 'theater'],
+    'sports' => ['events' => $sports_events, 'label' => 'Sports', 'poster' => 'sports'],
+] as $navSearchCategoryKey => $navSearchCatalog) {
+    foreach ($navSearchCatalog['events'] as $navSearchEventIndex => $navSearchEventItem) {
+        $navSearchEvents[] = [
+            'title' => (string) ($navSearchEventItem['title'] ?? ''),
+            'venue' => (string) ($navSearchEventItem['venue'] ?? ''),
+            'date' => (string) ($navSearchEventItem['date'] ?? ''),
+            'category' => $navSearchCatalog['label'],
+            'type' => (string) ($navSearchEventItem['type'] ?? ''),
+            'performer' => (string) ($navSearchEventItem['artist'] ?? $navSearchEventItem['company'] ?? $navSearchEventItem['league'] ?? ''),
+            'poster' => posterUrl($navSearchCatalog['poster'], $navSearchEventIndex + 10),
+            'url' => eventDetailUrl($navSearchCategoryKey, $navSearchEventIndex),
+        ];
+    }
+}
+unset($navSearchCategoryKey, $navSearchCatalog, $navSearchEventIndex, $navSearchEventItem);
 $navFlash = pullFlashMessage();
 ?>
 <?php if ($navUser): ?>
@@ -71,14 +92,21 @@ $navFlash = pullFlashMessage();
 
       <!-- Actions -->
       <div class="nav-actions">
-        <form class="nav-search-form <?= $navSearchValue !== '' ? 'is-open' : '' ?>" action="events.php" method="get" role="search">
-          <input type="search" name="search" value="<?= htmlspecialchars($navSearchValue) ?>" placeholder="Search events" aria-label="Search events">
+        <form class="nav-search-form <?= $navSearchValue !== '' ? 'is-open has-value' : '' ?>" action="events.php" method="get" role="search">
+          <input type="search" name="search" value="<?= htmlspecialchars($navSearchValue) ?>" placeholder="Search events" aria-label="Search events" autocomplete="off" aria-controls="navSearchSuggestions" aria-expanded="false">
+          <button class="nav-search-clear" type="button" aria-label="Clear search" <?= $navSearchValue === '' ? 'hidden' : '' ?>>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>
+          </button>
           <button class="nav-search-btn" type="button" aria-label="Open search">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
           </button>
+          <div class="nav-search-suggestions" id="navSearchSuggestions" role="listbox" aria-label="Event suggestions" hidden>
+            <div class="nav-search-suggestions-list"></div>
+          </div>
         </form>
+        <script type="application/json" id="navSearchEventData"><?= json_encode($navSearchEvents, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
         <?php if ($navUser): ?>
           <div class="nav-profile dropdown">
             <button class="nav-profile-toggle d-none d-xl-inline-flex" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Open profile menu">
