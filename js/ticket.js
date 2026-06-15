@@ -361,12 +361,12 @@
 
   function bowlSectionAngles(section, tierSections, sectionIndex) {
     if (config.venue.mapKey === 'moa-concert') {
-      const span = 170;
+      const span = 200;
       const angleStep = span / tierSections.length;
       const gap = bowlSectionGap(section.tier);
       return [
-        5 + sectionIndex * angleStep + gap / 2,
-        5 + (sectionIndex + 1) * angleStep - gap / 2,
+        -10 + sectionIndex * angleStep + gap / 2,
+        -10 + (sectionIndex + 1) * angleStep - gap / 2,
       ];
     }
     const angleStep = 360 / tierSections.length;
