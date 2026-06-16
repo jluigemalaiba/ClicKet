@@ -142,7 +142,7 @@ $navFlash = pullFlashMessage();
               <button class="nav-profile-item nav-favorites-trigger" type="button" data-bs-toggle="offcanvas" data-bs-target="#favoritesPanel" aria-controls="favoritesPanel">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"/></svg>
                 <span>
-                  <strong>Favorite</strong>
+                  <strong>Favorites</strong>
                 </span>
               </button>
               <button class="nav-profile-item nav-my-tickets-trigger" type="button" data-bs-toggle="offcanvas" data-bs-target="#myTicketsPanel" aria-controls="myTicketsPanel">

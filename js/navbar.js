@@ -104,8 +104,7 @@
               <strong>${escapeSearchText(event.title)}</strong>
               <span>${escapeSearchText(event.date)} &middot; ${escapeSearchText(event.venue)}</span>
             </span>
-            <span class="nav-search-suggestion-type">${escapeSearchText(event.category)}</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>`;
+            <span class="nav-search-suggestion-type">${escapeSearchText(event.category)}</span>`;
           suggestionList.appendChild(link);
         });
       }

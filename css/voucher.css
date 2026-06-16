@@ -23,20 +23,60 @@ body {
   margin: 0 auto;
   padding: 12px 0;
 }
-.voucher-toolbar > div { display: flex; gap: 8px; }
+.voucher-toolbar > div { display: flex; gap: 10px; }
 .voucher-toolbar a,
 .voucher-toolbar button {
-  min-height: 40px;
-  padding: 9px 15px;
-  border: 1px solid #cfcfcf;
-  border-radius: 7px;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border: 1.5px solid #dedede;
+  border-radius: 999px;
   background: #fff;
-  color: #222;
-  font: 700 12px/1 Arial, Helvetica, sans-serif;
+  color: #111;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .06);
+  font: 800 12px/1 Arial, Helvetica, sans-serif;
+  letter-spacing: .15px;
   text-decoration: none;
   cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease, color .18s ease;
 }
-.voucher-toolbar .is-primary { border-color: #e8162b; background: #e8162b; color: #fff; }
+.voucher-toolbar svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  stroke: currentColor;
+}
+.voucher-toolbar a:hover,
+.voucher-toolbar a:focus-visible,
+.voucher-toolbar button:hover,
+.voucher-toolbar button:focus-visible {
+  border-color: #e8162b;
+  color: #e8162b;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .1);
+  transform: translateY(-1px);
+  outline: none;
+}
+.voucher-toolbar a:active,
+.voucher-toolbar button:active {
+  transform: translateY(0) scale(.98);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .08);
+}
+.voucher-toolbar .is-primary {
+  border-color: #e8162b;
+  background: #e8162b;
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(232, 22, 43, .22);
+}
+.voucher-toolbar .is-primary:hover,
+.voucher-toolbar .is-primary:focus-visible {
+  border-color: #c91022;
+  background: #c91022;
+  color: #fff;
+  box-shadow: 0 15px 34px rgba(232, 22, 43, .3);
+}
 .voucher-toolbar button:disabled { cursor: wait; opacity: .65; }
 
 .voucher-shell { width: 190mm; margin: 0 auto 30px; }
@@ -139,6 +179,12 @@ body {
 @media (max-width: 760px) {
   .voucher-toolbar { position: static; align-items: stretch; flex-direction: column; }
   .voucher-toolbar > div { display: grid; grid-template-columns: 1fr 1fr; }
+  .voucher-toolbar a,
+  .voucher-toolbar button {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 14px;
+  }
   .voucher-shell { margin-left: 12px; margin-right: 12px; }
 }
 

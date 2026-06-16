@@ -23,21 +23,13 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 
 <main>
   <section class="about-hero" aria-label="About ClicKet">
-    <img
-      src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1800&h=1100&fit=crop"
-      alt="Fans enjoying a live concert"
-      class="about-hero-bg"
-      loading="eager"
-    >
-    <div class="about-hero-shade" aria-hidden="true"></div>
-
     <div class="container-xl px-4">
       <div class="about-hero-layout">
         <div class="about-hero-copy">
           <p class="about-kicker">ClicKet Company Profile</p>
-          <h1>Your trusted partner in live event ticketing.</h1>
+          <h1>Ticketing built for every live moment.</h1>
           <p>
-            We help fans discover memorable concerts, theater shows, and sports events while giving organizers a reliable platform for selling, scanning, and managing tickets.
+            Discover events, choose seats, pay securely, and enter venues with a clearer digital ticketing platform made for concerts, theater, and sports.
           </p>
           <div class="about-hero-actions">
             <a href="events.php" class="btn-primary">Browse Events</a>
@@ -45,14 +37,53 @@ $currentPage = basename($_SERVER['PHP_SELF']);
           </div>
         </div>
 
-        <div class="about-hero-panel" aria-label="ClicKet platform highlights">
-          <div>
-            <span>Active categories</span>
-            <strong>Concerts, Theater, Sports</strong>
+        <div class="about-hero-visual" aria-label="ClicKet platform preview">
+          <div class="about-hero-stat about-hero-stat--left">
+            <span>Tickets issued</span>
+            <strong>300k+</strong>
+            <small>Verified admissions</small>
           </div>
-          <div>
-            <span>Core promise</span>
-            <strong>Secure tickets, clearer choices, faster entry</strong>
+
+          <div class="about-laptop">
+            <div class="about-laptop-screen">
+              <div class="about-laptop-topbar">
+                <span></span><span></span><span></span>
+                <strong>ClicKet LiveOps</strong>
+              </div>
+              <div class="about-laptop-grid">
+                <div class="about-laptop-panel about-laptop-panel--wide">
+                  <span>Featured event</span>
+                  <strong>Permission to Dance Manila</strong>
+                  <div class="about-ticket-line"></div>
+                  <div class="about-ticket-line about-ticket-line--short"></div>
+                </div>
+                <div class="about-laptop-panel">
+                  <span>Queue status</span>
+                  <strong>Live</strong>
+                  <em>8,421 fans</em>
+                </div>
+                <div class="about-laptop-panel">
+                  <span>Today sales</span>
+                  <strong>PHP 1.8M</strong>
+                  <em>+14%</em>
+                </div>
+              </div>
+              <div class="about-laptop-chart" aria-hidden="true">
+                <span style="height: 36%"></span>
+                <span style="height: 58%"></span>
+                <span style="height: 46%"></span>
+                <span style="height: 72%"></span>
+                <span style="height: 64%"></span>
+                <span style="height: 82%"></span>
+              </div>
+            </div>
+            <div class="about-laptop-base" aria-hidden="true"></div>
+          </div>
+
+          <div class="about-hero-stat about-hero-stat--right">
+            <span>Entry checks</span>
+            <strong>99.7%</strong>
+            <small>Platform uptime</small>
           </div>
         </div>
       </div>
@@ -269,7 +300,11 @@ $currentPage = basename($_SERVER['PHP_SELF']);
         </div>
 
         <div class="news-slider-controls">
-          <button class="news-slider-btn" id="newsPrev" aria-label="Previous news">&#8592;</button>
+          <button class="news-slider-btn" id="newsPrev" aria-label="Previous news">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
           <div class="news-slider-dots" id="newsDots">
             <button class="news-dot active" aria-label="News 1"></button>
             <button class="news-dot" aria-label="News 2"></button>
@@ -277,7 +312,11 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <button class="news-dot" aria-label="News 4"></button>
             <button class="news-dot" aria-label="News 5"></button>
           </div>
-          <button class="news-slider-btn" id="newsNext" aria-label="Next news">&#8594;</button>
+          <button class="news-slider-btn" id="newsNext" aria-label="Next news">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
         </div>
       </div>
     </div>

@@ -103,26 +103,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 28px;
   margin-top: 28px;
 }
 
 .feat-ctrl-btn {
-  width: 44px; height: 44px;
+  width: 58px; height: 58px;
   border-radius: 50%;
-  border: 1.5px solid var(--gray-200);
-  background: var(--light-bg);
-  color: var(--gray-600);
+  border: 1px solid rgba(20, 20, 20, .06);
+  background: #fff;
+  color: var(--text-primary);
   display: flex; align-items: center; justify-content: center;
-  transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast);
-  box-shadow: var(--shadow-sm);
+  transition: color var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .12);
   cursor: pointer;
 }
 .feat-ctrl-btn svg { width: 16px; height: 16px; stroke: currentColor; }
-.feat-ctrl-btn:hover { background: var(--red-primary); border-color: var(--red-primary); transform: scale(1.1); color: #fff; }
+.feat-ctrl-btn:hover { transform: translateY(-2px); color: var(--red-primary); box-shadow: 0 14px 34px rgba(0, 0, 0, .16); }
+.feat-ctrl-btn:active { transform: scale(.96); }
 
 /* Dots */
-.feat-dots { display: flex; gap: 8px; align-items: center; }
+.feat-dots { display: flex; gap: 12px; align-items: center; justify-content: center; }
 .feat-dot {
   width: 8px; height: 8px;
   border-radius: 50%;
@@ -132,8 +133,8 @@
 }
 .feat-dot.active {
   background: var(--red-primary);
-  width: 24px;
-  border-radius: 4px;
+  width: 32px;
+  border-radius: 999px;
 }
 
 /* Section header title in light theme */

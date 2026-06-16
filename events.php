@@ -136,7 +136,7 @@ $heroTickets = [
       position: relative;
       width: min(1500px, 100vw);
       margin: 0 auto;
-      padding: 0 0 40px;
+      padding: 0 0 28px;
     }
 
     .ticket-carousel-viewport {
@@ -293,28 +293,72 @@ $heroTickets = [
       font-weight: 700;
     }
 
-    .ticket-carousel-dots {
-      position: absolute;
-      left: 50%;
-      bottom: 0;
+    .ticket-carousel-controls {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
+      gap: 28px;
+      width: 100%;
+      margin-top: 26px;
+    }
+
+    .ticket-carousel-nav {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 58px;
+      width: 58px;
+      height: 58px;
+      padding: 0;
+      border: 1px solid rgba(20,20,20,.06);
+      border-radius: 50%;
+      background: #fff;
+      color: var(--text-primary);
+      cursor: pointer;
+      box-shadow: 0 10px 28px rgba(0,0,0,.12);
+      transition: color var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast);
+    }
+
+    .ticket-carousel-nav:hover,
+    .ticket-carousel-nav:focus-visible {
+      color: var(--red-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 14px 34px rgba(0,0,0,.16);
+      outline: none;
+    }
+
+    .ticket-carousel-nav:active {
+      transform: scale(.96);
+    }
+
+    .ticket-carousel-nav svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+    }
+
+    .ticket-carousel-dots {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       gap: 12px;
-      transform: translateX(-50%);
     }
 
     .ticket-dot {
-      width: 9px;
-      height: 9px;
+      width: 8px;
+      height: 8px;
+      padding: 0;
       border-radius: 50%;
       border: 0;
-      background: #d5d8d8;
-      transition: background var(--dur-fast), transform var(--dur-fast);
+      background: var(--gray-300);
+      cursor: pointer;
+      transition: background var(--dur-fast), width var(--dur-mid), transform var(--dur-fast);
     }
 
     .ticket-dot.is-active {
-      background: #879993;
-      transform: scale(1.18);
+      width: 32px;
+      border-radius: 999px;
+      background: var(--red-primary);
     }
 
     .events-filter-section {
@@ -885,6 +929,16 @@ $heroTickets = [
         margin-top: 18px;
       }
 
+      .ticket-carousel-controls {
+        gap: 18px;
+      }
+
+      .ticket-carousel-nav {
+        flex-basis: 50px;
+        width: 50px;
+        height: 50px;
+      }
+
       .events-grid {
         grid-template-columns: 1fr;
       }
@@ -925,10 +979,22 @@ $heroTickets = [
           </article>
         <?php endforeach; ?>
       </div>
-      <div class="ticket-carousel-dots" aria-label="Featured ticket slides">
-        <?php foreach ($heroTickets as $idx => $ticket): ?>
-          <button class="ticket-dot <?= $idx === 0 ? 'is-active' : '' ?>" type="button" data-ticket-dot="<?= $idx ?>" aria-label="Show <?= htmlspecialchars($ticket['title']) ?>"></button>
-        <?php endforeach; ?>
+      <div class="ticket-carousel-controls" aria-label="Featured ticket carousel controls">
+        <button class="ticket-carousel-nav" type="button" data-ticket-nav="-1" aria-label="Previous featured ticket">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <div class="ticket-carousel-dots" aria-label="Featured ticket slides">
+          <?php foreach ($heroTickets as $idx => $ticket): ?>
+            <button class="ticket-dot <?= $idx === 0 ? 'is-active' : '' ?>" type="button" data-ticket-dot="<?= $idx ?>" aria-label="Show <?= htmlspecialchars($ticket['title']) ?>"></button>
+          <?php endforeach; ?>
+        </div>
+        <button class="ticket-carousel-nav" type="button" data-ticket-nav="1" aria-label="Next featured ticket">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
       </div>
     </div>
   </section>
@@ -1290,6 +1356,7 @@ $heroTickets = [
 
     const slides = Array.from(carousel.querySelectorAll('[data-ticket-slide]'));
     const dots = Array.from(carousel.querySelectorAll('[data-ticket-dot]'));
+    const navButtons = Array.from(carousel.querySelectorAll('[data-ticket-nav]'));
     if (slides.length <= 1) {
       return;
     }
@@ -1321,6 +1388,13 @@ $heroTickets = [
     dots.forEach((dot, index) => {
       dot.addEventListener('click', () => {
         render(index);
+        start();
+      });
+    });
+
+    navButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        render(active + Number(button.dataset.ticketNav || 0));
         start();
       });
     });
