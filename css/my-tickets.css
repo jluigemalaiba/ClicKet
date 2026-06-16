@@ -66,8 +66,8 @@
 .my-tickets-panel__close:focus-visible,
 .ticket-detail-modal__header button:hover,
 .ticket-detail-modal__header button:focus-visible {
-  background: rgba(232, 22, 43, .1);
-  color: #e8162b;
+  background: var(--gray-200, #e8e8e8);
+  color: var(--gray-600, #444);
   outline: none;
 }
 
@@ -165,7 +165,7 @@
 
 .my-ticket-card__eyebrow {
   margin-bottom: 6px;
-  color: #e8162b;
+  color: var(--gray-500, #6b6b6b);
   font-size: 9px;
   font-weight: 900;
   letter-spacing: 1.2px;
