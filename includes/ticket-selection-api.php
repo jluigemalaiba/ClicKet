@@ -46,7 +46,7 @@ if (count($seats) < 1 || count($seats) > 4) {
 
 $normalized = [];
 $seen = [];
-$venueProfile = clicketVenueProfile($resolved['event']['venue']);
+$venueProfile = clicketVenueProfile($resolved['event']['venue'], $resolved['categoryKey']);
 $categoryDefinitions = clicketTicketCategories();
 foreach ($seats as $seat) {
     $seatId = trim((string) ($seat['id'] ?? ''));
@@ -58,7 +58,7 @@ foreach ($seats as $seat) {
     $row = '';
     $number = '';
     foreach ($venueProfile['sections'] as $section) {
-        if (preg_match('/^' . preg_quote($section['id'], '/') . '-([A-E])-(\d{1,2})$/', $seatId, $seatMatches)) {
+        if (preg_match('/^' . preg_quote($section['id'], '/') . '-([A-Z]{1,2})-(\d{1,3})$/', $seatId, $seatMatches)) {
             $matchedSection = $section;
             $row = $seatMatches[1];
             $number = $seatMatches[2];

@@ -470,5 +470,85 @@
                 "price": 1800
             }
         ]
+    },
+    {
+        "order_id": "CKO-6070B9A2B7",
+        "reference": "PAY-0559D4F0BC3F",
+        "payment_reference": "PAY-0559D4F0BC3F",
+        "user_id": "fd2a75d6d490f677",
+        "buyer_name": "Trisha_Talas",
+        "buyer_email": "talastrishamae@gmail.com",
+        "event": "theater-1",
+        "event_title": "Miss Saigon",
+        "event_poster": "https://picsum.photos/seed/2010/400/600",
+        "event_banner": "https://picsum.photos/seed/2010/1200/650",
+        "event_date": "Wednesday, October 22, 2025",
+        "event_time": "7:00 PM",
+        "venue": "Newport Performing Arts Theater",
+        "seats": [
+            {
+                "id": "orchestra-center-A-5",
+                "section": "Orchestra Center",
+                "row": "A",
+                "number": "5",
+                "category": "VIP",
+                "price": 1800,
+                "ticket_code": "TKT-3B45AFB5240E"
+            },
+            {
+                "id": "orchestra-center-A-6",
+                "section": "Orchestra Center",
+                "row": "A",
+                "number": "6",
+                "category": "VIP",
+                "price": 1800,
+                "ticket_code": "TKT-916BC12690B6"
+            }
+        ],
+        "subtotal": 3600,
+        "service_fee": 150,
+        "total": 3750,
+        "payment_method": "gcash",
+        "payment_method_label": "GCash",
+        "payment_account": "Mobile ending in 9910",
+        "proof_of_payment": "722073907_984600480944464_4471671810248090542_n.png",
+        "non_transferable": true,
+        "payment_status": "Paid",
+        "order_status": "Confirmed",
+        "booked_at": "2026-06-17T14:11:36+08:00",
+        "voucher": {
+            "voucher_id": "VCH-76F85B801947",
+            "format_version": 1,
+            "issued_at": "2026-06-17T14:11:36+08:00",
+            "notice": "Tickets are non-transferable and linked to the purchasing ClicKet account."
+        },
+        "tickets": [
+            {
+                "ticket_id": "TKT-3B45AFB5240E",
+                "voucher_id": "VCH-0B055C94AB5D",
+                "validation_code": "VAL-52D952807C92577A",
+                "barcode_value": "TKT-3B45AFB5240E",
+                "status": "Valid",
+                "issued_at": "2026-06-17T14:11:36+08:00",
+                "section": "Orchestra Center",
+                "row": "A",
+                "number": "5",
+                "category": "VIP",
+                "price": 1800
+            },
+            {
+                "ticket_id": "TKT-916BC12690B6",
+                "voucher_id": "VCH-4D9677C52113",
+                "validation_code": "VAL-E39F859B394E1918",
+                "barcode_value": "TKT-916BC12690B6",
+                "status": "Valid",
+                "issued_at": "2026-06-17T14:11:36+08:00",
+                "section": "Orchestra Center",
+                "row": "A",
+                "number": "6",
+                "category": "VIP",
+                "price": 1800
+            }
+        ]
     }
 ]
