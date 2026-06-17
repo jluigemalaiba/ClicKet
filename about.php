@@ -27,63 +27,32 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <div class="about-hero-layout">
         <div class="about-hero-copy">
           <p class="about-kicker">ClicKet Company Profile</p>
-          <h1>Ticketing built for every live moment.</h1>
+          <h1>ONLINE TICKETING <span>PLATFORM</span></h1>
           <p>
-            Discover events, choose seats, pay securely, and enter venues with a clearer digital ticketing platform made for concerts, theater, and sports.
+            ClicKet helps fans discover verified events, choose seats, purchase securely, and enter venues with mobile-ready digital tickets.
           </p>
           <div class="about-hero-actions">
             <a href="events.php" class="btn-primary">Browse Events</a>
-            <a href="#mission" class="about-link-btn">Our Mission</a>
+            <a href="#mission" class="about-link-btn">Learn More</a>
           </div>
         </div>
 
-        <div class="about-hero-visual" aria-label="ClicKet platform preview">
-          <div class="about-hero-stat about-hero-stat--left">
-            <span>Tickets issued</span>
-            <strong>300k+</strong>
-            <small>Verified admissions</small>
-          </div>
-
-          <div class="about-laptop">
-            <div class="about-laptop-screen">
-              <div class="about-laptop-topbar">
-                <span></span><span></span><span></span>
-                <strong>ClicKet LiveOps</strong>
-              </div>
-              <div class="about-laptop-grid">
-                <div class="about-laptop-panel about-laptop-panel--wide">
-                  <span>Featured event</span>
-                  <strong>Permission to Dance Manila</strong>
-                  <div class="about-ticket-line"></div>
-                  <div class="about-ticket-line about-ticket-line--short"></div>
-                </div>
-                <div class="about-laptop-panel">
-                  <span>Queue status</span>
-                  <strong>Live</strong>
-                  <em>8,421 fans</em>
-                </div>
-                <div class="about-laptop-panel">
-                  <span>Today sales</span>
-                  <strong>PHP 1.8M</strong>
-                  <em>+14%</em>
-                </div>
-              </div>
-              <div class="about-laptop-chart" aria-hidden="true">
-                <span style="height: 36%"></span>
-                <span style="height: 58%"></span>
-                <span style="height: 46%"></span>
-                <span style="height: 72%"></span>
-                <span style="height: 64%"></span>
-                <span style="height: 82%"></span>
-              </div>
-            </div>
-            <div class="about-laptop-base" aria-hidden="true"></div>
-          </div>
-
-          <div class="about-hero-stat about-hero-stat--right">
-            <span>Entry checks</span>
-            <strong>99.7%</strong>
-            <small>Platform uptime</small>
+        <div class="about-hero-visual" aria-hidden="true">
+          <div class="about-hero-glow about-hero-glow--one"></div>
+          <div class="about-hero-glow about-hero-glow--two"></div>
+          <div class="about-tag-cloud">
+            <span class="about-ticket-tag tag-red tag-xl" style="--x: 18%; --y: 8%; --r: -1.5deg; --d: 0s;">Concerts</span>
+            <span class="about-ticket-tag tag-white" style="--x: 58%; --y: 2%; --r: 1.8deg; --d: .35s;">Sports</span>
+            <span class="about-ticket-tag tag-soft" style="--x: 38%; --y: 17%; --r: -2.4deg; --d: .7s;">Theater</span>
+            <span class="about-ticket-tag tag-white tag-lg" style="--x: 64%; --y: 23%; --r: 2deg; --d: .15s;">Secure Checkout</span>
+            <span class="about-ticket-tag tag-outline" style="--x: 8%; --y: 31%; --r: 1.6deg; --d: .95s;">E-Tickets</span>
+            <span class="about-ticket-tag tag-red tag-lg" style="--x: 35%; --y: 39%; --r: -2deg; --d: .45s;">Seat Selection</span>
+            <span class="about-ticket-tag tag-white" style="--x: 73%; --y: 45%; --r: 1.3deg; --d: 1.05s;">Real-Time Booking</span>
+            <span class="about-ticket-tag tag-soft" style="--x: 15%; --y: 57%; --r: -1.4deg; --d: .2s;">QR Validation</span>
+            <span class="about-ticket-tag tag-outline" style="--x: 52%; --y: 64%; --r: 2.4deg; --d: .8s;">Mobile Friendly</span>
+            <span class="about-ticket-tag tag-red" style="--x: 31%; --y: 76%; --r: 1.2deg; --d: 1.2s;">Fast Purchase</span>
+            <span class="about-ticket-tag tag-white" style="--x: 67%; --y: 81%; --r: -1.8deg; --d: .55s;">Verified Events</span>
+            <span class="about-ticket-tag tag-soft tag-lg" style="--x: 5%; --y: 85%; --r: 2deg; --d: 1.45s;">Ticket Protection</span>
           </div>
         </div>
       </div>
@@ -399,6 +368,34 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     slider.closest('.news-slider-wrapper')?.addEventListener('mouseleave', () => {
       timer = setInterval(() => goTo(current + 1), 5000);
     });
+  })();
+</script>
+
+<script>
+  (function () {
+    const visual = document.querySelector('.about-hero-visual');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    if (!visual || reduceMotion.matches) {
+      return;
+    }
+
+    function moveTags(event) {
+      const rect = visual.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width - 0.5) * 16;
+      const y = ((event.clientY - rect.top) / rect.height - 0.5) * 16;
+
+      visual.style.setProperty('--mx', `${x.toFixed(2)}px`);
+      visual.style.setProperty('--my', `${y.toFixed(2)}px`);
+    }
+
+    function resetTags() {
+      visual.style.setProperty('--mx', '0px');
+      visual.style.setProperty('--my', '0px');
+    }
+
+    visual.addEventListener('pointermove', moveTags);
+    visual.addEventListener('pointerleave', resetTags);
   })();
 </script>
 
