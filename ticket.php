@@ -113,8 +113,11 @@ $ticketConfig = [
   <main class="ticket-shell">
     <?php if ($reservationExpired): ?>
       <div class="reservation-expired-notice" role="alert">
-        <strong>Your reservation expired.</strong>
-        <span>The pending order was cancelled and your selected seats were released. Please choose your seats again.</span>
+        <div>
+          <strong>Your reservation expired.</strong>
+          <span>The pending order was cancelled and your selected seats were released. Please choose your seats again.</span>
+        </div>
+        <button type="button" class="reservation-expired-close" aria-label="Dismiss reservation expired notice">&times;</button>
       </div>
     <?php endif; ?>
     <section class="ticket-workspace">

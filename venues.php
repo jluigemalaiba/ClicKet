@@ -3,7 +3,7 @@
 require_once __DIR__ . '/includes/data.php';
 require_once __DIR__ . '/includes/log.php';
 
-# Araneta (2), Metro, MOA (2), Phil Arena, Newport, Tanghalan, PhilSports
+# Araneta (2)/, Solaire, MOA (2)/, Phil Arena/, Newport, Tanghalan, PhilSports
 
 $venues = [
     ['file' => 'Cuneta.png',     'name' => 'Cuneta Astrodome',                        'location' => 'Pasay City',         'type' => 'Arena and sports venue',       'capacity' => '~12,000'],

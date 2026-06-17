@@ -23,7 +23,7 @@
   const ns = 'http://www.w3.org/2000/svg';
   const activePointers = new Map();
   const unavailableSeatIds = new Set(config.unavailableSeatIds || []);
-  const isDetailedBowl = ['cuneta', 'moa-sports', 'moa-concert', 'philippine-concert'].includes(config.venue.mapKey);
+  const isDetailedBowl = ['cuneta', 'moa-sports', 'moa-concert', 'philippine-concert', 'araneta-concert'].includes(config.venue.mapKey);
   const detailedBowlTiers = {
     cuneta: {
       floor: { innerRx: 980, innerRy: 625, outerRx: 1235, outerRy: 815, columns: 16 },
@@ -68,6 +68,20 @@
     sectionBounds: new Map(),
     sectionCenters: new Map(),
     activeSectionId: null,
+    panelSectionId: null,
+    sectionPanel: null,
+    sectionPanelSvg: null,
+    sectionPanelCanvas: null,
+    sectionPanelTitle: null,
+    sectionPanelMeta: null,
+    panelScale: 1,
+    panelX: 0,
+    panelY: 0,
+    panelBaseViewBox: null,
+    panelViewBox: null,
+    panelPointerX: 0,
+    panelPointerY: 0,
+    panelDragging: false,
     dragMoved: false,
     pointerDownSectionId: null,
     pointerCaptured: false,
@@ -391,7 +405,8 @@
     const minV = Math.min(...projections.map(point => point.v));
     const maxV = Math.max(...projections.map(point => point.v));
     const area = Math.max(1, polygonArea(points));
-    let spacing = Math.max(8, Math.sqrt(area / Math.max(1, count)) * .92);
+    const spacingMultiplier = config.venue.mapKey === 'philippine-concert' ? 1.04 : .92;
+    let spacing = Math.max(8, Math.sqrt(area / Math.max(1, count)) * spacingMultiplier);
     let seats = [];
 
     for (let attempt = 0; attempt < 5 && seats.length < count; attempt += 1) {
@@ -413,7 +428,24 @@
       spacing *= .86;
     }
 
-    return seats.slice(0, count);
+    if (seats.length <= count) return seats;
+    if (count <= 1) return seats.slice(0, count);
+
+    const sampled = [];
+    const step = (seats.length - 1) / (count - 1);
+    for (let index = 0; index < count; index += 1) {
+      sampled.push(seats[Math.round(index * step)]);
+    }
+    return sampled;
+  }
+
+  function sectionPanelSeatRadius(section) {
+    if (config.venue.mapKey === 'philippine-concert') {
+      if (Number(section.capacity || 0) >= 900) return 2.8;
+      if (Number(section.capacity || 0) >= 500) return 3.1;
+      return 3.4;
+    }
+    return 5.2;
   }
 
   function createMoaSportsSvgSeatData(section, sectionIndex) {
@@ -497,6 +529,222 @@
     });
   }
 
+  function ensureSectionSeatPanel() {
+    if (state.sectionPanel) return state.sectionPanel;
+
+    const panel = document.createElement('section');
+    panel.className = 'ticket-section-seat-panel';
+    panel.hidden = true;
+    panel.setAttribute('aria-live', 'polite');
+    panel.setAttribute('aria-label', 'Section seat selection panel');
+    panel.innerHTML = `
+      <header class="ticket-section-seat-panel-header">
+        <div>
+          <p>Seat Selection</p>
+          <h2 id="sectionSeatPanelTitle">Section</h2>
+          <span id="sectionSeatPanelMeta"></span>
+        </div>
+        <button type="button" class="ticket-section-seat-panel-close" aria-label="Close section seats">&times;</button>
+      </header>
+      <div class="ticket-section-seat-panel-map">
+        <svg class="ticket-section-seat-svg" role="img" aria-labelledby="sectionSeatPanelTitle">
+          <g class="ticket-section-seat-canvas"></g>
+        </svg>
+        <div class="ticket-section-seat-controls" aria-label="Section seat panel controls">
+          <button type="button" data-section-seat-action="zoom-in" aria-label="Zoom section seats in">+</button>
+          <button type="button" data-section-seat-action="zoom-out" aria-label="Zoom section seats out">-</button>
+          <button type="button" data-section-seat-action="reset" aria-label="Reset section seat view">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v6h6"/></svg>
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(panel);
+
+    state.sectionPanel = panel;
+    state.sectionPanelSvg = panel.querySelector('.ticket-section-seat-svg');
+    state.sectionPanelCanvas = panel.querySelector('.ticket-section-seat-canvas');
+    state.sectionPanelTitle = panel.querySelector('#sectionSeatPanelTitle');
+    state.sectionPanelMeta = panel.querySelector('#sectionSeatPanelMeta');
+    panel.querySelector('.ticket-section-seat-panel-close').addEventListener('click', closeSectionSeatPanel);
+    panel.querySelectorAll('[data-section-seat-action]').forEach(button => {
+      button.addEventListener('click', event => {
+        event.preventDefault();
+        const action = button.dataset.sectionSeatAction;
+        if (action === 'zoom-in') setSectionPanelZoom(state.panelScale * 1.28);
+        if (action === 'zoom-out') setSectionPanelZoom(state.panelScale / 1.28);
+        if (action === 'reset') resetSectionPanelView();
+      });
+    });
+    state.sectionPanelSvg.addEventListener('click', event => {
+      const seatNode = event.target.closest('[data-seat-id]');
+      if (seatNode) toggleSeat(seatNode.dataset.seatId);
+    });
+    state.sectionPanelSvg.addEventListener('keydown', event => {
+      const seatNode = event.target.closest('[data-seat-id]');
+      if (seatNode && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+        toggleSeat(seatNode.dataset.seatId);
+      }
+    });
+    state.sectionPanelSvg.addEventListener('pointermove', event => {
+      if (state.panelDragging) {
+        const rect = state.sectionPanelSvg.getBoundingClientRect();
+        if (rect.width && rect.height && state.panelViewBox) {
+          const dx = (event.clientX - state.panelPointerX) * (state.panelViewBox.width / rect.width);
+          const dy = (event.clientY - state.panelPointerY) * (state.panelViewBox.height / rect.height);
+          state.panelViewBox.x -= dx;
+          state.panelViewBox.y -= dy;
+          applySectionPanelTransform();
+        }
+        state.panelPointerX = event.clientX;
+        state.panelPointerY = event.clientY;
+        return;
+      }
+      const seatNode = event.target.closest('[data-seat-id]');
+      if (!seatNode) {
+        hideTooltip();
+        return;
+      }
+      const seat = state.seatById.get(seatNode.dataset.seatId);
+      if (seat) showTooltip(seat, seatNode);
+    });
+    state.sectionPanelSvg.addEventListener('pointerdown', event => {
+      if (event.target.closest('[data-seat-id]')) return;
+      state.panelDragging = true;
+      state.panelPointerX = event.clientX;
+      state.panelPointerY = event.clientY;
+      state.sectionPanelSvg.classList.add('is-panning');
+      state.sectionPanelSvg.setPointerCapture(event.pointerId);
+      hideTooltip();
+    });
+    state.sectionPanelSvg.addEventListener('pointerup', event => {
+      state.panelDragging = false;
+      state.sectionPanelSvg.classList.remove('is-panning');
+      if (state.sectionPanelSvg.hasPointerCapture(event.pointerId)) state.sectionPanelSvg.releasePointerCapture(event.pointerId);
+    });
+    state.sectionPanelSvg.addEventListener('pointercancel', event => {
+      state.panelDragging = false;
+      state.sectionPanelSvg.classList.remove('is-panning');
+      if (state.sectionPanelSvg.hasPointerCapture(event.pointerId)) state.sectionPanelSvg.releasePointerCapture(event.pointerId);
+    });
+    state.sectionPanelSvg.addEventListener('pointerleave', () => {
+      if (!state.panelDragging) hideTooltip();
+    });
+    state.sectionPanelSvg.addEventListener('wheel', event => {
+      event.preventDefault();
+      setSectionPanelZoom(state.panelScale * (event.deltaY < 0 ? 1.12 : .89));
+    }, { passive: false });
+    return panel;
+  }
+
+  function applySectionPanelTransform() {
+    if (!state.sectionPanelSvg || !state.panelViewBox) return;
+    const box = state.panelViewBox;
+    state.sectionPanelSvg.setAttribute('viewBox', `${box.x} ${box.y} ${box.width} ${box.height}`);
+  }
+
+  function resetSectionPanelView() {
+    state.panelScale = 1;
+    state.panelX = 0;
+    state.panelY = 0;
+    if (state.panelBaseViewBox) {
+      state.panelViewBox = { ...state.panelBaseViewBox };
+    }
+    applySectionPanelTransform();
+  }
+
+  function setSectionPanelZoom(nextScale) {
+    if (!state.panelBaseViewBox || !state.panelViewBox) return;
+    const scale = Math.max(1, Math.min(8, nextScale));
+    const centerX = state.panelViewBox.x + state.panelViewBox.width / 2;
+    const centerY = state.panelViewBox.y + state.panelViewBox.height / 2;
+    const width = state.panelBaseViewBox.width / scale;
+    const height = state.panelBaseViewBox.height / scale;
+    state.panelScale = scale;
+    state.panelViewBox = {
+      x: centerX - width / 2,
+      y: centerY - height / 2,
+      width,
+      height,
+    };
+    applySectionPanelTransform();
+  }
+
+  function closeSectionSeatPanel() {
+    if (!state.sectionPanel) return;
+    state.sectionPanel.hidden = true;
+    state.panelSectionId = null;
+    resetSectionPanelView();
+    document.body.classList.remove('is-section-seat-panel-open');
+    hideTooltip();
+    canvas.querySelectorAll('.cuneta-section').forEach(group => group.classList.remove('is-active-section'));
+    if (mapHint) mapHint.textContent = 'Select a section to open its seats. Drag, scroll, or pinch to navigate the map.';
+  }
+
+  function openSectionSeatPanel(sectionId) {
+    if (!config.venue.svgLayout) {
+      focusSection(sectionId);
+      return;
+    }
+
+    const section = config.venue.sections.find(item => item.id === sectionId);
+    if (!section) return;
+    const panel = ensureSectionSeatPanel();
+    const panelSvg = state.sectionPanelSvg;
+    const seats = state.seats.filter(seat => seat.sectionId === sectionId);
+    const category = config.categories[section.category];
+    const points = section.svgPoints || (section.svgShape?.points || []).map(moaSportsScalePoint);
+    const bounds = polygonBounds(points);
+    const pad = Math.max(42, Math.max(bounds.width, bounds.height) * .28);
+
+    panel.hidden = false;
+    document.body.classList.add('is-section-seat-panel-open');
+    state.panelSectionId = sectionId;
+    state.activeSectionId = sectionId;
+    state.sectionPanelTitle.textContent = section.label;
+    state.sectionPanelMeta.textContent = `${Number(section.capacity).toLocaleString()} seats`;
+    panel.style.setProperty('--section-color', section.mapColor || category.color);
+    state.panelBaseViewBox = {
+      x: bounds.minX - pad,
+      y: bounds.minY - pad,
+      width: bounds.width + pad * 2,
+      height: bounds.height + pad * 2,
+    };
+    state.sectionPanelCanvas.replaceChildren();
+    resetSectionPanelView();
+
+    const layer = svgNode('g', {
+      class: 'ticket-section-seat-layer',
+      'data-seat-layer-for': section.id,
+      style: `--section-color:${section.mapColor || category.color}`,
+    });
+    const panelSeatRadius = sectionPanelSeatRadius(section);
+    layer.style.setProperty('--seat-radius', `${panelSeatRadius}px`);
+    layer.style.setProperty('--seat-hover-radius', `${Math.max(panelSeatRadius + 1, panelSeatRadius * 1.35)}px`);
+    seats.forEach(seat => {
+      layer.appendChild(svgNode('circle', {
+        cx: seat.x,
+        cy: seat.y,
+        r: panelSeatRadius,
+        fill: seat.color,
+        class: `map-seat${seat.unavailable ? ' is-unavailable' : ''}`,
+        tabindex: seat.unavailable ? '-1' : '0',
+        role: 'button',
+        'aria-pressed': 'false',
+        'aria-label': `${seat.section}, row ${seat.row}, seat ${seat.number}, ${seat.category}${seat.unavailable ? ', unavailable' : ''}`,
+        'data-seat-id': seat.id,
+      }));
+    });
+    state.sectionPanelCanvas.appendChild(layer);
+    canvas.querySelectorAll('.cuneta-section').forEach(group => {
+      group.classList.toggle('is-active-section', group.dataset.sectionId === sectionId);
+    });
+    if (mapHint) mapHint.textContent = `${section.label} seats are open in the panel. The main map stays available behind it.`;
+    showStatus(`${section.label} seats opened.`);
+    renderSelection();
+  }
+
   function appendInteractiveSeat(group, section, sectionIndex, rowIndex, columnIndex, cx, cy, includeCheck = true) {
     const category = config.categories[section.category];
     const row = rowName(rowIndex);
@@ -538,9 +786,14 @@
   function createSeatCheck(circle, id) {
     const cx = Number(circle.getAttribute('cx'));
     const cy = Number(circle.getAttribute('cy'));
+    const isPanelSeat = Boolean(circle.closest('.ticket-section-seat-layer'));
+    const radius = Number(circle.getAttribute('r')) || 5.2;
+    const d = isPanelSeat
+      ? `M ${cx - radius * 1.05} ${cy - radius * .04} L ${cx - radius * .25} ${cy + radius * .82} L ${cx + radius * 1.18} ${cy - radius * .96}`
+      : `M ${cx - 4.2} ${cy - .2} L ${cx - 1} ${cy + 3.3} L ${cx + 4.8} ${cy - 3.8}`;
     return svgNode('path', {
-      d: `M ${cx - 4.2} ${cy - .2} L ${cx - 1} ${cy + 3.3} L ${cx + 4.8} ${cy - 3.8}`,
-      class: 'map-seat-check',
+      d,
+      class: `map-seat-check${isPanelSeat ? ' ticket-section-seat-check' : ''}`,
       'data-seat-check': id,
     });
   }
@@ -1104,7 +1357,7 @@
   }
 
   function hasRenderedDetailedSeats() {
-    return isDetailedBowl && canvas.classList.contains('is-cuneta-seat-view');
+    return isDetailedBowl && !config.venue.svgLayout && canvas.classList.contains('is-cuneta-seat-view');
   }
 
   function beginSeatTransform() {
@@ -1114,7 +1367,7 @@
   }
 
   function endSeatTransformSoon(delay = 120) {
-    if (!isDetailedBowl) return;
+    if (!isDetailedBowl || config.venue.svgLayout) return;
     if (state.seatTransformTimer) window.clearTimeout(state.seatTransformTimer);
     state.seatTransformTimer = window.setTimeout(() => {
       viewport.classList.remove('is-transforming-seats');
@@ -1131,6 +1384,10 @@
     state.y = originY - (originY - state.y) * ratio;
     state.scale = clamped;
     applyTransform();
+    if (config.venue.svgLayout) {
+      if (mapHint) mapHint.textContent = 'Zoom changes the map view only. Select a section to open its seats.';
+      return;
+    }
     if (isDetailedBowl) {
       if (state.scale < 1.65) {
         canvas.querySelectorAll('.cuneta-seat-layer').forEach(layer => layer.remove());
@@ -1152,6 +1409,7 @@
   }
 
   function resetMap() {
+    const openPanelSectionId = state.panelSectionId;
     state.scale = 1;
     state.x = 0;
     state.y = 0;
@@ -1165,7 +1423,19 @@
       canvas.querySelectorAll('.cuneta-seat-layer').forEach(layer => layer.remove());
       canvas.querySelectorAll('.cuneta-section').forEach(group => group.classList.remove('is-active-section'));
       canvas.classList.remove('is-cuneta-seat-view');
-      if (mapHint) mapHint.textContent = 'Select a section to view seats. Drag, scroll, or pinch to navigate.';
+      if (config.venue.svgLayout && openPanelSectionId) {
+        state.activeSectionId = openPanelSectionId;
+        canvas.querySelectorAll('.cuneta-section').forEach(group => {
+          group.classList.toggle('is-active-section', group.dataset.sectionId === openPanelSectionId);
+        });
+      }
+      if (mapHint) {
+        mapHint.textContent = config.venue.svgLayout
+          ? (openPanelSectionId
+            ? 'Section seats remain open in the left panel. Close it with X when done.'
+            : 'Select a section to open its seats. Drag, scroll, or pinch to navigate the map.')
+          : 'Select a section to view seats. Drag, scroll, or pinch to navigate.';
+      }
     }
   }
 
@@ -1191,6 +1461,10 @@
   function focusSection(sectionId) {
     const section = config.venue.sections.find(item => item.id === sectionId);
     if (!section) return;
+    if (config.venue.svgLayout) {
+      openSectionSeatPanel(sectionId);
+      return;
+    }
     const [x, y, width, height] = state.sectionBounds.get(sectionId) || sectionPosition(section, 0);
     const targetScale = isDetailedBowl
       ? Math.min(5.6, Math.max(3.25, 2100 / Math.max(width, height)))
@@ -1204,6 +1478,10 @@
   }
 
   function selectCunetaSection(sectionId) {
+    if (config.venue.svgLayout) {
+      openSectionSeatPanel(sectionId);
+      return;
+    }
     state.activeSectionId = sectionId;
     canvas.querySelectorAll('.cuneta-section').forEach(group => {
       group.classList.toggle('is-active-section', group.dataset.sectionId === sectionId);
@@ -1215,7 +1493,7 @@
 
   function setCategory(category) {
     state.category = category;
-    if (isDetailedBowl && canvas.classList.contains('is-cuneta-seat-view')) {
+    if (isDetailedBowl && !config.venue.svgLayout && canvas.classList.contains('is-cuneta-seat-view')) {
       resetMap();
     }
     document.querySelectorAll('.ticket-category').forEach(button => {
@@ -1231,17 +1509,31 @@
       section.classList.toggle('is-focused', matches && state.category !== 'all');
     });
 
-    state.activeSectionId = null;
-    canvas.querySelectorAll('.cuneta-section').forEach(section => section.classList.remove('is-active-section'));
+    if (config.venue.svgLayout && state.panelSectionId) {
+      state.activeSectionId = state.panelSectionId;
+      canvas.querySelectorAll('.cuneta-section').forEach(section => {
+        section.classList.toggle('is-active-section', section.dataset.sectionId === state.panelSectionId);
+      });
+    } else {
+      state.activeSectionId = null;
+      canvas.querySelectorAll('.cuneta-section').forEach(section => section.classList.remove('is-active-section'));
+    }
     if (mapHint && isDetailedBowl) {
-      mapHint.textContent = state.category === 'all'
-        ? 'Select a section to highlight it. Use + or scroll to zoom.'
-        : 'Matching sections are highlighted. Select one section, then use + or scroll to zoom.';
+      if (config.venue.svgLayout) {
+        mapHint.textContent = state.category === 'all'
+          ? 'Select a section to open its seats. Use + or scroll to zoom the map only.'
+          : 'Matching sections are highlighted. Select one section to open its seats.';
+      } else {
+        mapHint.textContent = state.category === 'all'
+          ? 'Select a section to highlight it. Use + or scroll to zoom.'
+          : 'Matching sections are highlighted. Select one section, then use + or scroll to zoom.';
+      }
     }
   }
 
   function seatElement(id) {
-    return canvas.querySelector(`[data-seat-id="${CSS.escape(id)}"]`);
+    const selector = `[data-seat-id="${CSS.escape(id)}"]`;
+    return (state.sectionPanel && state.sectionPanel.querySelector(selector)) || viewport.querySelector(selector);
   }
 
   function toggleSeat(id) {
@@ -1289,17 +1581,19 @@
 
   function renderSelection() {
     const selectedIds = new Set(state.selected.map(seat => seat.id));
-    canvas.querySelectorAll('.map-seat.is-selected').forEach(element => {
-      element.classList.remove('is-selected');
-      element.setAttribute('aria-pressed', 'false');
+    [viewport, state.sectionPanel].filter(Boolean).forEach(root => {
+      root.querySelectorAll('.map-seat.is-selected').forEach(element => {
+        element.classList.remove('is-selected');
+        element.setAttribute('aria-pressed', 'false');
+      });
+      root.querySelectorAll('.map-seat-check.is-visible').forEach(check => check.classList.remove('is-visible'));
     });
-    canvas.querySelectorAll('.map-seat-check.is-visible').forEach(check => check.classList.remove('is-visible'));
     selectedIds.forEach(id => {
       const element = seatElement(id);
       if (!element) return;
       element.classList.add('is-selected');
       element.setAttribute('aria-pressed', 'true');
-      let check = canvas.querySelector(`[data-seat-check="${CSS.escape(id)}"]`);
+      let check = element.parentNode.querySelector(`[data-seat-check="${CSS.escape(id)}"]`);
       if (!check) {
         check = createSeatCheck(element, id);
         element.parentNode.appendChild(check);
@@ -1364,6 +1658,8 @@
   function showTooltip(seat, seatNode) {
     const price = seat.unavailable ? 'Unavailable' : `PHP ${seat.price.toLocaleString()}`;
     const fee = Math.max(50, Math.round(seat.price * .029 / 5) * 5);
+    const panelHost = seatNode.closest('.ticket-section-seat-panel');
+    tooltip.classList.toggle('is-fixed', Boolean(panelHost));
     tooltip.style.setProperty('--tooltip-color', seat.unavailable ? '#c7c7cb' : seat.color);
     tooltip.innerHTML = `
       <div class="ticket-seat-tooltip-grid">
@@ -1381,8 +1677,18 @@
         <span>${seat.unavailable ? 'This seat is no longer available' : 'Adult'}</span>
       </div>`;
     tooltip.hidden = false;
-    const bounds = viewport.getBoundingClientRect();
     const seatBounds = seatNode.getBoundingClientRect();
+    if (panelHost) {
+      const tooltipWidth = Math.min(400, window.innerWidth - 24);
+      const anchorX = seatBounds.left + seatBounds.width / 2;
+      const left = Math.min(window.innerWidth - tooltipWidth - 12, Math.max(12, anchorX - tooltipWidth / 2));
+      const top = Math.min(window.innerHeight - 156, seatBounds.bottom + 14);
+      tooltip.style.setProperty('--tooltip-arrow-left', `${Math.max(18, Math.min(tooltipWidth - 18, anchorX - left))}px`);
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${top}px`;
+      return;
+    }
+    const bounds = viewport.getBoundingClientRect();
     const tooltipWidth = Math.min(400, bounds.width - 24);
     const anchorX = seatBounds.left + seatBounds.width / 2 - bounds.left;
     const left = Math.min(bounds.width - tooltipWidth - 12, Math.max(12, anchorX - tooltipWidth / 2));
@@ -1394,6 +1700,7 @@
 
   function hideTooltip() {
     tooltip.hidden = true;
+    tooltip.classList.remove('is-fixed');
   }
 
   function showStatus(message) {
@@ -1413,6 +1720,21 @@
       .replaceAll("'", '&#039;');
   }
 
+  function initReservationExpiredNotice() {
+    const notice = document.querySelector('.reservation-expired-notice');
+    if (!notice) return;
+    const dismiss = () => {
+      notice.classList.add('is-hiding');
+      window.setTimeout(() => notice.remove(), 180);
+    };
+    notice.querySelector('.reservation-expired-close')?.addEventListener('click', dismiss);
+    window.setTimeout(() => {
+      if (document.body.contains(notice)) dismiss();
+    }, 5000);
+  }
+
+  initReservationExpiredNotice();
+
   document.getElementById('categoryBar').addEventListener('click', event => {
     const button = event.target.closest('[data-category]');
     if (button) setCategory(button.dataset.category);
@@ -1426,7 +1748,7 @@
       event.preventDefault();
       event.stopPropagation();
       if (button.dataset.mapAction === 'zoom-in') {
-        if (isDetailedBowl && state.activeSectionId && !canvas.classList.contains('is-cuneta-seat-view')) {
+        if (isDetailedBowl && !config.venue.svgLayout && state.activeSectionId && !canvas.classList.contains('is-cuneta-seat-view')) {
           focusSection(state.activeSectionId);
         } else {
           setZoom(state.scale * 1.4);
@@ -1439,6 +1761,7 @@
 
   viewport.addEventListener('wheel', event => {
     event.preventDefault();
+    if (document.body.classList.contains('is-section-seat-panel-open')) return;
     const bounds = svg.getBoundingClientRect();
     const originX = ((event.clientX - bounds.left) / bounds.width) * mapDimensions.width;
     const originY = ((event.clientY - bounds.top) / bounds.height) * mapDimensions.height;
@@ -1446,7 +1769,8 @@
   }, { passive: false });
 
   viewport.addEventListener('pointerdown', event => {
-    if (event.target.closest('.ticket-map-controls') || event.target.closest('.map-seat')) return;
+    if (document.body.classList.contains('is-section-seat-panel-open')) return;
+    if (event.target.closest('.ticket-map-controls') || event.target.closest('.ticket-section-seat-panel') || event.target.closest('.map-seat')) return;
     activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
     state.dragging = true;
     state.pointerX = event.clientX;
@@ -1520,7 +1844,9 @@
     if (shouldActivateSection) {
       focusSection(sectionId);
       const section = config.venue.sections.find(item => item.id === sectionId);
-      showStatus(`${section?.label || 'Section'} selected. All venue seats are now visible.`);
+      showStatus(config.venue.svgLayout
+        ? `${section?.label || 'Section'} seats opened in the panel.`
+        : `${section?.label || 'Section'} selected. All venue seats are now visible.`);
     }
   });
   viewport.addEventListener('pointercancel', event => {
@@ -1542,6 +1868,7 @@
     }
   });
   canvas.addEventListener('keydown', event => {
+    if (document.body.classList.contains('is-section-seat-panel-open')) return;
     const seatNode = event.target.closest('[data-seat-id]');
     if (seatNode && (event.key === 'Enter' || event.key === ' ')) {
       event.preventDefault();

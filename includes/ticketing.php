@@ -287,6 +287,27 @@ function clicketPhilippineArenaTierForSvgId(string $id): ?array {
     return null;
 }
 
+function clicketAranetaConcertTierForSvgId(string $id): ?array {
+    $normalized = strtolower($id);
+    $tiers = [
+        'svip_' => ['tier' => 'svip', 'category' => 'vip', 'label' => 'SVIP', 'color' => '#fdff00'],
+        'vip_' => ['tier' => 'vip', 'category' => 'vip', 'label' => 'VIP', 'color' => '#fff0a8'],
+        'patrona_' => ['tier' => 'patrona', 'category' => 'platinum', 'label' => 'Patron A', 'color' => '#5edc1f'],
+        'patronb_' => ['tier' => 'patronb', 'category' => 'gold', 'label' => 'Patron B', 'color' => '#bfe8c8'],
+        'lb_' => ['tier' => 'lb', 'category' => 'silver', 'label' => 'Lower Box', 'color' => '#ffc58f'],
+        'ub_' => ['tier' => 'ub', 'category' => 'bronze', 'label' => 'Upper Box', 'color' => '#d8b7ff'],
+        'genad_' => ['tier' => 'genad', 'category' => 'general', 'label' => 'General Admission', 'color' => '#f2a0aa'],
+    ];
+
+    foreach ($tiers as $prefix => $tier) {
+        if (strpos($normalized, $prefix) === 0) {
+            return $tier;
+        }
+    }
+
+    return null;
+}
+
 function clicketSvgAttributes(string $tag): array {
     preg_match_all('/([A-Za-z_:][A-Za-z0-9_.:-]*)="([^"]*)"/', $tag, $matches, PREG_SET_ORDER);
     $attributes = [];
@@ -339,37 +360,104 @@ function clicketPathPoints(string $pathData): array {
     $command = '';
     $x = 0.0;
     $y = 0.0;
+    $startX = 0.0;
+    $startY = 0.0;
+    $curveSteps = 10;
+    $isCommand = static fn (string $token): bool => (bool) preg_match('/^[A-Za-z]$/', $token);
+    $readPoint = static function (bool $relative) use (&$tokens, &$index, &$x, &$y): array {
+        $nextX = (float) $tokens[$index++];
+        $nextY = (float) $tokens[$index++];
+        if ($relative) {
+            $nextX += $x;
+            $nextY += $y;
+        }
+        return [$nextX, $nextY];
+    };
 
     while ($index < count($tokens)) {
-        if (preg_match('/^[A-Za-z]$/', $tokens[$index])) {
+        if ($isCommand($tokens[$index])) {
             $command = $tokens[$index++];
         }
 
-        if ($command === 'M' || $command === 'L') {
-            while ($index + 1 < count($tokens) && !preg_match('/^[A-Za-z]$/', $tokens[$index])) {
-                $x = (float) $tokens[$index++];
-                $y = (float) $tokens[$index++];
+        $upperCommand = strtoupper($command);
+        $relative = $command !== $upperCommand;
+
+        if ($upperCommand === 'M' || $upperCommand === 'L') {
+            while ($index + 1 < count($tokens) && !$isCommand($tokens[$index])) {
+                [$x, $y] = $readPoint($relative);
                 $points[] = [$x, $y];
-                if ($command === 'M') {
-                    $command = 'L';
+                if ($upperCommand === 'M') {
+                    $startX = $x;
+                    $startY = $y;
+                    $upperCommand = 'L';
+                    $command = $relative ? 'l' : 'L';
                 }
             }
             continue;
         }
 
-        if ($command === 'H') {
-            while ($index < count($tokens) && !preg_match('/^[A-Za-z]$/', $tokens[$index])) {
-                $x = (float) $tokens[$index++];
+        if ($upperCommand === 'H') {
+            while ($index < count($tokens) && !$isCommand($tokens[$index])) {
+                $nextX = (float) $tokens[$index++];
+                $x = $relative ? $x + $nextX : $nextX;
                 $points[] = [$x, $y];
             }
             continue;
         }
 
-        if ($command === 'V') {
-            while ($index < count($tokens) && !preg_match('/^[A-Za-z]$/', $tokens[$index])) {
-                $y = (float) $tokens[$index++];
+        if ($upperCommand === 'V') {
+            while ($index < count($tokens) && !$isCommand($tokens[$index])) {
+                $nextY = (float) $tokens[$index++];
+                $y = $relative ? $y + $nextY : $nextY;
                 $points[] = [$x, $y];
             }
+            continue;
+        }
+
+        if ($upperCommand === 'C') {
+            while ($index + 5 < count($tokens) && !$isCommand($tokens[$index])) {
+                [$x1, $y1] = $readPoint($relative);
+                [$x2, $y2] = $readPoint($relative);
+                [$x3, $y3] = $readPoint($relative);
+                $originX = $x;
+                $originY = $y;
+                for ($step = 1; $step <= $curveSteps; $step++) {
+                    $t = $step / $curveSteps;
+                    $mt = 1 - $t;
+                    $points[] = [
+                        ($mt ** 3) * $originX + 3 * ($mt ** 2) * $t * $x1 + 3 * $mt * ($t ** 2) * $x2 + ($t ** 3) * $x3,
+                        ($mt ** 3) * $originY + 3 * ($mt ** 2) * $t * $y1 + 3 * $mt * ($t ** 2) * $y2 + ($t ** 3) * $y3,
+                    ];
+                }
+                $x = $x3;
+                $y = $y3;
+            }
+            continue;
+        }
+
+        if ($upperCommand === 'Q') {
+            while ($index + 3 < count($tokens) && !$isCommand($tokens[$index])) {
+                [$x1, $y1] = $readPoint($relative);
+                [$x2, $y2] = $readPoint($relative);
+                $originX = $x;
+                $originY = $y;
+                for ($step = 1; $step <= $curveSteps; $step++) {
+                    $t = $step / $curveSteps;
+                    $mt = 1 - $t;
+                    $points[] = [
+                        ($mt ** 2) * $originX + 2 * $mt * $t * $x1 + ($t ** 2) * $x2,
+                        ($mt ** 2) * $originY + 2 * $mt * $t * $y1 + ($t ** 2) * $y2,
+                    ];
+                }
+                $x = $x2;
+                $y = $y2;
+            }
+            continue;
+        }
+
+        if ($upperCommand === 'Z') {
+            $x = $startX;
+            $y = $startY;
             continue;
         }
 
@@ -577,6 +665,16 @@ function clicketPhilippineArenaSvgLayout(): array {
         'blockedIds' => ['Stage' => 'Stage'],
         'capacity' => 55000,
         'viewBox' => [0, 0, 1134, 713],
+    ]);
+}
+
+function clicketAranetaConcertSvgLayout(): array {
+    return clicketArenaSvgLayout('Araneta_Concert.svg', [
+        'seatPattern' => '/^(?:svip_|vip_|patronA_|patronB_|lb_|ub_|genad_)/i',
+        'seatGroupPattern' => '/<g\b[^>]*\bid="((?:svip_|vip_|patronA_|patronB_|lb_|ub_|genad_)[^"]+)"[^>]*>(.*?)<\/g>/is',
+        'blockedIds' => ['Stage' => 'Stage', 'Booth' => 'Booth'],
+        'capacity' => 13000,
+        'viewBox' => [0, 0, 794, 583],
     ]);
 }
 
@@ -788,6 +886,45 @@ function clicketPhilippineArenaProfile(): array {
     return clicketVenueProfiles()['Philippine Arena'];
 }
 
+function clicketAranetaConcertProfile(): array {
+    $svgLayout = clicketAranetaConcertSvgLayout();
+    if (!empty($svgLayout['sections'])) {
+        $sections = [];
+        foreach ($svgLayout['sections'] as $section) {
+            $tier = clicketAranetaConcertTierForSvgId($section['id']);
+            if (!$tier || !preg_match('/sec_(\d+)/i', $section['id'], $numberMatch)) {
+                continue;
+            }
+            $number = $numberMatch[1];
+            $sections[] = [
+                'id' => $section['id'],
+                'label' => $tier['label'] . ' ' . $number,
+                'number' => $number,
+                'category' => $tier['category'],
+                'tier' => $tier['tier'],
+                'capacity' => $section['capacity'],
+                'mapColor' => $tier['color'],
+                'zone' => 'svg-' . $tier['tier'],
+                'svgShape' => $section['shape'],
+            ];
+        }
+
+        return [
+            'layout' => 'arena',
+            'stageLabel' => 'Stage',
+            'subtitle' => 'Smart Araneta Coliseum 13,000-seat concert layout',
+            'capacity' => 13000,
+            'sections' => $sections,
+            'svgLayout' => [
+                'viewBox' => $svgLayout['viewBox'],
+                'nonSeats' => $svgLayout['nonSeats'],
+            ],
+        ];
+    }
+
+    return clicketVenueProfiles()['Smart Araneta Coliseum'];
+}
+
 function clicketStadiumProfile(): array {
     return [
         'layout' => 'stadium',
@@ -871,6 +1008,8 @@ function clicketVenueProfile(string $venue, string $categoryKey = ''): array {
         $profile = clicketMoaConcertProfile();
     } elseif ($venue === 'Philippine Arena' && $categoryKey === 'concerts') {
         $profile = clicketPhilippineArenaProfile();
+    } elseif ($venue === 'Smart Araneta Coliseum' && $categoryKey === 'concerts') {
+        $profile = clicketAranetaConcertProfile();
     } else {
         $profile = $profiles[$venue] ?? clicketHallProfile($venue);
     }
