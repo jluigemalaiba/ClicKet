@@ -99,9 +99,9 @@ $organizer = match ($categoryKey) {
 };
 
 $ticketPolicies = [
-    ['title' => 'Maximum of 4 tickets', 'note' => 'Each ClicKet account may purchase up to four tickets per event.'],
-    ['title' => 'Non-transferable tickets', 'note' => 'Tickets stay linked to the purchasing account to help prevent scalping.'],
-    ['title' => 'Live seat availability', 'note' => 'Available sections and seats may change while other fans complete bookings.'],
+    ['icon' => 'limit', 'title' => 'Maximum of 4 tickets', 'note' => 'Each ClicKet account may purchase up to four tickets per event.'],
+    ['icon' => 'shield', 'title' => 'Non-transferable tickets', 'note' => 'Tickets stay linked to the purchasing account to help prevent scalping.'],
+    ['icon' => 'live', 'title' => 'Live seat availability', 'note' => 'Available sections and seats may change while other fans complete bookings.'],
 ];
 
 $schedule = [
@@ -164,7 +164,7 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
             <div><span>Venue</span><strong><?= htmlspecialchars($event['venue']) ?></strong></div>
           </div>
           <div class="show-hero-actions">
-            <a class="show-cta" href="ticket.php?event=<?= urlencode($eventKey) ?>">Select Tickets</a>
+            <a class="show-cta show-ticket-action is-disabled" data-ticket-action aria-disabled="true" role="link">Select Tickets</a>
             <a class="show-secondary" href="#event-information">Event Information</a>
           </div>
         </div>
@@ -175,6 +175,29 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
   <section class="show-section" id="event-information">
     <div class="container-xl px-4 show-content-grid">
       <div class="show-main-column">
+        <article class="show-panel">
+          <div class="show-heading-row">
+            <div><p class="show-kicker"><?= $isMultiDay ? 'Performance calendar' : 'Event schedule' ?></p><h2><?= $isMultiDay ? 'Choose a performance' : 'Date and time' ?></h2></div>
+            <span class="show-count"><?= count($schedule) ?> <?= count($schedule) === 1 ? 'schedule' : 'schedules' ?></span>
+          </div>
+          <div class="<?= $isMultiDay ? 'show-calendar' : 'show-single-date' ?>">
+            <?php foreach ($schedule as $slotIndex => $slot): ?>
+              <button
+                type="button"
+                class="show-date-card"
+                data-performance-url="ticket.php?event=<?= urlencode($eventKey) ?>&amp;performance=<?= (int) $slotIndex ?>"
+                aria-pressed="false"
+              >
+                <span class="show-date-month"><?= $slot['date']->format('M') ?></span>
+                <strong class="show-date-day"><?= $slot['date']->format('d') ?></strong>
+                <span class="show-date-weekday"><?= $slot['date']->format('l') ?></span>
+                <span class="show-date-time"><?= htmlspecialchars($slot['time']) ?></span>
+                <small><?= htmlspecialchars($slot['label']) ?></small>
+              </button>
+            <?php endforeach; ?>
+          </div>
+        </article>
+
         <article class="show-panel show-about">
           <p class="show-kicker">About the event</p>
           <h2>The experience</h2>
@@ -184,24 +207,6 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
             <div><span>Running time</span><strong><?= htmlspecialchars($duration) ?></strong></div>
             <div><span>Audience</span><strong><?= htmlspecialchars($ageGuidance) ?></strong></div>
             <div><span>Doors open</span><strong>90 minutes before showtime</strong></div>
-          </div>
-        </article>
-
-        <article class="show-panel">
-          <div class="show-heading-row">
-            <div><p class="show-kicker"><?= $isMultiDay ? 'Performance calendar' : 'Event schedule' ?></p><h2><?= $isMultiDay ? 'Choose a performance' : 'Date and time' ?></h2></div>
-            <span class="show-count"><?= count($schedule) ?> <?= count($schedule) === 1 ? 'schedule' : 'schedules' ?></span>
-          </div>
-          <div class="<?= $isMultiDay ? 'show-calendar' : 'show-single-date' ?>">
-            <?php foreach ($schedule as $slotIndex => $slot): ?>
-              <a href="ticket.php?event=<?= urlencode($eventKey) ?>&amp;performance=<?= (int) $slotIndex ?>" class="show-date-card">
-                <span class="show-date-month"><?= $slot['date']->format('M') ?></span>
-                <strong class="show-date-day"><?= $slot['date']->format('d') ?></strong>
-                <span class="show-date-weekday"><?= $slot['date']->format('l') ?></span>
-                <span class="show-date-time"><?= htmlspecialchars($slot['time']) ?></span>
-                <small><?= htmlspecialchars($slot['label']) ?></small>
-              </a>
-            <?php endforeach; ?>
           </div>
         </article>
 
@@ -242,15 +247,21 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
           <div class="show-ticket-list show-policy-list">
             <?php foreach ($ticketPolicies as $policy): ?>
               <div class="show-ticket-tier show-policy-item">
-                <span class="show-policy-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+                <span class="show-policy-icon show-policy-icon--<?= htmlspecialchars($policy['icon']) ?>" aria-hidden="true">
+                  <?php if ($policy['icon'] === 'limit'): ?>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><path d="M7 5.5h10a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z"/><path d="M9 9h6"/><path d="M9 13h4"/></svg>
+                  <?php elseif ($policy['icon'] === 'live'): ?>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17.5V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9.5"/><path d="M8 18v-5"/><path d="M12 18V9"/><path d="M16 18v-7"/><path d="M3 18h18"/></svg>
+                  <?php else: ?>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+                  <?php endif; ?>
                 </span>
                 <div><strong><?= htmlspecialchars($policy['title']) ?></strong><span><?= htmlspecialchars($policy['note']) ?></span></div>
               </div>
             <?php endforeach; ?>
           </div>
           <p class="show-ticket-note">Ticket categories, seat availability, and pricing are shown on the seat selection page.</p>
-          <a class="show-cta show-cta-block" href="ticket.php?event=<?= urlencode($eventKey) ?>">Buy Tickets</a>
+          <a class="show-cta show-cta-block is-disabled" data-ticket-action aria-disabled="true" role="link">Buy Tickets</a>
         </div>
 
         <div class="show-panel show-reminders">
@@ -298,12 +309,42 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
   const navbar = document.querySelector('.navbar-clicket');
   const timerValue = document.getElementById('bookingTimerValue');
   const timer = document.getElementById('bookingTimer');
+  const dateCards = document.querySelectorAll('.show-date-card[data-performance-url]');
+  const ticketActions = document.querySelectorAll('[data-ticket-action]');
   const storageKey = 'clicket_event_timer_<?= htmlspecialchars($eventKey, ENT_QUOTES) ?>';
   const duration = 15 * 60 * 1000;
 
   const updateNavbar = () => navbar?.classList.toggle('scrolled', window.scrollY > 60);
   window.addEventListener('scroll', updateNavbar, { passive: true });
   updateNavbar();
+
+  const setTicketActions = (url) => {
+    ticketActions.forEach((action) => {
+      action.href = url;
+      action.classList.remove('is-disabled');
+      action.setAttribute('aria-disabled', 'false');
+    });
+  };
+
+  ticketActions.forEach((action) => {
+    action.addEventListener('click', (event) => {
+      if (action.classList.contains('is-disabled')) {
+        event.preventDefault();
+      }
+    });
+  });
+
+  dateCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      dateCards.forEach((item) => {
+        item.classList.remove('is-selected');
+        item.setAttribute('aria-pressed', 'false');
+      });
+      card.classList.add('is-selected');
+      card.setAttribute('aria-pressed', 'true');
+      setTicketActions(card.dataset.performanceUrl);
+    });
+  });
 
   let expiresAt = Number(sessionStorage.getItem(storageKey));
   if (!expiresAt || expiresAt <= Date.now()) {
