@@ -33,7 +33,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <span class="news-category-badge">Platform Update</span>
     </div>
     <div class="news-modal-body">
-      <div class="news-meta"><time>May 2026</time><span class="news-readtime">4 min read</span></div>
+      <div class="news-meta"><time>May 2026</time></div>
       <h2>Expanded support for larger venue seat maps</h2>
       <p class="news-modal-lead">We've rolled out major improvements to how fans and organizers interact with venue seat maps — making it faster to browse, easier to compare sections, and cleaner to manage inventory at scale.</p>
       <h3>What changed</h3>
@@ -57,7 +57,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <span class="news-category-badge">For Fans</span>
     </div>
     <div class="news-modal-body">
-      <div class="news-meta"><time>April 2026</time><span class="news-readtime">3 min read</span></div>
+      <div class="news-meta"><time>April 2026</time></div>
       <h2>Mobile ticket wallet improvements</h2>
       <p class="news-modal-lead">Getting into a show should be the easy part. We've overhauled the ClicKet mobile wallet so fans can prepare, access, and present tickets in fewer steps — even with limited connectivity.</p>
       <h3>Tickets ready before you arrive</h3>
@@ -82,7 +82,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <span class="news-category-badge">For Organizers</span>
     </div>
     <div class="news-modal-body">
-      <div class="news-meta"><time>March 2026</time><span class="news-readtime">5 min read</span></div>
+      <div class="news-meta"><time>March 2026</time></div>
       <h2>Organizer analytics dashboard</h2>
       <p class="news-modal-lead">Partner organizers now have a dedicated analytics view that consolidates sales data, attendance signals, and customer behavior into one place — built around the decisions event teams actually make.</p>
       <h3>Sales pace tracking</h3>
@@ -107,7 +107,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <span class="news-category-badge">Platform Update</span>
     </div>
     <div class="news-modal-body">
-      <div class="news-meta"><time>February 2026</time><span class="news-readtime">3 min read</span></div>
+      <div class="news-meta"><time>February 2026</time></div>
       <h2>Faster gate scanning for high-capacity venues</h2>
       <p class="news-modal-lead">Long entry queues cost fans their pre-show energy and cost organizers goodwill. We've rebuilt the QR validation stack to cut average scan time significantly at high-volume gates.</p>
       <h3>What we improved</h3>
@@ -130,7 +130,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <span class="news-category-badge">For Fans</span>
     </div>
     <div class="news-modal-body">
-      <div class="news-meta"><time>January 2026</time><span class="news-readtime">4 min read</span></div>
+      <div class="news-meta"><time>January 2026</time></div>
       <h2>Redesigned event discovery experience</h2>
       <p class="news-modal-lead">Finding the right event to go to shouldn't take longer than buying the ticket. The redesigned browse experience gives fans faster paths to what they're looking for — and better ways to stumble onto something new.</p>
       <h3>Smarter filters</h3>
@@ -155,7 +155,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <span class="news-category-badge">Company</span>
     </div>
     <div class="news-modal-body">
-      <div class="news-meta"><time>December 2025</time><span class="news-readtime">6 min read</span></div>
+      <div class="news-meta"><time>December 2025</time></div>
       <h2>ClicKet officially launches in the Philippines</h2>
       <p class="news-modal-lead">After eight months of beta testing with a select group of venues, organizers, and fans, ClicKet is now open to everyone — fans, creators, and venues across the Philippines.</p>
       <h3>How we got here</h3>
@@ -173,174 +173,179 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 <!-- ===================== MAIN PAGE ===================== -->
 <main class="news-main">
   <div class="container-xl px-4">
-
-    <!-- Hero Feature Post -->
-    <section class="news-hero-section" aria-label="Featured news article">
-      <div class="news-hero-grid">
-        <button class="news-hero-card news-trigger" data-modal="modal-seat-maps" type="button">
-          <div class="news-hero-img">
-            <img src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&h=760&fit=crop" alt="Outdoor concert crowd with confetti" loading="eager">
-            <span class="news-category-badge">Platform Update</span>
-          </div>
-          <div class="news-hero-body">
-            <div class="news-meta">
-              <time>May 2026</time>
-              <span class="news-readtime">4 min read</span>
-            </div>
-            <h1>Expanded support for larger venue seat maps</h1>
-            <p>New seat-map improvements help fans review sections faster while giving organizers cleaner inventory control. The update includes zone-level pricing overlays and live availability highlights.</p>
-          </div>
-        </button>
-
-        <aside class="news-latest-list" aria-label="Latest posts">
-          <h2 class="news-latest-heading">Latest posts</h2>
-
-          <button class="news-latest-item news-trigger" data-modal="modal-mobile-wallet" type="button">
-            <div class="news-latest-thumb">
-              <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=300&h=220&fit=crop" alt="Concert crowd with phone lights" loading="lazy">
-            </div>
-            <div class="news-latest-copy">
-              <h3>Mobile ticket wallet improvements</h3>
-              <div class="news-meta"><time>April 2026</time><span class="news-readtime">3 min read</span></div>
-            </div>
-          </button>
-
-          <button class="news-latest-item news-trigger" data-modal="modal-analytics" type="button">
-            <div class="news-latest-thumb">
-              <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=300&h=220&fit=crop" alt="Analytics charts" loading="lazy">
-            </div>
-            <div class="news-latest-copy">
-              <h3>Organizer analytics dashboard</h3>
-              <div class="news-meta"><time>March 2026</time><span class="news-readtime">5 min read</span></div>
-            </div>
-          </button>
-
-          <button class="news-latest-item news-trigger" data-modal="modal-gate-scanning" type="button">
-            <div class="news-latest-thumb">
-              <img src="https://images.unsplash.com/photo-1603739903239-8b6e64c3b185?w=300&h=220&fit=crop" alt="Event entrance scanning" loading="lazy">
-            </div>
-            <div class="news-latest-copy">
-              <h3>Faster gate scanning for high-capacity venues</h3>
-              <div class="news-meta"><time>February 2026</time><span class="news-readtime">3 min read</span></div>
-            </div>
-          </button>
-
-          <button class="news-latest-item news-trigger" data-modal="modal-discovery" type="button">
-            <div class="news-latest-thumb">
-              <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=300&h=220&fit=crop" alt="Theater performance" loading="lazy">
-            </div>
-            <div class="news-latest-copy">
-              <h3>Redesigned event discovery experience</h3>
-              <div class="news-meta"><time>January 2026</time><span class="news-readtime">4 min read</span></div>
-            </div>
-          </button>
-        </aside>
-      </div>
-    </section>
-
-    <!-- Category strip -->
-    <div class="news-category-strip">
-      <button class="news-cat-btn active" data-category="all">All</button>
-      <button class="news-cat-btn" data-category="platform">Platform Updates</button>
-      <button class="news-cat-btn" data-category="organizer">For Organizers</button>
-      <button class="news-cat-btn" data-category="fans">For Fans</button>
-      <button class="news-cat-btn" data-category="company">Company</button>
-    </div>
-
-    <!-- All Posts Grid -->
-    <section class="news-all-section" aria-label="All news articles">
-      <h2 class="news-section-label">All updates</h2>
-
-      <div class="news-cards-grid" id="newsCardsGrid">
-
-        <button class="news-card news-trigger" data-modal="modal-seat-maps" data-category="platform" type="button">
-          <div class="news-card-img">
-            <img src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=700&h=440&fit=crop" alt="Concert crowd" loading="lazy">
-            <span class="news-category-badge">Platform Update</span>
-          </div>
-          <div class="news-card-body">
-            <div class="news-meta"><time>May 2026</time><span class="news-readtime">4 min read</span></div>
-            <h3>Expanded support for larger venue seat maps</h3>
-            <p>New seat-map improvements help fans review sections faster while giving organizers cleaner inventory control.</p>
-          </div>
-        </button>
-
-        <button class="news-card news-trigger" data-modal="modal-mobile-wallet" data-category="fans" type="button">
-          <div class="news-card-img">
-            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=700&h=440&fit=crop" alt="Concert with phones" loading="lazy">
-            <span class="news-category-badge">For Fans</span>
-          </div>
-          <div class="news-card-body">
-            <div class="news-meta"><time>April 2026</time><span class="news-readtime">3 min read</span></div>
-            <h3>Mobile ticket wallet improvements</h3>
-            <p>Fans can prepare tickets earlier and move through venue entry with fewer check-in steps.</p>
-          </div>
-        </button>
-
-        <button class="news-card news-trigger" data-modal="modal-analytics" data-category="organizer" type="button">
-          <div class="news-card-img">
-            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=700&h=440&fit=crop" alt="Dashboard analytics" loading="lazy">
-            <span class="news-category-badge">For Organizers</span>
-          </div>
-          <div class="news-card-body">
-            <div class="news-meta"><time>March 2026</time><span class="news-readtime">5 min read</span></div>
-            <h3>Organizer analytics dashboard</h3>
-            <p>Partner organizers can now review sales pace, category demand, and attendance trends in one place.</p>
-          </div>
-        </button>
-
-        <button class="news-card news-trigger" data-modal="modal-gate-scanning" data-category="platform" type="button">
-          <div class="news-card-img">
-            <img src="https://images.unsplash.com/photo-1603739903239-8b6e64c3b185?w=700&h=440&fit=crop" alt="Gate scanning" loading="lazy">
-            <span class="news-category-badge">Platform Update</span>
-          </div>
-          <div class="news-card-body">
-            <div class="news-meta"><time>February 2026</time><span class="news-readtime">3 min read</span></div>
-            <h3>Faster gate scanning for high-capacity venues</h3>
-            <p>Updated QR validation cuts average scan time in half, reducing queue bottlenecks at large arenas.</p>
-          </div>
-        </button>
-
-        <button class="news-card news-trigger" data-modal="modal-discovery" data-category="fans" type="button">
-          <div class="news-card-img">
-            <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=700&h=440&fit=crop" alt="Theater lights" loading="lazy">
-            <span class="news-category-badge">For Fans</span>
-          </div>
-          <div class="news-card-body">
-            <div class="news-meta"><time>January 2026</time><span class="news-readtime">4 min read</span></div>
-            <h3>Redesigned event discovery experience</h3>
-            <p>A refreshed browse and filter interface makes it easier to find concerts, theater shows, and sports events.</p>
-          </div>
-        </button>
-
-        <button class="news-card news-trigger" data-modal="modal-launch" data-category="company" type="button">
-          <div class="news-card-img">
-            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=700&h=440&fit=crop" alt="Live music event" loading="lazy">
-            <span class="news-category-badge">Company</span>
-          </div>
-          <div class="news-card-body">
-            <div class="news-meta"><time>December 2025</time><span class="news-readtime">6 min read</span></div>
-            <h3>ClicKet officially launches in the Philippines</h3>
-            <p>After months of beta testing with select venues and organizers, ClicKet opens full access to fans and event creators nationwide.</p>
-          </div>
-        </button>
-
-      </div>
-
-      <!-- Pagination -->
-      <div class="news-pagination" aria-label="News pagination">
-        <button class="news-page-arrow" aria-label="Previous page" disabled>&#8592;</button>
-        <div class="news-page-numbers">
-          <button class="news-page-btn active">1</button>
-          <button class="news-page-btn">2</button>
-          <button class="news-page-btn">3</button>
-          <button class="news-page-btn">4</button>
-          <button class="news-page-btn">5</button>
+    <section class="news-trending-section" aria-label="Trending and featured news">
+      <div class="news-section-heading">
+        <div>
+          <p class="news-kicker">Trending</p>
+          <h2>Featured News</h2>
         </div>
-        <button class="news-page-arrow" aria-label="Next page">&#8594;</button>
+        <span>Updated monthly</span>
+      </div>
+
+      <div class="news-filter-bar" aria-label="Filter news by category">
+        <button class="news-filter-btn active" type="button" data-filter="all">All</button>
+        <button class="news-filter-btn" type="button" data-filter="fans">For Fans</button>
+        <button class="news-filter-btn" type="button" data-filter="organizer">For Organizers</button>
+        <button class="news-filter-btn" type="button" data-filter="platform">Platform Updates</button>
+      </div>
+
+      <div class="news-feature-grid">
+        <button class="news-feature-card news-feature-card-large news-filter-item news-trigger" data-category="platform" data-modal="modal-seat-maps" type="button">
+          <img src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&h=820&fit=crop" alt="Outdoor concert crowd with confetti" loading="eager">
+          <span class="news-category-badge">Platform Update</span>
+          <div class="news-feature-copy">
+            <div class="news-meta"><time>May 2026</time></div>
+            <h3>Expanded support for larger venue seat maps</h3>
+            <p>Zone-level pricing overlays and live availability highlights make large venue booking faster for fans and organizers.</p>
+          </div>
+        </button>
+
+        <button class="news-feature-card news-filter-item news-trigger" data-category="fans" data-modal="modal-mobile-wallet" type="button">
+          <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=720&h=480&fit=crop" alt="Concert crowd with phone lights" loading="lazy">
+          <span class="news-category-badge">For Fans</span>
+          <div class="news-feature-copy">
+            <h3>Mobile ticket wallet improvements</h3>
+            <div class="news-meta"><time>April 2026</time></div>
+          </div>
+        </button>
+
+        <button class="news-feature-card news-filter-item news-trigger" data-category="organizer" data-modal="modal-analytics" type="button">
+          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=720&h=480&fit=crop" alt="Analytics dashboard screens" loading="lazy">
+          <span class="news-category-badge">For Organizers</span>
+          <div class="news-feature-copy">
+            <h3>Organizer analytics dashboard</h3>
+            <div class="news-meta"><time>March 2026</time></div>
+          </div>
+        </button>
+
+        <button class="news-feature-card news-feature-card-wide news-filter-item news-trigger" data-category="platform" data-modal="modal-gate-scanning" type="button">
+          <img src="https://images.unsplash.com/photo-1603739903239-8b6e64c3b185?w=1000&h=460&fit=crop" alt="Event entrance gate" loading="lazy">
+          <span class="news-category-badge">Platform Update</span>
+          <div class="news-feature-copy">
+            <h3>Faster gate scanning for high-capacity venues</h3>
+            <div class="news-meta"><time>February 2026</time></div>
+          </div>
+        </button>
       </div>
     </section>
 
+    <section class="news-categories-section" aria-label="Top news categories">
+      <div class="news-section-heading">
+        <div>
+          <p class="news-kicker">Browse By Scene</p>
+          <h2>Top Categories</h2>
+        </div>
+      </div>
+
+      <div class="news-category-mag-grid">
+        <article class="news-category-tile">
+          <img src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=700&h=520&fit=crop" alt="Concert audience" loading="lazy">
+          <span>Concerts</span>
+          <strong>Artist drops, venue upgrades, and fan experience news.</strong>
+        </article>
+        <article class="news-category-tile">
+          <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=700&h=520&fit=crop" alt="Sports stadium" loading="lazy">
+          <span>Sports</span>
+          <strong>Matchday ticketing, gate flow, and tournament operations.</strong>
+        </article>
+        <article class="news-category-tile">
+          <img src="https://images.unsplash.com/photo-1503095396549-807759245b35?w=700&h=520&fit=crop" alt="Theater stage" loading="lazy">
+          <span>Theater</span>
+          <strong>Seat maps, season passes, and performance discovery.</strong>
+        </article>
+        <article class="news-category-tile">
+          <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=700&h=520&fit=crop" alt="Live event crowd" loading="lazy">
+          <span>Announcements</span>
+          <strong>Company milestones, product releases, and partner notes.</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="news-content-layout" aria-label="Latest news and upcoming events">
+      <div class="news-latest-column">
+        <div class="news-section-heading">
+          <div>
+            <p class="news-kicker">Latest</p>
+            <h2>Latest News</h2>
+          </div>
+        </div>
+
+        <div class="news-latest-feed">
+          <button class="news-feed-item news-filter-item news-trigger" data-category="fans" data-modal="modal-mobile-wallet" type="button">
+            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=320&h=240&fit=crop" alt="Concert crowd with phone lights" loading="lazy">
+            <div>
+              <span>For Fans</span>
+              <h3>Mobile ticket wallet improvements</h3>
+              <p>Fans can prepare tickets earlier and move through venue entry with fewer check-in steps.</p>
+              <div class="news-meta"><time>April 2026</time></div>
+            </div>
+          </button>
+
+          <button class="news-feed-item news-filter-item news-trigger" data-category="organizer" data-modal="modal-analytics" type="button">
+            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=320&h=240&fit=crop" alt="Analytics dashboard" loading="lazy">
+            <div>
+              <span>For Organizers</span>
+              <h3>Organizer analytics dashboard</h3>
+              <p>Partner organizers can review sales pace, category demand, and attendance trends in one place.</p>
+              <div class="news-meta"><time>March 2026</time><</div>
+            </div>
+          </button>
+
+          <button class="news-feed-item news-filter-item news-trigger" data-category="fans" data-modal="modal-discovery" type="button">
+            <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=320&h=240&fit=crop" alt="Theater performance" loading="lazy">
+            <div>
+              <span>For Fans</span>
+              <h3>Redesigned event discovery experience</h3>
+              <p>A refreshed browse and filter interface makes it easier to find concerts, theater shows, and sports events.</p>
+              <div class="news-meta"><time>January 2026</time></div>
+            </div>
+          </button>
+
+          <button class="news-feed-item news-filter-item news-trigger" data-category="platform" data-modal="modal-gate-scanning" type="button">
+            <img src="https://images.unsplash.com/photo-1603739903239-8b6e64c3b185?w=320&h=240&fit=crop" alt="Event entrance gate" loading="lazy">
+            <div>
+              <span>Platform Updates</span>
+              <h3>Faster gate scanning for high-capacity venues</h3>
+              <p>Updated QR validation cuts average scan time and reduces queue bottlenecks at large arenas.</p>
+              <div class="news-meta"><time>February 2026</time></div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <aside class="news-events-panel" aria-label="Upcoming events">
+        <div class="news-section-heading compact">
+          <div>
+            <p class="news-kicker">Calendar</p>
+            <h2>Upcoming Events</h2>
+          </div>
+        </div>
+
+        <div class="news-event-list">
+          <article class="news-event-item">
+            <time datetime="2026-07-12"><strong>12</strong><span>Jul</span></time>
+            <div>
+              <h3>Manila Arena Pop Night</h3>
+              <p>Concerts / Metro Manila</p>
+            </div>
+          </article>
+          <article class="news-event-item">
+            <time datetime="2026-08-03"><strong>03</strong><span>Aug</span></time>
+            <div>
+              <h3>National Hoops Finals</h3>
+              <p>Sports / Quezon City</p>
+            </div>
+          </article>
+          <article class="news-event-item">
+            <time datetime="2026-08-24"><strong>24</strong><span>Aug</span></time>
+            <div>
+              <h3>Black Box Theater Week</h3>
+              <p>Theater / BGC Arts Center</p>
+            </div>
+          </article>
+        </div>
+      </aside>
+    </section>
   </div>
 </main>
 
@@ -406,38 +411,29 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     }
   })();
 
-  // Category filter
+  // News category filter
   (function () {
-    const btns = document.querySelectorAll('.news-cat-btn');
-    const cards = document.querySelectorAll('.news-card');
-    btns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        btns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const cat = btn.dataset.category;
-        cards.forEach(card => {
-          card.style.display = (cat === 'all' || card.dataset.category === cat) ? '' : 'none';
-        });
+    const filterButtons = document.querySelectorAll('.news-filter-btn');
+    const filterItems = document.querySelectorAll('.news-filter-item');
+
+    if (!filterButtons.length || !filterItems.length) return;
+
+    function applyFilter(category) {
+      filterItems.forEach(item => {
+        const isVisible = category === 'all' || item.dataset.category === category;
+        item.classList.toggle('is-hidden', !isVisible);
+      });
+    }
+
+    filterButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        filterButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        applyFilter(button.dataset.filter);
       });
     });
   })();
 
-  // Pagination (visual)
-  (function () {
-    const pageBtns = document.querySelectorAll('.news-page-btn');
-    const prev = document.querySelector('.news-page-arrow:first-child');
-    const next = document.querySelector('.news-page-arrow:last-child');
-    let cur = 0;
-    function setPage(i) {
-      cur = Math.max(0, Math.min(pageBtns.length - 1, i));
-      pageBtns.forEach((b, j) => b.classList.toggle('active', j === cur));
-      prev.disabled = cur === 0;
-      next.disabled = cur === pageBtns.length - 1;
-    }
-    pageBtns.forEach((b, i) => b.addEventListener('click', () => setPage(i)));
-    prev?.addEventListener('click', () => setPage(cur - 1));
-    next?.addEventListener('click', () => setPage(cur + 1));
-  })();
 </script>
 </body>
 </html>

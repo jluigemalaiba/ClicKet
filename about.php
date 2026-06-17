@@ -212,7 +212,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 
       <div class="news-slider-wrapper">
         <div class="news-slider" id="newsSlider">
-          <a href="news.php#modal-seat-maps" class="news-slide">
+          <article class="news-slide news-preview-trigger" data-news="seatMaps" role="button" tabindex="0" aria-label="Read Expanded support for larger venue seat maps">
             <div class="news-slide-img">
               <img src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=700&h=420&fit=crop" alt="Outdoor concert audience" loading="lazy">
             </div>
@@ -221,9 +221,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
               <h3>Expanded support for larger venue seat maps</h3>
               <p>New seat-map improvements help fans review sections faster while giving organizers cleaner inventory control.</p>
             </div>
-          </a>
+          </article>
 
-          <a href="news.php#modal-mobile-wallet" class="news-slide">
+          <article class="news-slide news-preview-trigger" data-news="mobileWallet" role="button" tabindex="0" aria-label="Read Mobile ticket wallet improvements">
             <div class="news-slide-img">
               <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=700&h=420&fit=crop" alt="Concert crowd with phones" loading="lazy">
             </div>
@@ -232,9 +232,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
               <h3>Mobile ticket wallet improvements</h3>
               <p>Fans can prepare tickets earlier and move through venue entry with fewer check-in steps.</p>
             </div>
-          </a>
+          </article>
 
-          <a href="news.php#modal-analytics" class="news-slide">
+          <article class="news-slide news-preview-trigger" data-news="analytics" role="button" tabindex="0" aria-label="Read Organizer analytics dashboard">
             <div class="news-slide-img">
               <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=700&h=420&fit=crop" alt="Analytics dashboard" loading="lazy">
             </div>
@@ -243,9 +243,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
               <h3>Organizer analytics dashboard</h3>
               <p>Partner organizers can now review sales pace, category demand, and attendance trends in one place.</p>
             </div>
-          </a>
+          </article>
 
-          <a href="news.php#modal-gate-scanning" class="news-slide">
+          <article class="news-slide news-preview-trigger" data-news="gateScanning" role="button" tabindex="0" aria-label="Read Faster gate scanning for high-capacity venues">
             <div class="news-slide-img">
               <img src="https://images.unsplash.com/photo-1603739903239-8b6e64c3b185?w=700&h=420&fit=crop" alt="Event gate scanning" loading="lazy">
             </div>
@@ -254,9 +254,9 @@ $currentPage = basename($_SERVER['PHP_SELF']);
               <h3>Faster gate scanning for high-capacity venues</h3>
               <p>Updated QR validation cuts average scan time in half, reducing queue bottlenecks at large arenas and stadiums.</p>
             </div>
-          </a>
+          </article>
 
-          <a href="news.php#modal-discovery" class="news-slide">
+          <article class="news-slide news-preview-trigger" data-news="discovery" role="button" tabindex="0" aria-label="Read Redesigned event discovery experience">
             <div class="news-slide-img">
               <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=700&h=420&fit=crop" alt="Theater performance" loading="lazy">
             </div>
@@ -265,7 +265,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
               <h3>Redesigned event discovery experience</h3>
               <p>A refreshed browse and filter interface makes it easier to find concerts, theater shows, and sports events by date, city, and category.</p>
             </div>
-          </a>
+          </article>
         </div>
 
         <div class="news-slider-controls">
@@ -290,6 +290,28 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       </div>
     </div>
   </section>
+
+  <div class="about-news-modal" id="aboutNewsModal" role="dialog" aria-modal="true" aria-labelledby="aboutNewsModalTitle" aria-hidden="true">
+    <div class="about-news-modal-backdrop" data-news-close></div>
+    <div class="about-news-modal-panel">
+      <button class="about-news-modal-close" type="button" aria-label="Close news details" data-news-close>
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <div class="about-news-modal-hero">
+        <img id="aboutNewsModalImage" src="" alt="">
+        <span id="aboutNewsModalCategory" class="about-news-category"></span>
+      </div>
+      <div class="about-news-modal-body">
+        <div class="about-news-modal-meta">
+          <time id="aboutNewsModalDate"></time>
+          <span id="aboutNewsModalReadTime"></span>
+        </div>
+        <h2 id="aboutNewsModalTitle"></h2>
+        <p id="aboutNewsModalLead" class="about-news-modal-lead"></p>
+        <div id="aboutNewsModalContent" class="about-news-modal-content"></div>
+      </div>
+    </div>
+  </div>
 
   <section class="faq-section">
     <div class="container-xl px-4">
@@ -367,6 +389,160 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     slider.closest('.news-slider-wrapper')?.addEventListener('mouseenter', () => clearInterval(timer));
     slider.closest('.news-slider-wrapper')?.addEventListener('mouseleave', () => {
       timer = setInterval(() => goTo(current + 1), 5000);
+    });
+  })();
+</script>
+
+<script>
+  (function () {
+    const articles = {
+      seatMaps: {
+        category: 'Platform Update',
+        date: 'May 2026',
+        readTime: '4 min read',
+        title: 'Expanded support for larger venue seat maps',
+        image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1400&h=700&fit=crop',
+        imageAlt: 'Concert crowd with confetti',
+        lead: "We've rolled out major improvements to how fans and organizers interact with venue seat maps, making it faster to browse, easier to compare sections, and cleaner to manage inventory at scale.",
+        sections: [
+          ['What changed', 'The updated seat map engine now supports venues with up to 50,000 seats without performance degradation. Zone-level pricing overlays let fans see exact tier costs before diving into individual seat selection, reducing drop-offs during the browsing stage.'],
+          ['Live availability', 'Organizers benefit from a new live availability layer that highlights which sections are selling quickly. This lets event teams make real-time decisions about dynamic pricing and promotional holds without leaving the dashboard.'],
+          ['Faster on mobile', 'The map renderer has been rewritten to load quickly on mid-range Android and iOS devices. Pinch-to-zoom, tap-to-select, and section tooltip previews all work smoothly at any zoom level.'],
+          ["What's next", 'Accessible seat filtering is next, including options for wheelchair-accessible rows, companion seating, and low-obstruction sections directly from the map view.']
+        ]
+      },
+      mobileWallet: {
+        category: 'For Fans',
+        date: 'April 2026',
+        readTime: '3 min read',
+        title: 'Mobile ticket wallet improvements',
+        image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1400&h=700&fit=crop',
+        imageAlt: 'Concert crowd with phone lights',
+        lead: "Getting into a show should be the easy part. We've overhauled the ClicKet mobile wallet so fans can prepare, access, and present tickets in fewer steps, even with limited connectivity.",
+        sections: [
+          ['Tickets ready before you arrive', 'The wallet now pre-loads QR codes up to 24 hours before an event. Fans can open their tickets faster at the gate without digging through account screens.'],
+          ['Offline support', "For venues with spotty signal near entry points, tickets now cache locally as soon as they're downloaded. The QR validator at the gate works entirely offline for cached tickets."],
+          ['Multi-ticket grouping', 'If you bought tickets for a group, the wallet now stacks them in a swipeable view so scanning staff can move through your party quickly.'],
+          ['Wallet export', 'Fans can export ClicKet tickets to Apple Wallet or Google Wallet as a backup, with pass details updating automatically if event information changes.']
+        ]
+      },
+      analytics: {
+        category: 'For Organizers',
+        date: 'March 2026',
+        readTime: '5 min read',
+        title: 'Organizer analytics dashboard',
+        image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1400&h=700&fit=crop',
+        imageAlt: 'Analytics dashboard screens',
+        lead: 'Partner organizers now have a dedicated analytics view that consolidates sales data, attendance signals, and customer behavior into one place.',
+        sections: [
+          ['Sales pace tracking', 'The dashboard shows a rolling sales curve compared against similar past events, helping organizers see whether a show is tracking ahead, on pace, or behind.'],
+          ['Category and section demand', 'Teams can review which ticket tiers are selling fastest, where checkout drop-offs happen, and which sections fans browse most without converting.'],
+          ['Attendance and gate data', 'Once doors open, the dashboard switches to a live gate view with scans per minute, cumulative entry count, and breakdowns by ticket tier.'],
+          ['Access levels', 'Organizers can share dashboard access with venue staff, co-promoters, or sponsors at configurable permission levels.']
+        ]
+      },
+      gateScanning: {
+        category: 'Platform Update',
+        date: 'February 2026',
+        readTime: '3 min read',
+        title: 'Faster gate scanning for high-capacity venues',
+        image: 'https://images.unsplash.com/photo-1603739903239-8b6e64c3b185?w=1400&h=700&fit=crop',
+        imageAlt: 'Event entrance gate',
+        lead: "Long entry queues cost fans their pre-show energy and cost organizers goodwill. We've rebuilt the QR validation stack to cut scan time at high-volume gates.",
+        sections: [
+          ['What we improved', 'The validator app camera pipeline recognizes QR codes faster across a wider range of angles and lighting conditions, including outdoor daylight gates and dark indoor corridors.'],
+          ['Bulk scan mode', "For venues with dedicated entry staff, bulk scan mode keeps the camera live between scans. Valid scans show a green flash, while invalid tickets trigger clear haptic and audio cues."],
+          ['Offline validation', 'Gate devices sync the valid-ticket manifest before doors open and validate locally, so network outages at entry points no longer cause avoidable delays.']
+        ]
+      },
+      discovery: {
+        category: 'For Fans',
+        date: 'January 2026',
+        readTime: '4 min read',
+        title: 'Redesigned event discovery experience',
+        image: 'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1400&h=700&fit=crop',
+        imageAlt: 'Theater performance on stage',
+        lead: "Finding the right event to go to shouldn't take longer than buying the ticket. The redesigned browse experience gives fans faster paths to what they want and better ways to discover something new.",
+        sections: [
+          ['Smarter filters', 'Filters now include date range, city, price bracket, category, and venue type, and they update results instantly without a page reload.'],
+          ['Category collections', 'The homepage surfaces curated collections like This Weekend, New Announcements, and Live in Your City based on available inventory.'],
+          ['Event detail improvements', 'Event pages now show clearer ticket tier breakdowns, remaining availability, and seating chart access before checkout.'],
+          ['Search upgrades', 'Search now matches artist names, venue names, event descriptions, and categories simultaneously, with typo tolerance and partial matching.']
+        ]
+      }
+    };
+
+    const modal = document.getElementById('aboutNewsModal');
+    const triggers = document.querySelectorAll('.news-preview-trigger');
+    if (!modal || !triggers.length) return;
+
+    const image = document.getElementById('aboutNewsModalImage');
+    const category = document.getElementById('aboutNewsModalCategory');
+    const date = document.getElementById('aboutNewsModalDate');
+    const readTime = document.getElementById('aboutNewsModalReadTime');
+    const title = document.getElementById('aboutNewsModalTitle');
+    const lead = document.getElementById('aboutNewsModalLead');
+    const content = document.getElementById('aboutNewsModalContent');
+    let activeTrigger = null;
+
+    function renderArticle(article) {
+      image.src = article.image;
+      image.alt = article.imageAlt;
+      category.textContent = article.category;
+      date.textContent = article.date;
+      readTime.textContent = article.readTime;
+      title.textContent = article.title;
+      lead.textContent = article.lead;
+      content.replaceChildren();
+
+      article.sections.forEach(function (section) {
+        const heading = document.createElement('h3');
+        const paragraph = document.createElement('p');
+        heading.textContent = section[0];
+        paragraph.textContent = section[1];
+        content.append(heading, paragraph);
+      });
+    }
+
+    function openModal(key, trigger) {
+      const article = articles[key];
+      if (!article) return;
+      activeTrigger = trigger;
+      renderArticle(article);
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      modal.querySelector('.about-news-modal-close')?.focus();
+    }
+
+    function closeModal() {
+      modal.classList.remove('is-open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      activeTrigger?.focus();
+    }
+
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        openModal(trigger.dataset.news, trigger);
+      });
+
+      trigger.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openModal(trigger.dataset.news, trigger);
+        }
+      });
+    });
+
+    modal.querySelectorAll('[data-news-close]').forEach(function (closeControl) {
+      closeControl.addEventListener('click', closeModal);
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && modal.classList.contains('is-open')) {
+        closeModal();
+      }
     });
   })();
 </script>
