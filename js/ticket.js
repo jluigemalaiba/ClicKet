@@ -23,7 +23,7 @@
   const ns = 'http://www.w3.org/2000/svg';
   const activePointers = new Map();
   const unavailableSeatIds = new Set(config.unavailableSeatIds || []);
-  const isDetailedBowl = ['cuneta', 'moa-sports', 'moa-concert', 'philippine-concert', 'araneta-concert'].includes(config.venue.mapKey);
+  const isDetailedBowl = ['cuneta', 'moa-sports', 'moa-concert', 'philippine-concert', 'araneta-concert', 'araneta-sports', 'philsports-svg'].includes(config.venue.mapKey);
   const detailedBowlTiers = {
     cuneta: {
       floor: { innerRx: 980, innerRy: 625, outerRx: 1235, outerRy: 815, columns: 16 },

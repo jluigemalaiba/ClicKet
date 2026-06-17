@@ -1,0 +1,49 @@
+<svg width="1006" height="787" viewBox="0 0 1006 787" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="PS_Arena">
+<rect id="Court" x="327" y="289" width="350" height="212" fill="#968E8E"/>
+<rect id="patron_sec_102" x="152" y="265" width="115" height="264" fill="#D9D9D9"/>
+<rect id="lb_sec_207" x="126" y="260" width="17" height="73" fill="#D9D9D9"/>
+<rect id="lb_sec_213" x="860" y="260" width="17" height="73" fill="#D9D9D9"/>
+<rect id="lb_sec_214" x="860" y="460" width="17" height="73" fill="#D9D9D9"/>
+<rect id="lb_sec_206" x="126" y="460" width="17" height="73" fill="#D9D9D9"/>
+<rect id="patron_sec_104" x="729" y="263" width="122" height="264" fill="#D9D9D9"/>
+<path id="upperb_sec_301" d="M292 100L259.5 0H740.5L707.5 100H292Z" fill="#D9D9D9"/>
+<path id="upperb_sec_305" d="M292.5 686L260 786H741L708 686H292.5Z" fill="#D9D9D9"/>
+<path id="upperb_sec_308" d="M102 257.5L5.99999 208L250.5 1.49999L283 103L102 257.5Z" fill="#D9D9D9"/>
+<path id="upperb_sec_306" d="M97.8259 526.541L0.40859 576.866L247.492 786.234L282.449 684.075L97.8259 526.541Z" fill="#D9D9D9"/>
+<path id="upperb_sec_307" d="M96.9802 265.5L6.10352e-05 217.5L9.15527e-05 565.5L96.9802 517.702L96.9802 265.5Z" fill="#D9D9D9"/>
+<path id="upperb_sec_303" d="M906 263.843L1005 215.5L1006 570L906 516.636L906 263.843Z" fill="#D9D9D9"/>
+<path id="upperb_sec_304" d="M905.649 524.227L1001.5 578L754.051 782.103L720.537 681.186L905.649 524.227Z" fill="#D9D9D9"/>
+<path id="upperb_sec_302" d="M901.298 258.159L998.5 208.159L749.062 0.659237L715.798 101.659L901.298 258.159Z" fill="#D9D9D9"/>
+<rect id="lb_sec_210" x="451" y="133" width="103" height="68" fill="#D9D9D9"/>
+<path id="lb_sec_213_2" d="M168 223.5L277.58 131.059L310.5 206.5L280.5 230.5L168 223.5Z" fill="#D9D9D9"/>
+<path id="lb_sec_212" d="M836.808 226.622L728.614 132.564L694.576 207.507L724.217 231.95L836.808 226.622Z" fill="#D9D9D9"/>
+<path id="lb_sec_201" d="M801 596.5L728.378 661.256L698.001 581.5L706.501 573.5L761.5 577.5L765.5 581L778 572L801 596.5Z" fill="#D9D9D9"/>
+<path id="lb_sec_205" d="M205.5 598.5L277.988 661.656L308.366 581.9L299.866 573.9L226 577L205.5 598.5Z" fill="#D9D9D9"/>
+<g id="lb_sec_209">
+<path d="M296 123H345.5V132.5H442V201H321.5L296 146V123Z" fill="#D9D9D9"/>
+<path d="M296 123H345.5V132.5H442V201H321.5L296 146V123Z" fill="#D9D9D9"/>
+</g>
+<g id="lb_sec_211">
+<path d="M710 123H660.5H564V132.5V201H684.5L710 146V123Z" fill="#D9D9D9"/>
+<path d="M710 123H660.5H564V132.5V201H684.5L710 146V123Z" fill="#D9D9D9"/>
+<path d="M710 123H660.5H564V132.5V201H684.5L710 146V123Z" fill="#D9D9D9"/>
+<path d="M710 123H660.5H564V132.5V201H684.5L710 146V123Z" fill="#D9D9D9"/>
+</g>
+<g id="lb_sec_202">
+<path d="M714.5 666H657.5H561V656.5V588H681.5L714.5 640.5V666Z" fill="#D9D9D9"/>
+<path d="M714.5 666H657.5H561V656.5V588H681.5L714.5 640.5V666Z" fill="#D9D9D9"/>
+<path d="M714.5 666H657.5H561V656.5V588H681.5L714.5 640.5V666Z" fill="#D9D9D9"/>
+<path d="M714.5 666H657.5H561V656.5V588H681.5L714.5 640.5V666Z" fill="#D9D9D9"/>
+</g>
+<g id="lb_sec_204">
+<path d="M290 666H347H443.5V656.5V588H323L290 640.5V666Z" fill="#D9D9D9"/>
+<path d="M290 666H347H443.5V656.5V588H323L290 640.5V666Z" fill="#D9D9D9"/>
+<path d="M290 666H347H443.5V656.5V588H323L290 640.5V666Z" fill="#D9D9D9"/>
+<path d="M290 666H347H443.5V656.5V588H323L290 640.5V666Z" fill="#D9D9D9"/>
+</g>
+<rect id="lb_sec_203" x="451" y="588" width="103" height="68" fill="#D9D9D9"/>
+<path id="patron_sec_103" d="M327 216H677V228.5H661V265H587V230H575.5V265H429.5V230H415V265H342V230H327V216Z" fill="#D9D9D9"/>
+<path id="patron_sec_101" d="M327 573H677V560.5H661V524H587V559H575.5V524H429.5V559H415V524H342V559H327V573Z" fill="#D9D9D9"/>
+</g>
+</svg>

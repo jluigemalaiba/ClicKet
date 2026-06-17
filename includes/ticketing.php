@@ -308,6 +308,42 @@ function clicketAranetaConcertTierForSvgId(string $id): ?array {
     return null;
 }
 
+function clicketAranetaSportsTierForSvgId(string $id): ?array {
+    $normalized = strtolower($id);
+    $tiers = [
+        'vip_' => ['tier' => 'vip', 'category' => 'vip', 'label' => 'VIP', 'color' => '#fff0a8'],
+        'patron_' => ['tier' => 'patron', 'category' => 'platinum', 'label' => 'Patron', 'color' => '#bfe8c8'],
+        'lb_' => ['tier' => 'lower', 'category' => 'gold', 'label' => 'Lower Box', 'color' => '#ffc58f'],
+        'ub_' => ['tier' => 'upper', 'category' => 'silver', 'label' => 'Upper Box', 'color' => '#d8b7ff'],
+        'genad_' => ['tier' => 'general', 'category' => 'general', 'label' => 'General Admission', 'color' => '#f2a0aa'],
+    ];
+
+    foreach ($tiers as $prefix => $tier) {
+        if (strpos($normalized, $prefix) === 0) {
+            return $tier;
+        }
+    }
+
+    return null;
+}
+
+function clicketPhilsportsTierForSvgId(string $id): ?array {
+    $normalized = strtolower($id);
+    $tiers = [
+        'patron_' => ['tier' => 'patron', 'category' => 'platinum', 'label' => 'Patron', 'color' => '#bfe8c8'],
+        'lb_' => ['tier' => 'lower', 'category' => 'gold', 'label' => 'Lower Box', 'color' => '#afd3ff'],
+        'upperb_' => ['tier' => 'upper', 'category' => 'silver', 'label' => 'Upper Box', 'color' => '#ffc58f'],
+    ];
+
+    foreach ($tiers as $prefix => $tier) {
+        if (strpos($normalized, $prefix) === 0) {
+            return $tier;
+        }
+    }
+
+    return null;
+}
+
 function clicketSvgAttributes(string $tag): array {
     preg_match_all('/([A-Za-z_:][A-Za-z0-9_.:-]*)="([^"]*)"/', $tag, $matches, PREG_SET_ORDER);
     $attributes = [];
@@ -353,7 +389,7 @@ function clicketRectPoints(array $attributes): array {
 }
 
 function clicketPathPoints(string $pathData): array {
-    preg_match_all('/[A-Za-z]|-?\d+(?:\.\d+)?/', $pathData, $matches);
+    preg_match_all('/[A-Za-z]|[-+]?(?:(?:\d*\.\d+)|(?:\d+\.?))(?:[eE][-+]?\d+)?/', $pathData, $matches);
     $tokens = $matches[0];
     $points = [];
     $index = 0;
@@ -678,6 +714,26 @@ function clicketAranetaConcertSvgLayout(): array {
     ]);
 }
 
+function clicketAranetaSportsSvgLayout(): array {
+    return clicketArenaSvgLayout('Araneta_Sport.svg', [
+        'seatPattern' => '/^(?:vip_|patron_|lb_|ub_|genad_)/i',
+        'seatGroupPattern' => '/<g\b[^>]*\bid="((?:vip_|patron_|lb_|ub_|genad_)[^"]+)"[^>]*>(.*?)<\/g>/is',
+        'blockedIds' => ['Court' => 'Court'],
+        'capacity' => 18000,
+        'viewBox' => [0, 0, 794, 803],
+    ]);
+}
+
+function clicketPhilsportsSvgLayout(): array {
+    return clicketArenaSvgLayout('PS_Arena.svg', [
+        'seatPattern' => '/^(?:patron_|lb_|upperb_)/i',
+        'seatGroupPattern' => '/<g\b[^>]*\bid="((?:patron_|lb_|upperb_)[^"]+)"[^>]*>(.*?)<\/g>/is',
+        'blockedIds' => ['Court' => 'Court'],
+        'capacity' => 10000,
+        'viewBox' => [0, 0, 1006, 787],
+    ]);
+}
+
 function clicketMoaSportsProfile(): array {
     $svgLayout = clicketMoaSportsSvgLayout();
     if (!empty($svgLayout['sections'])) {
@@ -925,6 +981,84 @@ function clicketAranetaConcertProfile(): array {
     return clicketVenueProfiles()['Smart Araneta Coliseum'];
 }
 
+function clicketAranetaSportsProfile(): array {
+    $svgLayout = clicketAranetaSportsSvgLayout();
+    if (!empty($svgLayout['sections'])) {
+        $sections = [];
+        foreach ($svgLayout['sections'] as $section) {
+            $tier = clicketAranetaSportsTierForSvgId($section['id']);
+            if (!$tier || !preg_match('/sec_(\d+)/i', $section['id'], $numberMatch)) {
+                continue;
+            }
+            $number = $numberMatch[1];
+            $sections[] = [
+                'id' => $section['id'],
+                'label' => $tier['label'] . ' ' . $number,
+                'number' => $number,
+                'category' => $tier['category'],
+                'tier' => $tier['tier'],
+                'capacity' => $section['capacity'],
+                'mapColor' => $tier['color'],
+                'zone' => 'svg-' . $tier['tier'],
+                'svgShape' => $section['shape'],
+            ];
+        }
+
+        return [
+            'layout' => 'court',
+            'stageLabel' => 'Court',
+            'subtitle' => 'Smart Araneta Coliseum 18,000-seat sports layout',
+            'capacity' => 18000,
+            'sections' => $sections,
+            'svgLayout' => [
+                'viewBox' => $svgLayout['viewBox'],
+                'nonSeats' => $svgLayout['nonSeats'],
+            ],
+        ];
+    }
+
+    return clicketVenueProfiles()['Smart Araneta Coliseum'];
+}
+
+function clicketPhilsportsProfile(): array {
+    $svgLayout = clicketPhilsportsSvgLayout();
+    if (!empty($svgLayout['sections'])) {
+        $sections = [];
+        foreach ($svgLayout['sections'] as $section) {
+            $tier = clicketPhilsportsTierForSvgId($section['id']);
+            if (!$tier || !preg_match('/sec_(\d+)/i', $section['id'], $numberMatch)) {
+                continue;
+            }
+            $number = $numberMatch[1];
+            $sections[] = [
+                'id' => $section['id'],
+                'label' => $tier['label'] . ' ' . $number,
+                'number' => $number,
+                'category' => $tier['category'],
+                'tier' => $tier['tier'],
+                'capacity' => $section['capacity'],
+                'mapColor' => $tier['color'],
+                'zone' => 'svg-' . $tier['tier'],
+                'svgShape' => $section['shape'],
+            ];
+        }
+
+        return [
+            'layout' => 'court',
+            'stageLabel' => 'Court',
+            'subtitle' => 'PhilSports Arena 10,000-seat sports layout',
+            'capacity' => 10000,
+            'sections' => $sections,
+            'svgLayout' => [
+                'viewBox' => $svgLayout['viewBox'],
+                'nonSeats' => $svgLayout['nonSeats'],
+            ],
+        ];
+    }
+
+    return clicketCourtProfile('Philsports Arena');
+}
+
 function clicketStadiumProfile(): array {
     return [
         'layout' => 'stadium',
@@ -983,7 +1117,7 @@ function clicketVenueMap(string $venue, string $categoryKey): array {
         'Tanghalang Pilipino' => ['default' => ['mapKey' => 'tanghalan', 'mapType' => 'theater-round']],
         'Resorts World Manila' => ['default' => ['mapKey' => 'resorts', 'mapType' => 'end-stage']],
         'Samsung Hall' => ['default' => ['mapKey' => 'samsung', 'mapType' => 'theater-reverse']],
-        'Philsports Arena' => ['default' => ['mapKey' => 'philsports', 'mapType' => 'court']],
+        'Philsports Arena' => ['default' => ['mapKey' => 'philsports-svg', 'mapType' => 'court', 'stageLabel' => 'Court', 'subtitle' => 'PhilSports Arena sports layout']],
         'Filoil EcoOil Centre' => ['default' => ['mapKey' => 'filoil', 'mapType' => 'court']],
         'Cuneta Astrodome' => ['default' => ['mapKey' => 'cuneta', 'mapType' => 'cuneta-bowl', 'stageLabel' => 'Basketball Court', 'subtitle' => 'Cuneta Astrodome four-tier arena bowl', 'capacity' => 12000]],
         'Muntinlupa Sports Center' => ['default' => ['mapKey' => 'muntinlupa', 'mapType' => 'court']],
@@ -1010,6 +1144,10 @@ function clicketVenueProfile(string $venue, string $categoryKey = ''): array {
         $profile = clicketPhilippineArenaProfile();
     } elseif ($venue === 'Smart Araneta Coliseum' && $categoryKey === 'concerts') {
         $profile = clicketAranetaConcertProfile();
+    } elseif ($venue === 'Smart Araneta Coliseum' && $categoryKey === 'sports') {
+        $profile = clicketAranetaSportsProfile();
+    } elseif ($venue === 'Philsports Arena') {
+        $profile = clicketPhilsportsProfile();
     } else {
         $profile = $profiles[$venue] ?? clicketHallProfile($venue);
     }
