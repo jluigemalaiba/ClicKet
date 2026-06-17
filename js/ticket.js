@@ -23,7 +23,7 @@
   const ns = 'http://www.w3.org/2000/svg';
   const activePointers = new Map();
   const unavailableSeatIds = new Set(config.unavailableSeatIds || []);
-  const isDetailedBowl = ['cuneta', 'moa-sports', 'moa-concert'].includes(config.venue.mapKey);
+  const isDetailedBowl = ['cuneta', 'moa-sports', 'moa-concert', 'philippine-concert'].includes(config.venue.mapKey);
   const detailedBowlTiers = {
     cuneta: {
       floor: { innerRx: 980, innerRy: 625, outerRx: 1235, outerRy: 815, columns: 16 },
@@ -38,11 +38,11 @@
       upper: { innerRx: 2050, innerRy: 1400, outerRx: 2380, outerRy: 1665, columns: 16 },
     },
     'moa-concert': {
-      standing: { columns: 18 },
-      patron: { columns: 16 },
-      lower: { innerRx: 1120, innerRy: 720, outerRx: 1490, outerRy: 1000, columns: 18 },
-      upper: { innerRx: 1580, innerRy: 1080, outerRx: 1940, outerRy: 1340, columns: 18 },
-      general: { innerRx: 2040, innerRy: 1420, outerRx: 2350, outerRy: 1660, columns: 18 },
+      standing: { columns: 30 },
+      patron: { columns: 48 },
+      lower: { innerRx: 1185, innerRy: 780, outerRx: 1495, outerRy: 1005, columns: 22 },
+      upper: { innerRx: 1605, innerRy: 1100, outerRx: 1925, outerRy: 1340, columns: 22 },
+      general: { innerRx: 2050, innerRy: 1440, outerRx: 2325, outerRy: 1655, columns: 24 },
     },
   };
   const bowlTiers = detailedBowlTiers[config.venue.mapKey] || null;
@@ -71,6 +71,7 @@
     dragMoved: false,
     pointerDownSectionId: null,
     pointerCaptured: false,
+    seatTransformTimer: null,
   };
 
   const zoneLayouts = {
@@ -284,6 +285,218 @@
       .join(' ') + ' Z';
   }
 
+  function moaSportsSvgTransform() {
+    const viewBox = config.venue.svgLayout?.viewBox || [0, 0, 730, 645];
+    const [, , width, height] = viewBox;
+    const scale = Math.min(4500 / width, 3300 / height);
+    return {
+      scale,
+      offsetX: (mapDimensions.width - width * scale) / 2,
+      offsetY: (mapDimensions.height - height * scale) / 2,
+    };
+  }
+
+  function moaSportsScalePoint(point) {
+    const transform = moaSportsSvgTransform();
+    return [
+      transform.offsetX + Number(point[0]) * transform.scale,
+      transform.offsetY + Number(point[1]) * transform.scale,
+    ];
+  }
+
+  function polygonPath(points) {
+    return points
+      .map(([x, y], index) => `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`)
+      .join(' ') + ' Z';
+  }
+
+  function polygonBounds(points) {
+    const xs = points.map(point => point[0]);
+    const ys = points.map(point => point[1]);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    return { minX, maxX, minY, maxY, width: maxX - minX, height: maxY - minY };
+  }
+
+  function polygonArea(points) {
+    let area = 0;
+    for (let index = 0; index < points.length; index += 1) {
+      const next = (index + 1) % points.length;
+      area += points[index][0] * points[next][1] - points[next][0] * points[index][1];
+    }
+    return Math.abs(area / 2);
+  }
+
+  function polygonCenter(points) {
+    let twiceArea = 0;
+    let centerX = 0;
+    let centerY = 0;
+    for (let index = 0; index < points.length; index += 1) {
+      const next = (index + 1) % points.length;
+      const cross = points[index][0] * points[next][1] - points[next][0] * points[index][1];
+      twiceArea += cross;
+      centerX += (points[index][0] + points[next][0]) * cross;
+      centerY += (points[index][1] + points[next][1]) * cross;
+    }
+    if (Math.abs(twiceArea) < 1e-6) {
+      const bounds = polygonBounds(points);
+      return [bounds.minX + bounds.width / 2, bounds.minY + bounds.height / 2];
+    }
+    return [centerX / (3 * twiceArea), centerY / (3 * twiceArea)];
+  }
+
+  function pointInPolygon(point, polygon) {
+    const [x, y] = point;
+    let inside = false;
+    for (let index = 0, prev = polygon.length - 1; index < polygon.length; prev = index, index += 1) {
+      const xi = polygon[index][0];
+      const yi = polygon[index][1];
+      const xj = polygon[prev][0];
+      const yj = polygon[prev][1];
+      const intersects = ((yi > y) !== (yj > y))
+        && (x < ((xj - xi) * (y - yi)) / ((yj - yi) || 1e-9) + xi);
+      if (intersects) inside = !inside;
+    }
+    return inside;
+  }
+
+  function longestEdgeAngle(points) {
+    let angle = 0;
+    let longest = 0;
+    for (let index = 0; index < points.length; index += 1) {
+      const next = (index + 1) % points.length;
+      const dx = points[next][0] - points[index][0];
+      const dy = points[next][1] - points[index][1];
+      const length = Math.hypot(dx, dy);
+      if (length > longest) {
+        longest = length;
+        angle = Math.atan2(dy, dx);
+      }
+    }
+    return angle;
+  }
+
+  function moaSportsSeatLayout(section, count) {
+    const points = section.svgPoints || (section.svgShape?.points || []).map(moaSportsScalePoint);
+    const angle = longestEdgeAngle(points);
+    const ux = Math.cos(angle);
+    const uy = Math.sin(angle);
+    const vx = -uy;
+    const vy = ux;
+    const projections = points.map(([x, y]) => ({ u: x * ux + y * uy, v: x * vx + y * vy }));
+    const minU = Math.min(...projections.map(point => point.u));
+    const maxU = Math.max(...projections.map(point => point.u));
+    const minV = Math.min(...projections.map(point => point.v));
+    const maxV = Math.max(...projections.map(point => point.v));
+    const area = Math.max(1, polygonArea(points));
+    let spacing = Math.max(8, Math.sqrt(area / Math.max(1, count)) * .92);
+    let seats = [];
+
+    for (let attempt = 0; attempt < 5 && seats.length < count; attempt += 1) {
+      seats = [];
+      const columns = Math.max(1, Math.floor((maxU - minU) / spacing));
+      const rows = Math.max(1, Math.floor((maxV - minV) / spacing));
+      for (let rowIndex = 0; rowIndex <= rows; rowIndex += 1) {
+        const stagger = rowIndex % 2 === 0 ? 0 : .5;
+        for (let columnIndex = 0; columnIndex <= columns; columnIndex += 1) {
+          const u = minU + (columnIndex + .5 + stagger) * ((maxU - minU) / (columns + 1));
+          const v = minV + (rowIndex + .5) * ((maxV - minV) / (rows + 1));
+          const x = u * ux + v * vx;
+          const y = u * uy + v * vy;
+          if (pointInPolygon([x, y], points)) {
+            seats.push({ x, y, rowIndex, columnIndex });
+          }
+        }
+      }
+      spacing *= .86;
+    }
+
+    return seats.slice(0, count);
+  }
+
+  function createMoaSportsSvgSeatData(section, sectionIndex) {
+    const category = config.categories[section.category];
+    const capacity = Number(section.capacity || 0);
+    const layout = moaSportsSeatLayout(section, capacity);
+    layout.forEach((position, index) => {
+      const row = rowName(position.rowIndex);
+      const seatNumber = position.columnIndex + 1;
+      const id = `${section.id}-${row}-${seatNumber}`;
+      const random = deterministicNumber(`${config.event.key}-${id}`);
+      const unavailable = random % 100 < 28 || unavailableSeatIds.has(id);
+      const seat = {
+        id,
+        sectionId: section.id,
+        section: section.label,
+        row,
+        number: String(seatNumber),
+        category: category.label,
+        categoryKey: section.category,
+        color: section.mapColor || category.color,
+        price: category.price,
+        unavailable,
+        rank: category.rank * 100000 + sectionIndex * 1000 + index,
+        rowIndex: position.rowIndex,
+        columnIndex: position.columnIndex,
+        x: position.x,
+        y: position.y,
+      };
+      state.seats.push(seat);
+      state.seatById.set(id, seat);
+    });
+  }
+
+  function renderMoaSportsSvgMap() {
+    const layout = config.venue.svgLayout;
+    (layout.nonSeats || []).forEach(shape => {
+      const points = (shape.shape?.points || []).map(moaSportsScalePoint);
+      const [labelX, labelY] = polygonCenter(points);
+      canvas.appendChild(svgNode('path', {
+        id: shape.id,
+        d: polygonPath(points),
+        class: `moa-sports-static-area moa-sports-static-area--${String(shape.id).toLowerCase()}`,
+      }));
+      const label = svgNode('text', {
+        x: labelX,
+        y: labelY,
+        class: 'moa-sports-static-label',
+      });
+      label.textContent = shape.label || shape.id;
+      if (shape.label !== '') canvas.appendChild(label);
+    });
+
+    config.venue.sections.forEach((section, index) => {
+      const category = config.categories[section.category];
+      const points = (section.svgShape?.points || []).map(moaSportsScalePoint);
+      section.svgPoints = points;
+      const [labelX, labelY] = polygonCenter(points);
+      const bounds = polygonBounds(points);
+      const group = svgNode('g', {
+        class: 'map-section cuneta-section moa-sports-svg-section',
+        'data-section-id': section.id,
+        'data-category': section.category,
+        style: `--section-color:${section.mapColor || category.color}`,
+        tabindex: '0',
+        role: 'button',
+        'aria-label': `${section.label}, ${Number(section.capacity).toLocaleString()} seats. Select section to view seats.`,
+      });
+      group.appendChild(svgNode('path', {
+        id: section.id,
+        d: polygonPath(points),
+        class: 'cuneta-section-wedge moa-sports-svg-wedge',
+      }));
+      const number = svgNode('text', { x: labelX, y: labelY, class: 'cuneta-section-number moa-sports-section-number' });
+      number.textContent = section.number;
+      group.appendChild(number);
+      canvas.appendChild(group);
+      state.sectionBounds.set(section.id, [bounds.minX, bounds.minY, bounds.width, bounds.height]);
+      state.sectionCenters.set(section.id, [labelX, labelY]);
+      createMoaSportsSvgSeatData(section, index);
+    });
+  }
+
   function appendInteractiveSeat(group, section, sectionIndex, rowIndex, columnIndex, cx, cy, includeCheck = true) {
     const category = config.categories[section.category];
     const row = rowName(rowIndex);
@@ -334,7 +547,9 @@
 
   function bowlSectionGap(tierName) {
     if (config.venue.mapKey === 'moa-concert') {
-      return tierName === 'general' ? 5.5 : 4.2;
+      if (tierName === 'general') return 5.5;
+      if (tierName === 'upper') return 4.4;
+      return 4.8;
     }
     if (config.venue.mapKey === 'moa-sports') {
       return tierName === 'upper' ? 2.6 : 4.4;
@@ -347,26 +562,24 @@
     const index = tierSections.findIndex(item => item.id === section.id);
     if (section.tier === 'standing') {
       return index === 0
-        ? [1810, 660, 560, 720]
-        : [2630, 660, 560, 720];
+        ? [1640, 730, 430, 640]
+        : [2930, 730, 430, 640];
     }
-    const boxes = [
-      [1770, 1510, 335, 620],
-      [2120, 1510, 335, 620],
-      [2545, 1510, 335, 620],
-      [2895, 1510, 335, 620],
-    ];
-    return boxes[index];
+    if (section.tier === 'patron') {
+      return [1775, 1625, 1450, 430];
+    }
+    return [0, 0, 0, 0];
   }
 
   function bowlSectionAngles(section, tierSections, sectionIndex) {
     if (config.venue.mapKey === 'moa-concert') {
-      const span = 200;
+      const span = section.tier === 'general' ? 206 : 214;
       const angleStep = span / tierSections.length;
       const gap = bowlSectionGap(section.tier);
+      const start = section.tier === 'general' ? -13 : -17;
       return [
-        -10 + sectionIndex * angleStep + gap / 2,
-        -10 + (sectionIndex + 1) * angleStep - gap / 2,
+        start + sectionIndex * angleStep + gap / 2,
+        start + (sectionIndex + 1) * angleStep - gap / 2,
       ];
     }
     const angleStep = 360 / tierSections.length;
@@ -383,6 +596,11 @@
     const tiers = bowlTiers;
     const isMoa = config.venue.mapKey === 'moa-sports';
     const isMoaConcert = config.venue.mapKey === 'moa-concert';
+
+    if (config.venue.svgLayout) {
+      renderMoaSportsSvgMap();
+      return;
+    }
 
     if (isMoaConcert) {
       renderDetailedBowlSections();
@@ -460,32 +678,50 @@
   }
 
   function renderMoaConcertStage() {
+    canvas.appendChild(svgNode('path', {
+      d: 'M 395 1425 L 720 1425 L 720 965 L 1365 965 L 1365 1575 Q 2500 2820 3635 1575 L 3635 965 L 4280 965 L 4280 1425 L 4605 1425 L 4605 2640 Q 2500 3440 395 2640 Z',
+      class: 'moa-concert-outline',
+    }));
+    [
+      [545, 785, 500, 380],
+      [3955, 785, 500, 380],
+      [925, 1085, 400, 320],
+      [3675, 1085, 400, 320],
+    ].forEach(([x, y, width, height]) => {
+      canvas.appendChild(svgNode('rect', { x, y, width, height, rx: 8, class: 'moa-concert-muted-block' }));
+    });
     const stage = svgNode('rect', {
-      x: 1940,
-      y: 185,
-      width: 1120,
-      height: 410,
-      rx: 36,
+      x: 1830,
+      y: 165,
+      width: 1340,
+      height: 465,
+      rx: 10,
       class: 'moa-concert-stage',
     });
     canvas.appendChild(stage);
-    const stageLabel = svgNode('text', { x: 2500, y: 420, class: 'moa-concert-stage-label' });
+    const stageLabel = svgNode('text', { x: 2500, y: 455, class: 'moa-concert-stage-label' });
     stageLabel.textContent = config.venue.stageLabel;
     canvas.appendChild(stageLabel);
     canvas.appendChild(svgNode('path', {
-      d: 'M 2260 595 L 2260 1110 L 2740 1110 L 2740 595 L 2910 595 L 2910 1375 L 2090 1375 L 2090 595 Z',
+      d: 'M 2215 630 L 2215 1125 L 2350 1125 L 2350 1435 L 2650 1435 L 2650 1125 L 2785 1125 L 2785 630 L 3015 630 L 3015 1515 L 1985 1515 L 1985 630 Z',
       class: 'moa-concert-catwalk',
     }));
-    const booth = svgNode('rect', { x: 2250, y: 2180, width: 500, height: 125, rx: 14, class: 'moa-tech-booth' });
+    const booth = svgNode('rect', { x: 2240, y: 2150, width: 520, height: 125, rx: 8, class: 'moa-tech-booth' });
     canvas.appendChild(booth);
-    const boothLabel = svgNode('text', { x: 2500, y: 2260, class: 'moa-tech-booth-label' });
+    const boothLabel = svgNode('text', { x: 2500, y: 2230, class: 'moa-tech-booth-label' });
     boothLabel.textContent = 'TECH BOOTH';
     canvas.appendChild(boothLabel);
-    const left = svgNode('text', { x: 2090, y: 1030, class: 'moa-standing-label' });
-    left.textContent = 'LEFT STANDING';
+    const left = svgNode('text', { x: 1855, y: 1070, class: 'moa-standing-label' });
+    left.textContent = 'LEFT';
+    const leftStanding = svgNode('tspan', { x: 1855, dy: 46 });
+    leftStanding.textContent = 'STANDING';
+    left.appendChild(leftStanding);
     canvas.appendChild(left);
-    const right = svgNode('text', { x: 2910, y: 1030, class: 'moa-standing-label' });
-    right.textContent = 'RIGHT STANDING';
+    const right = svgNode('text', { x: 3145, y: 1070, class: 'moa-standing-label' });
+    right.textContent = 'RIGHT';
+    const rightStanding = svgNode('tspan', { x: 3145, dy: 46 });
+    rightStanding.textContent = 'STANDING';
+    right.appendChild(rightStanding);
     canvas.appendChild(right);
     const pacificDrive = svgNode('text', {
       x: 125,
@@ -604,6 +840,40 @@
 
   function renderCunetaAllSeats(sectionId) {
     canvas.querySelectorAll('.cuneta-seat-layer').forEach(layer => layer.remove());
+
+    if (config.venue.svgLayout) {
+      config.venue.sections.forEach(section => {
+        const seats = state.seats.filter(seat => seat.sectionId === section.id);
+        const layer = svgNode('g', {
+          class: `cuneta-seat-layer moa-sports-seat-layer${section.id === sectionId ? ' is-focus-section' : ''}`,
+          'data-seat-layer-for': section.id,
+          style: `--section-color:${section.mapColor || config.categories[section.category].color}`,
+        });
+
+        seats.forEach(seat => {
+          layer.appendChild(svgNode('circle', {
+            cx: seat.x,
+            cy: seat.y,
+            r: section.id === sectionId ? 3.35 : 2.45,
+            fill: seat.color,
+            class: `map-seat${seat.unavailable ? ' is-unavailable' : ''}`,
+            tabindex: seat.unavailable ? '-1' : '0',
+            role: 'button',
+            'aria-pressed': 'false',
+            'aria-label': `${seat.section}, row ${seat.row}, seat ${seat.number}, ${seat.category}${seat.unavailable ? ', unavailable' : ''}`,
+            'data-seat-id': seat.id,
+          }));
+        });
+        canvas.appendChild(layer);
+      });
+
+      canvas.classList.add('is-cuneta-seat-view');
+      if (mapHint) mapHint.textContent = 'All MOA Arena seats are visible inside their SVG sections.';
+      state.activeSectionId = sectionId;
+      renderSelection();
+      return;
+    }
+
     config.venue.sections.forEach(section => {
       const tier = bowlTiers[section.tier];
       const tierSections = config.venue.sections.filter(item => item.tier === section.tier);
@@ -622,8 +892,10 @@
         let seatY;
         if (config.venue.mapKey === 'moa-concert' && ['standing', 'patron'].includes(section.tier)) {
           const [x, y, width, height] = moaConcertFloorBox(section);
-          seatX = x + width * ((seat.columnIndex + 1) / (columns + 1));
-          seatY = y + height * ((seat.rowIndex + 1) / (rows + 1));
+          const padX = section.tier === 'patron' ? 52 : 34;
+          const padY = section.tier === 'patron' ? 54 : 46;
+          seatX = x + padX + (width - padX * 2) * ((seat.columnIndex + .5) / columns);
+          seatY = y + padY + (height - padY * 2) * ((seat.rowIndex + .5) / rows);
         } else {
           const [startAngle, endAngle] = bowlSectionAngles(section, tierSections, sectionIndex);
           const radiusProgress = (seat.rowIndex + 1) / (rows + 1);
@@ -636,7 +908,7 @@
         layer.appendChild(svgNode('circle', {
           cx: seatX,
           cy: seatY,
-          r: section.id === sectionId ? 4.8 : 3.8,
+          r: config.venue.mapKey === 'moa-concert' ? (section.id === sectionId ? 3.4 : 2.65) : (section.id === sectionId ? 4.8 : 3.8),
           fill: seat.color,
           class: `map-seat${seat.unavailable ? ' is-unavailable' : ''}`,
           tabindex: seat.unavailable ? '-1' : '0',
@@ -831,7 +1103,28 @@
     canvas.setAttribute('transform', `translate(${state.x} ${state.y}) scale(${state.scale})`);
   }
 
+  function hasRenderedDetailedSeats() {
+    return isDetailedBowl && canvas.classList.contains('is-cuneta-seat-view');
+  }
+
+  function beginSeatTransform() {
+    if (!hasRenderedDetailedSeats()) return;
+    if (state.seatTransformTimer) window.clearTimeout(state.seatTransformTimer);
+    viewport.classList.add('is-transforming-seats');
+  }
+
+  function endSeatTransformSoon(delay = 120) {
+    if (!isDetailedBowl) return;
+    if (state.seatTransformTimer) window.clearTimeout(state.seatTransformTimer);
+    state.seatTransformTimer = window.setTimeout(() => {
+      viewport.classList.remove('is-transforming-seats');
+      state.seatTransformTimer = null;
+      renderSelection();
+    }, delay);
+  }
+
   function setZoom(nextScale, originX = mapDimensions.centerX, originY = mapDimensions.centerY) {
+    beginSeatTransform();
     const clamped = Math.max(.75, Math.min(mapDimensions.maxZoom, nextScale));
     const ratio = clamped / state.scale;
     state.x = originX - (originX - state.x) * ratio;
@@ -842,6 +1135,7 @@
       if (state.scale < 1.65) {
         canvas.querySelectorAll('.cuneta-seat-layer').forEach(layer => layer.remove());
         canvas.classList.remove('is-cuneta-seat-view');
+        viewport.classList.remove('is-transforming-seats');
         if (mapHint) {
           const section = config.venue.sections.find(item => item.id === state.activeSectionId);
           mapHint.textContent = section
@@ -853,6 +1147,7 @@
       } else if (!canvas.classList.contains('is-cuneta-seat-view')) {
         renderCunetaAllSeats(state.activeSectionId);
       }
+      endSeatTransformSoon();
     }
   }
 
@@ -861,6 +1156,9 @@
     state.x = 0;
     state.y = 0;
     hideTooltip();
+    if (state.seatTransformTimer) window.clearTimeout(state.seatTransformTimer);
+    state.seatTransformTimer = null;
+    viewport.classList.remove('is-transforming-seats');
     applyTransform();
     if (isDetailedBowl) {
       state.activeSectionId = null;
@@ -902,6 +1200,7 @@
     state.y = mapDimensions.centerY - (y + height / 2) * targetScale;
     applyTransform();
     if (isDetailedBowl) renderCunetaAllSeats(sectionId);
+    endSeatTransformSoon(40);
   }
 
   function selectCunetaSection(sectionId) {
@@ -1193,6 +1492,7 @@
     if (Math.hypot(moveX, moveY) > 3) {
       state.dragMoved = true;
       state.pointerDownSectionId = null;
+      beginSeatTransform();
       if (!state.pointerCaptured) {
         viewport.setPointerCapture(event.pointerId);
         state.pointerCaptured = true;
@@ -1203,6 +1503,7 @@
     state.pointerX = event.clientX;
     state.pointerY = event.clientY;
     applyTransform();
+    endSeatTransformSoon();
   });
 
   viewport.addEventListener('pointerup', event => {
@@ -1215,6 +1516,7 @@
     viewport.classList.remove('is-dragging');
     if (viewport.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
     state.pointerCaptured = false;
+    endSeatTransformSoon(40);
     if (shouldActivateSection) {
       focusSection(sectionId);
       const section = config.venue.sections.find(item => item.id === sectionId);
@@ -1228,6 +1530,7 @@
     state.pointerDownSectionId = null;
     state.pointerCaptured = false;
     viewport.classList.remove('is-dragging');
+    endSeatTransformSoon(40);
   });
   viewport.addEventListener('pointerleave', hideTooltip);
 
