@@ -53,7 +53,7 @@
         <h4 class="footer-col-title">Support</h4>
         <ul class="footer-links-list">
           <li><a href="help.php">Help Center</a></li>
-          <li><a href="FAQ.php">Virtual Queue FAQ</a></li>
+          <li><a href="FAQ.php">FAQ</a></li>
           <li><a href="contact.php">Contact Us</a></li>
           <li><a href="terms.php">Terms of Use</a></li>
         </ul>

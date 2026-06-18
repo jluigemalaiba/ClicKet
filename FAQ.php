@@ -3,52 +3,51 @@ require_once __DIR__ . '/includes/log.php';
 
 $faqs = [
     [
-        'id' => 'what-is',
-        'label' => 'What',
-        'title' => 'What is Virtual Queue?',
-        'desc' => 'Understanding how the virtual queue works.',
+        'id' => 'tickets',
+        'label' => 'Tickets',
+        'title' => 'Tickets & Seat Selection',
+        'desc' => 'Choosing seats, limits, and ticket access.',
         'faqs' => [
-            ['q' => 'What is the Virtual Queue?', 'a' => 'The Virtual Queue is ClicKet\'s fair ticketing system for high-demand events. Instead of a traditional first-come-first-served rush, you receive a random queue position when the sale opens. Everyone who joins during the queue window has an equal chance to purchase tickets.'],
-            ['q' => 'Why does ClicKet use a Virtual Queue?', 'a' => 'High-demand ticket sales can overwhelm servers and create unfair advantages for users with faster internet. The Virtual Queue distributes demand evenly, ensuring every user gets a fair opportunity regardless of connection speed or device.'],
-            ['q' => 'Is the Virtual Queue used for all events?', 'a' => 'No. The Virtual Queue is only activated for events expected to sell out quickly. Regular events use standard checkout. You\'ll see a clear notification on the event page if a Virtual Queue is in place.'],
-            ['q' => 'How do I know if an event has a Virtual Queue?', 'a' => 'Event listings will display a "Virtual Queue" badge if the feature is enabled. Check the event details page for queue opening time and sale window information.'],
+            ['q' => 'How many tickets can I select per order?', 'a' => 'You can select up to 4 seats per order. This helps keep seat availability fair and prevents one buyer from holding too many seats at once.'],
+            ['q' => 'How do I choose my seats?', 'a' => 'Open an event, go to ticket selection, choose a section on the seat map, then pick available seat dots from the seat panel. Selected seats appear in your checkout summary.'],
+            ['q' => 'Why did my selected seat become unavailable?', 'a' => 'A seat can become unavailable if another buyer completed payment first or if your reservation timer expired. When that happens, choose a different available seat.'],
+            ['q' => 'Where can I view my tickets after payment?', 'a' => 'After a successful order, open your account tickets panel. Your tickets include ticket IDs, validation codes, voucher IDs, and printable forms.'],
         ],
     ],
     [
-        'id' => 'position',
-        'label' => 'Position',
-        'title' => 'Queue Position',
-        'desc' => 'How positions are assigned and what affects them.',
+        'id' => 'payment',
+        'label' => 'Payment',
+        'title' => 'Payment & Approval',
+        'desc' => 'Payment methods, proof screenshots, and status.',
         'faqs' => [
-            ['q' => 'How is my queue position determined?', 'a' => 'Your position is assigned randomly after the queue window closes. It does not matter when you joined during the window - entering at the start or end gives you exactly the same odds of getting a favorable position.'],
-            ['q' => 'Can I improve my queue position?', 'a' => 'No. Queue positions are completely randomized and cannot be purchased, boosted, or transferred. Any third-party service claiming to improve your position is a scam and violates our terms.'],
-            ['q' => 'What if I join late? Will I be penalized?', 'a' => 'No. As long as you join during the official queue window, your random position is independent of when you entered. Early or late joiners have the same fair chance.'],
-            ['q' => 'Can I check my position before the window closes?', 'a' => 'Your position is assigned only after the queue window closes. During the window, you\'ll see "Waiting to be assigned" - this is normal and fair.'],
+            ['q' => 'What payment methods are supported?', 'a' => 'ClicKet supports the payment methods shown during checkout, such as wallet, QR, and card-style options depending on the event setup.'],
+            ['q' => 'Do I need to upload a payment screenshot?', 'a' => 'If the selected payment method requires proof, upload the screenshot during checkout. The assigned organizer for that venue reviews the proof and approves or rejects it.'],
+            ['q' => 'Who approves my payment?', 'a' => 'Payments are reviewed by the organizer assigned to the event venue. Admins can still view and manage all payment records.'],
+            ['q' => 'What happens if my payment is rejected?', 'a' => 'Your order will be marked as payment rejected or failed. Contact support or the organizer if you believe the proof was valid.'],
         ],
     ],
     [
-        'id' => 'timing',
-        'label' => 'Timing',
-        'title' => 'Queue Timing & Wait',
-        'desc' => 'Understanding wait times and when it is your turn.',
+        'id' => 'virtual-queue',
+        'label' => 'Queue',
+        'title' => 'Virtual Queue',
+        'desc' => 'Fair access for high-demand events.',
         'faqs' => [
-            ['q' => 'How long will I wait in the queue?', 'a' => 'Wait time depends on how many people are ahead of you and how quickly they complete their purchases. Your queue screen shows an estimated wait time that updates in real-time as positions move forward.', 'tip' => 'Estimated times are just that - estimates. The actual time may vary based on checkout speed.'],
-            ['q' => 'What happens when it\'s my turn?', 'a' => 'You\'ll receive an on-screen notification and email alert that it\'s your turn. You\'ll then have a limited time window, usually 10 minutes, to complete your ticket purchase. If you don\'t complete it within that time, your spot is released to the next person.'],
-            ['q' => 'Can I leave and come back later?', 'a' => 'You must stay on the queue page. Closing the tab or leaving the page may remove you from the queue. Keep your browser window open and your device screen on until your turn arrives.', 'tip' => 'You can lock your device screen, but do not close the app or browser tab.'],
-            ['q' => 'Do I need to keep refreshing?', 'a' => 'No, do not refresh. Refreshing the page can interrupt your session and remove you from the queue. The page automatically updates as your turn approaches.'],
+            ['q' => 'What is the Virtual Queue?', 'a' => 'The Virtual Queue is ClicKet\'s fair ticketing system for high-demand events. Instead of a first-come-first-served rush, eligible users receive queue access so traffic stays controlled and fair.'],
+            ['q' => 'Is the Virtual Queue used for all events?', 'a' => 'No. It is only used for events expected to have very high demand. Regular events use the normal event page and checkout flow.'],
+            ['q' => 'Can I improve my queue position?', 'a' => 'No. Queue access cannot be purchased, boosted, or transferred. Any third-party claiming this is unsafe and should be ignored.'],
+            ['q' => 'Do I need to refresh while waiting?', 'a' => 'No. Keep the page open and avoid repeated refreshes because that can interrupt your session.', 'tip' => 'Use one browser tab and one account for the event.'],
         ],
     ],
     [
-        'id' => 'joining',
-        'label' => 'Joining',
-        'title' => 'Joining the Queue',
-        'desc' => 'How to join and what you need.',
+        'id' => 'reservation',
+        'label' => 'Holds',
+        'title' => 'Reservations & Seat Holds',
+        'desc' => 'Timers, expired holds, and released seats.',
         'faqs' => [
-            ['q' => 'How do I join the Virtual Queue?', 'a' => 'Go to the event page before or during the announced queue window. Click the "Join Queue" button. You must be logged into your ClicKet account. Once the window closes, positions are randomly assigned and your place in line is shown.'],
-            ['q' => 'Do I need an account to join the queue?', 'a' => 'Yes. You must be signed in to your ClicKet account to join a queue. If you don\'t have an account, create one before the queue opens to avoid delays.'],
-            ['q' => 'Can I join the queue from multiple devices?', 'a' => 'No. Each ClicKet account is limited to one active queue session per event. Attempting to join from a second device will invalidate your first session and remove you from the queue.', 'tip' => 'Use one device only. Choose the device you are most comfortable purchasing on.'],
-            ['q' => 'When does the queue window open?', 'a' => 'The queue window timing is announced on the event page. Set a reminder so you don\'t miss it. Queue times are typically set in advance and may have a limited duration.'],
-            ['q' => 'Can I join after the queue window closes?', 'a' => 'No. Once the queue window closes, positions are assigned and checkout begins. New users cannot join after the window ends.'],
+            ['q' => 'How long are seats held?', 'a' => 'Selected seats are held for a limited checkout window. The timer is shown during seat selection and checkout.'],
+            ['q' => 'What happens when my reservation expires?', 'a' => 'Expired reservations release the seats back to the event map so other buyers can select them. You will need to select seats again.'],
+            ['q' => 'Can I hold seats without checking out?', 'a' => 'No. Seat holds are temporary and are only meant to give you enough time to complete checkout.'],
+            ['q' => 'Why can I only select a few seats?', 'a' => 'ClicKet limits orders to a small number of seats so more customers have a fair chance to buy tickets.'],
         ],
     ],
     [
@@ -57,11 +56,10 @@ $faqs = [
         'title' => 'Troubleshooting',
         'desc' => 'Common problems and how to fix them.',
         'faqs' => [
-            ['q' => 'I got disconnected. Will I lose my place?', 'a' => 'If you disconnect, you have a short grace period to reconnect. Quickly return to the event page and log back in - your position should be restored as long as it is still your turn. If the grace period expires, your spot may be forfeited.'],
-            ['q' => 'The page isn\'t loading properly. What do I do?', 'a' => 'Try these steps in order:', 'list' => ['Refresh the page once, only once - do not spam-refresh', 'Clear your browser cache or try a different browser', 'Disable browser extensions that may block scripts', 'Switch from Wi-Fi to mobile data or vice versa', 'Try a different device if available'], 'tip' => 'If issues persist, contact support@clicket.ph immediately.'],
-            ['q' => 'Why am I not seeing my queue status?', 'a' => 'Queue status may take a few moments to appear after joining. Make sure you\'re on the correct event page and logged in. Refresh once if needed. If you still don\'t see it, contact support.'],
-            ['q' => 'I was in the queue but now I see "Queue Expired"', 'a' => 'This means the queue window closed and you were not assigned a position. This can happen if you joined after the window officially ended or if there was a technical issue. Watch for a new queue window or check the event page for updates.'],
-            ['q' => 'My screen timed out. Did I lose my place?', 'a' => 'Your queue position is based on your account session, not your screen. If your device locked due to inactivity, unlock it and refresh the page. Your position should still be there.'],
+            ['q' => 'The page is not loading properly. What do I do?', 'a' => 'Try these steps in order:', 'list' => ['Refresh the page once', 'Clear your browser cache or try a different browser', 'Disable browser extensions that may block scripts', 'Switch from Wi-Fi to mobile data or vice versa', 'Try a different device if available'], 'tip' => 'If issues persist, contact support@clicket.ph immediately.'],
+            ['q' => 'I cannot see my selected seats in checkout.', 'a' => 'Your seat reservation may have expired or the browser session may have refreshed. Return to the event page and select seats again.'],
+            ['q' => 'My payment proof upload did not appear.', 'a' => 'Check that the file is a valid screenshot and submit the form again. If the issue continues, contact support with your order ID.'],
+            ['q' => 'My ticket is showing as invalid.', 'a' => 'Tickets may show as invalid if the order was cancelled, refunded, voided, or payment was not approved. Check your order status or contact support.'],
         ],
     ],
     [
@@ -70,10 +68,10 @@ $faqs = [
         'title' => 'Completing Purchase',
         'desc' => 'What to do when it is your turn to buy.',
         'faqs' => [
-            ['q' => 'What do I do when it\'s my turn?', 'a' => 'When it\'s your turn, you\'ll see the checkout screen with available tickets. Select your desired seats, confirm quantity, enter your details, and complete payment within the allotted time window, usually 10 minutes. Do this quickly to avoid losing your spot.'],
-            ['q' => 'How much time do I have to complete checkout?', 'a' => 'You typically have 10 minutes to complete your purchase once it\'s your turn. A countdown timer will be visible on the checkout screen. Use this time efficiently to avoid losing your booking.', 'tip' => 'Have your payment method ready before joining the queue.'],
-            ['q' => 'What happens if I don\'t complete my purchase in time?', 'a' => 'If the time limit expires before you finish checkout, your booking spot is automatically released to the next person in the queue. Your items are removed from your cart and you cannot rejoin this queue.'],
-            ['q' => 'Can I see ticket prices before my turn?', 'a' => 'Yes. Ticket prices are displayed when you join the queue. Review them beforehand so you\'re ready to decide quickly when it\'s your turn.'],
+            ['q' => 'What do I do before payment?', 'a' => 'Review your event, performance date, selected seats, subtotal, service fee, and total amount before submitting payment.'],
+            ['q' => 'How much time do I have to complete checkout?', 'a' => 'Checkout uses a visible countdown timer. Complete payment before the timer expires so your selected seats stay reserved.', 'tip' => 'Prepare your payment method before choosing seats for high-demand events.'],
+            ['q' => 'What happens if I do not complete my purchase in time?', 'a' => 'Your held seats are released and your checkout session expires. You can return to seat selection if tickets are still available.'],
+            ['q' => 'Can I see ticket prices before checkout?', 'a' => 'Yes. Prices and service fees are shown before final payment so you can review the total amount.'],
             ['q' => 'Is my payment information secure during checkout?', 'a' => 'Yes. ClicKet uses industry-standard encryption and secure payment gateways. Your payment information is protected and never stored on our servers.'],
         ],
     ],
@@ -81,14 +79,14 @@ $faqs = [
 
 function helpIcon(string $id): string {
     $icons = [
-        'what-is' => '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>',
-        'position' => '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14"/><path d="M5 12h14"/><path d="M5 17h14"/><circle cx="8" cy="7" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="11" cy="17" r="2"/></svg>',
-        'timing' => '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>',
-        'joining' => '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12h8"/><path d="M13 7l5 5-5 5"/><path d="M4 5v14"/></svg>',
+        'tickets' => '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5V9a3 3 0 0 0 0 6v1.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5V15a3 3 0 0 0 0-6V7.5Z"/><path d="M13.5 8.5h3M13.5 12h3M13.5 15.5h3"/></svg>',
+        'payment' => '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg>',
+        'virtual-queue' => '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14"/><path d="M5 12h14"/><path d="M5 17h14"/><circle cx="8" cy="7" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="11" cy="17" r="2"/></svg>',
+        'reservation' => '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>',
         'issues' => '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-3-3z"/></svg>',
         'checkout' => '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/></svg>',
     ];
-    return $icons[$id] ?? $icons['what-is'];
+    return $icons[$id] ?? $icons['tickets'];
 }
 
 function supportIcon(string $id): string {
@@ -106,8 +104,8 @@ function supportIcon(string $id): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Virtual Queue FAQ - Learn how ClicKet's virtual queue works, queue positions, timing, troubleshooting, and checkout.">
-  <title>ClicKet Help Center - Virtual Queue FAQ</title>
+  <meta name="description" content="ClicKet FAQ - Answers about tickets, seat selection, payment, virtual queue, checkout, and account support.">
+  <title>ClicKet Help Center - FAQ</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="css/variables.css">
@@ -373,9 +371,12 @@ function supportIcon(string $id): string {
       transition: background var(--dur-fast), color var(--dur-fast);
     }
 
-    .faq-question:hover,
-    .faq-question.is-open {
+    .faq-question:hover {
       background: var(--gray-100);
+    }
+
+    .faq-question.is-open {
+      background: #fff;
       color: var(--red-primary);
     }
 
@@ -554,13 +555,13 @@ function supportIcon(string $id): string {
     <div class="container-xl px-4">
       <div class="faq-hero-inner">
         <p class="faq-eyebrow">ClicKet Support</p>
-        <h1 class="faq-title">Virtual Queue <span>FAQ</span></h1>
+        <h1 class="faq-title">Frequently Asked <span>Questions</span></h1>
         <p class="faq-copy">
-          Quick answers for queue positions, wait times, joining rules, checkout windows, and the usual fixes when something does not load right.
+          Quick answers about tickets, seat selection, payment approval, virtual queue, checkout, reservations, and common account concerns.
         </p>
         <div class="faq-hero-actions" aria-label="Support highlights">
-          <span class="faq-hero-chip"><?= supportIcon('shield') ?> Fair random positions</span>
-          <span class="faq-hero-chip"><?= supportIcon('clock') ?> Real-time queue updates</span>
+          <span class="faq-hero-chip"><?= supportIcon('shield') ?> Secure ticketing</span>
+          <span class="faq-hero-chip"><?= supportIcon('clock') ?> Reservation timers</span>
           <span class="faq-hero-chip"><?= supportIcon('mail') ?> Support ready when needed</span>
         </div>
       </div>
@@ -572,9 +573,9 @@ function supportIcon(string $id): string {
       <div class="faq-section-header">
         <div>
           <p class="faq-section-kicker">Choose a Section</p>
-          <h2 class="faq-section-title">Queue <span>Help</span></h2>
+          <h2 class="faq-section-title">ClicKet <span>Help</span></h2>
         </div>
-        <p class="faq-section-note">Pick a section below, then open only the question you need. Clean and direct, no extra sidebar clutter.</p>
+        <p class="faq-section-note">Pick a topic below, then open only the question you need. Virtual Queue is included together with ticketing, payments, checkout, and troubleshooting.</p>
       </div>
 
       <div class="faq-category-grid" aria-label="FAQ categories">
@@ -632,7 +633,7 @@ function supportIcon(string $id): string {
       <section class="faq-contact-panel" id="contact">
         <div>
           <h2>Still have questions?</h2>
-          <p>Contact ClicKet support if you need additional help with the virtual queue or ticketing.</p>
+          <p>Contact ClicKet support if you need additional help with ticketing, payment, checkout, or virtual queue concerns.</p>
         </div>
         <a href="contact.php" class="faq-contact-btn">
           <?= supportIcon('mail') ?>

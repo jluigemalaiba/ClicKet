@@ -505,9 +505,12 @@ $displayCategories = $activeCategory !== ''
       text-align: left;
     }
 
-    .help-faq-question:hover,
-    .help-faq-question.is-open {
+    .help-faq-question:hover {
       background: var(--gray-100);
+    }
+
+    .help-faq-question.is-open {
+      background: #fff;
     }
 
     .help-faq-chevron {
