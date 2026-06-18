@@ -50,17 +50,13 @@ $eventDate = DateTimeImmutable::createFromFormat('M j, Y', $event['date']) ?: ne
 $isMultiDay = $categoryKey === 'theater';
 
 $venueDetails = [
-    'MOA Arena' => ['address' => 'Mall of Asia Complex, Pasay City', 'image' => 'assets/moa_place.jpg'],
+    'Mall of Asia Arena' => ['address' => 'Mall of Asia Complex, Pasay City', 'image' => 'assets/moa_place.jpg'],
     'Newport Performing Arts Theater' => ['address' => 'Newport Boulevard, Pasay City', 'image' => 'assets/newport_place.jpg'],
     'Smart Araneta Coliseum' => ['address' => 'General Roxas Avenue, Cubao, Quezon City', 'image' => 'assets/Smart.png'],
     'Philippine Arena' => ['address' => 'Ciudad de Victoria, Bocaue, Bulacan', 'image' => 'assets/phil_place.jpg'],
-    'Metropolitan Theater' => ['address' => 'Arroceros Street, Ermita, Manila', 'image' => 'assets/metro_place.jpg'],
-    'Solaire Resort Entertainment City' => ['address' => 'Entertainment City, Paranaque', 'image' => 'assets/Solaire.png'],
-    'Tanghalang Pilipino' => ['address' => 'Cultural Center of the Philippines Complex, Pasay City', 'image' => 'assets/tanghalan_place.jpg'],
-    'Resorts World Manila' => ['address' => 'Newport City, Pasay City', 'image' => 'assets/rwm_place.jpg'],
-    'Nuvali' => ['address' => 'Santa Rosa, Laguna', 'image' => 'assets/nuvali_place.jpg'],
-    'Filoil EcoOil Centre' => ['address' => 'Pinaglabanan Street, San Juan City', 'image' => 'assets/filoil_place.jpg'],
-    'Muntinlupa Sports Center' => ['address' => 'Tunasan, Muntinlupa City', 'image' => 'assets/munti_place.jpg'],
+    'The Theatre at Solaire' => ['address' => 'Entertainment City, Paranaque', 'image' => 'assets/Solaire.png'],
+    'Tanghalang Ignacio Jimenez' => ['address' => 'Cultural Center of the Philippines Complex, Pasay City', 'image' => 'assets/tanghalan_place.jpg'],
+    'PhilSports Arena' => ['address' => 'Capt. Henry P. Javier, Pasig City', 'image' => 'assets/Philsports.png'],
 ];
 $venue = $venueDetails[$event['venue']] ?? [
     'address' => $event['venue'] . ', Philippines',

@@ -1,0 +1,37 @@
+[
+    {
+        "id": "admin-root",
+        "name": "ClicKet Admin",
+        "email": "admin@clicket.test",
+        "password": "$2y$12$W/cLFzr1R56TpinnTcGOseFb699Px9cgPPP5TdNFl0X.NYTWTEimy",
+        "role": "admin",
+        "venues": [
+            "all"
+        ],
+        "created_at": "2026-06-18T11:44:53+00:00"
+    },
+    {
+        "id": "org-moa",
+        "name": "MOA Organizer",
+        "email": "moa.organizer@clicket.test",
+        "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
+        "role": "organizer",
+        "venues": [
+            "MOA Arena"
+        ],
+        "created_at": "2026-06-18T11:44:54+00:00"
+    },
+    {
+        "id": "org-theater",
+        "name": "Theater Organizer",
+        "email": "theater.organizer@clicket.test",
+        "password": "$2y$12$zkeSezMZ1.68WSUgNfiAd.pqyanwP8FB2Ug4J48VsE/Uznsl/QT.W",
+        "role": "organizer",
+        "venues": [
+            "Newport Performing Arts Theater",
+            "Solaire Resort Entertainment City",
+            "Tanghalang Pilipino"
+        ],
+        "created_at": "2026-06-18T11:44:55+00:00"
+    }
+]

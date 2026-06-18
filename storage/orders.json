@@ -10,7 +10,7 @@
         "event_title": "Bruno Mars 24K Magic Live",
         "event_date": "Saturday, January 24, 2026",
         "event_time": "7:30 PM",
-        "venue": "MOA Arena",
+        "venue": "Mall of Asia Arena",
         "seats": [
             {
                 "id": "lower-104-B-1",
@@ -70,7 +70,7 @@
         "event_banner": "https://picsum.photos/seed/1010/1200/650",
         "event_date": "Saturday, November 15, 2025",
         "event_time": "6:00 PM",
-        "venue": "MOA Arena",
+        "venue": "Mall of Asia Arena",
         "seats": [
             {
                 "id": "floor-b-A-4",
@@ -368,7 +368,7 @@
         "event_banner": "https://picsum.photos/seed/1010/1200/650",
         "event_date": "Saturday, November 15, 2025",
         "event_time": "6:00 PM",
-        "venue": "MOA Arena",
+        "venue": "Mall of Asia Arena",
         "seats": [
             {
                 "id": "lower-102-D-2",
@@ -564,7 +564,7 @@
         "event_banner": "https://picsum.photos/seed/1011/1200/650",
         "event_date": "Saturday, January 10, 2026",
         "event_time": "7:00 PM",
-        "venue": "MOA Arena",
+        "venue": "Mall of Asia Arena",
         "seats": [
             {
                 "id": "vip_sec_101-A-27",

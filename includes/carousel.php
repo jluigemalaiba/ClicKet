@@ -12,21 +12,13 @@
     <div class="partners-ticker" id="partnersTicker" aria-label="Partner venues and organizers">
       <?php
       $partners = [
-        ['file' => 'Cuneta.png', 'name' => 'Cuneta Astrodome'],
-        ['file' => 'Filoil.png', 'name' => 'Filoil EcoOil Centre'],
-        ['file' => 'Metropolitan.png', 'name' => 'Metropolitan Theater'],
-        ['file' => 'MOA.png', 'name' => 'MOA Arena'],
-        ['file' => 'Muntinlupa.png', 'name' => 'Muntinlupa Sports Center'],
+        ['file' => 'MOA.png', 'name' => 'Mall of Asia Arena'],
         ['file' => 'Newport.png', 'name' => 'Newport Performing Arts Theater'],
-        ['file' => 'Ninoy_Rizal.png', 'name' => 'Ninoy Aquino Stadium and Rizal Memorial'],
-        ['file' => 'Nuvali.png', 'name' => 'Nuvali'],
         ['file' => 'PArena.png', 'name' => 'Philippine Arena'],
-        ['file' => 'Philsports.png', 'name' => 'Philsports Arena'],
-        ['file' => 'RWM.png', 'name' => 'Resorts World Manila'],
-        ['file' => 'Samsung.png', 'name' => 'Samsung Hall'],
+        ['file' => 'Philsports.png', 'name' => 'PhilSports Arena'],
         ['file' => 'Smart.png', 'name' => 'Smart Araneta Coliseum'],
-        ['file' => 'Solaire.png', 'name' => 'Solaire Resort Entertainment City'],
-        ['file' => 'TP.png', 'name' => 'Tanghalang Pilipino'],
+        ['file' => 'Solaire.png', 'name' => 'The Theatre at Solaire'],
+        ['file' => 'TP.png', 'name' => 'Tanghalang Ignacio Jimenez'],
       ];
       for ($set = 0; $set < 2; $set++): ?>
         <div class="partners-set" aria-hidden="<?= $set === 1 ? 'true' : 'false' ?>">

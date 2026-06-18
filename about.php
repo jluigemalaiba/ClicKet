@@ -41,17 +41,17 @@ $currentPage = basename($_SERVER['PHP_SELF']);
           <div class="about-hero-glow about-hero-glow--one"></div>
           <div class="about-hero-glow about-hero-glow--two"></div>
           <div class="about-tag-cloud">
-            <span class="about-ticket-tag tag-red tag-xl" style="--x: 18%; --y: 8%; --r: -1.5deg; --d: 0s;">Concerts</span>
+            <span class="about-ticket-tag tag-red tag-xl" style="--x: 18%; --y: 3%; --r: -1.5deg; --d: 0s;">Concerts</span>
             <span class="about-ticket-tag tag-white" style="--x: 58%; --y: 2%; --r: 1.8deg; --d: .35s;">Sports</span>
-            <span class="about-ticket-tag tag-soft" style="--x: 38%; --y: 17%; --r: -2.4deg; --d: .7s;">Theater</span>
+            <span class="about-ticket-tag tag-soft" style="--x: 38%; --y: 17.5%; --r: -2.4deg; --d: .7s;">Theater</span>
             <span class="about-ticket-tag tag-white tag-lg" style="--x: 64%; --y: 23%; --r: 2deg; --d: .15s;">Secure Checkout</span>
             <span class="about-ticket-tag tag-outline" style="--x: 8%; --y: 31%; --r: 1.6deg; --d: .95s;">E-Tickets</span>
             <span class="about-ticket-tag tag-red tag-lg" style="--x: 35%; --y: 39%; --r: -2deg; --d: .45s;">Seat Selection</span>
-            <span class="about-ticket-tag tag-white" style="--x: 73%; --y: 45%; --r: 1.3deg; --d: 1.05s;">Real-Time Booking</span>
+            <span class="about-ticket-tag tag-soft" style="--x: 73%; --y: 45%; --r: 1.3deg; --d: 1.05s;">Real-Time Booking</span>
             <span class="about-ticket-tag tag-soft" style="--x: 15%; --y: 57%; --r: -1.4deg; --d: .2s;">QR Validation</span>
             <span class="about-ticket-tag tag-outline" style="--x: 52%; --y: 64%; --r: 2.4deg; --d: .8s;">Mobile Friendly</span>
             <span class="about-ticket-tag tag-red" style="--x: 31%; --y: 76%; --r: 1.2deg; --d: 1.2s;">Fast Purchase</span>
-            <span class="about-ticket-tag tag-white" style="--x: 67%; --y: 81%; --r: -1.8deg; --d: .55s;">Verified Events</span>
+            <span class="about-ticket-tag tag-red" style="--x: 67%; --y: 81%; --r: -1.8deg; --d: .55s;">Verified Events</span>
             <span class="about-ticket-tag tag-soft tag-lg" style="--x: 5%; --y: 85%; --r: 2deg; --d: 1.45s;">Ticket Protection</span>
           </div>
         </div>

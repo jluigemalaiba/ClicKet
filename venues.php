@@ -6,33 +6,20 @@ require_once __DIR__ . '/includes/log.php';
 # Araneta (2)/, Solaire, MOA (2)/, Phil Arena/, Newport, Tanghalan, PhilSports
 
 $venues = [
-    ['file' => 'Cuneta.png',     'name' => 'Cuneta Astrodome',                        'location' => 'Pasay City',         'type' => 'Arena and sports venue',       'capacity' => '~12,000'],
-    ['file' => 'Filoil.png',     'name' => 'Filoil EcoOil Centre',                    'location' => 'San Juan City',      'type' => 'Indoor sports center',         'capacity' => '~5,000'],
-    ['file' => 'Metropolitan.png','name' => 'Metropolitan Theater',                   'location' => 'Manila',             'type' => 'Historic theater',             'capacity' => '~1,600'],
-    ['file' => 'MOA.png',        'name' => 'MOA Arena',                               'location' => 'Pasay City',         'type' => 'Concert and sports arena',     'capacity' => '~20,000'],
-    ['file' => 'Muntinlupa.png', 'name' => 'Muntinlupa Sports Center',                'location' => 'Muntinlupa City',    'type' => 'Community sports venue',       'capacity' => '~3,000'],
-    ['file' => 'Newport.png',    'name' => 'Newport Performing Arts Theater',         'location' => 'Pasay City',         'type' => 'Performing arts theater',      'capacity' => '~1,800'],
-    ['file' => 'Ninoy_Rizal.png','name' => 'Ninoy Aquino Stadium and Rizal Memorial', 'location' => 'Manila',             'type' => 'Sports complex',               'capacity' => '~8,000'],
-    ['file' => 'Nuvali.png',     'name' => 'Nuvali',                                  'location' => 'Santa Rosa, Laguna', 'type' => 'Outdoor event grounds',        'capacity' => '~30,000+'],
+    ['file' => 'MOA.png',        'name' => 'Mall of Asia Arena',                               'location' => 'Pasay City',         'type' => 'Concert and sports arena',     'capacity' => '~20,000'],
+    ['file' => 'Newport.png',    'name' => 'Newport Performing Arts Theater',         'location' => 'Pasay City',         'type' => 'Performing arts theater',      'capacity' => '~1,700'],
     ['file' => 'PArena.png',     'name' => 'Philippine Arena',                        'location' => 'Bulacan',            'type' => 'Large-scale arena',            'capacity' => '~55,000'],
-    ['file' => 'Philsports.png', 'name' => 'Philsports Arena',                        'location' => 'Pasig City',         'type' => 'Indoor arena',                 'capacity' => '~15,000'],
-    ['file' => 'RWM.png',        'name' => 'Resorts World Manila',                    'location' => 'Pasay City',         'type' => 'Entertainment venue',          'capacity' => '~1,500'],
-    ['file' => 'Samsung.png',    'name' => 'Samsung Hall',                            'location' => 'Taguig City',        'type' => 'Concert hall',                 'capacity' => '~1,800'],
+    ['file' => 'Philsports.png', 'name' => 'PhilSports Arena',                        'location' => 'Pasig City',         'type' => 'Indoor arena',                 'capacity' => '~15,000'],
     ['file' => 'Smart.png',      'name' => 'Smart Araneta Coliseum',                  'location' => 'Quezon City',        'type' => 'Coliseum and live events venue','capacity' => '~25,000'],
-    ['file' => 'Solaire.png',    'name' => 'Solaire Resort Entertainment City',       'location' => 'Paranaque City',     'type' => 'Resort theater',               'capacity' => '~1,700'],
-    ['file' => 'TP.png',         'name' => 'Tanghalang Pilipino',                     'location' => 'Pasay City',         'type' => 'Cultural theater',             'capacity' => '~600'],
+    ['file' => 'Solaire.png',    'name' => 'The Theatre at Solaire',       'location' => 'Paranaque City',     'type' => 'Resort theater',               'capacity' => '~1,850'],
+    ['file' => 'TP.png',         'name' => 'Tanghalang Ignacio Jimenez',                     'location' => 'Pasay City',         'type' => 'Cultural theater',             'capacity' => '~600'],
 ];
 
 $venueHeroPhotos = [
-    ['file' => 'metro_place.jpg',     'name' => 'Metropolitan Theater'],
-    ['file' => 'munti_place.jpg',     'name' => 'Muntinlupa Sports Center'],
-    ['file' => 'filoil_place.jpg',    'name' => 'Filoil EcoOil Centre'],
-    ['file' => 'tanghalan_place.jpg', 'name' => 'Tanghalang Pilipino'],
-    ['file' => 'nuvali_place.jpg',    'name' => 'Nuvali'],
-    ['file' => 'phil_place.jpg',      'name' => 'Philippine Arena'],
+    ['file' => 'moa_place.jpg',       'name' => 'Mall of Asia Arena'],
     ['file' => 'newport_place.jpg',   'name' => 'Newport Performing Arts Theater'],
-    ['file' => 'rwm_place.jpg',       'name' => 'Resorts World Manila'],
-    ['file' => 'moa_place.jpg',       'name' => 'MOA Arena'],
+    ['file' => 'phil_place.jpg',      'name' => 'Philippine Arena'],
+    ['file' => 'tanghalan_place.jpg', 'name' => 'Tanghalang Ignacio Jimenez'],
 ];
 ?>
 <!DOCTYPE html>

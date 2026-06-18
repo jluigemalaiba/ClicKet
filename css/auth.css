@@ -542,6 +542,38 @@
   line-height: 1.6;
 }
 
+.auth-staff-card {
+  border-color: rgba(20,20,20,.12);
+  border-left-color: #202124;
+  background: rgba(255,255,255,.72);
+  color: #202124;
+}
+
+.auth-staff-card > div {
+  display: grid;
+  gap: 3px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.auth-staff-card strong,
+.auth-staff-card span,
+.auth-staff-card small,
+.auth-staff-card a {
+  display: block;
+}
+
+.auth-staff-card small {
+  color: var(--gray-500);
+}
+
+.auth-staff-card a {
+  margin-top: 5px;
+  color: var(--red);
+  font-weight: 700;
+  text-decoration: none;
+}
+
 /* ── Form fields ─────────────────────────────────────────────── */
 .auth-alert--dismissed {
   display: none;

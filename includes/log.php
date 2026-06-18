@@ -17,6 +17,9 @@ if (!isset($_SESSION['clicket_cart'])) {
 if (!defined('CLICKET_USERS_FILE')) {
     define('CLICKET_USERS_FILE', __DIR__ . '/../storage/users.json');
 }
+if (!defined('CLICKET_STAFF_FILE')) {
+    define('CLICKET_STAFF_FILE', __DIR__ . '/../storage/staff.json');
+}
 
 // ── CART SESSION FUNCTIONS ──────────────────────────────────
 
@@ -108,6 +111,127 @@ function saveUsers(array $users): bool {
         json_encode(array_values($users), JSON_PRETTY_PRINT),
         LOCK_EX
     ) !== false;
+}
+
+function defaultStaffAccounts(): array {
+    return [
+        [
+            'id' => 'admin-root',
+            'name' => 'ClicKet Admin',
+            'email' => 'admin@clicket.test',
+            'password' => password_hash('Admin@123', PASSWORD_DEFAULT),
+            'role' => 'admin',
+            'venues' => ['all'],
+            'created_at' => date('c'),
+        ],
+        [
+            'id' => 'org-moa',
+            'name' => 'MOA Organizer',
+            'email' => 'moa.organizer@clicket.test',
+            'password' => password_hash('Organizer@123', PASSWORD_DEFAULT),
+            'role' => 'organizer',
+            'venues' => ['MOA Arena'],
+            'created_at' => date('c'),
+        ],
+        [
+            'id' => 'org-theater',
+            'name' => 'Theater Organizer',
+            'email' => 'theater.organizer@clicket.test',
+            'password' => password_hash('Organizer@123', PASSWORD_DEFAULT),
+            'role' => 'organizer',
+            'venues' => [
+                'Newport Performing Arts Theater',
+                'Solaire Resort Entertainment City',
+                'Tanghalang Pilipino',
+            ],
+            'created_at' => date('c'),
+        ],
+    ];
+}
+
+function ensureStaffStore(): void {
+    $dir = dirname(CLICKET_STAFF_FILE);
+
+    if (!is_dir($dir)) {
+        mkdir($dir, 0775, true);
+    }
+
+    if (!file_exists(CLICKET_STAFF_FILE)) {
+        file_put_contents(
+            CLICKET_STAFF_FILE,
+            json_encode(defaultStaffAccounts(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+            LOCK_EX
+        );
+    }
+}
+
+function getStaffAccounts(): array {
+    ensureStaffStore();
+
+    $staff = json_decode(file_get_contents(CLICKET_STAFF_FILE) ?: '[]', true);
+
+    return is_array($staff) ? $staff : [];
+}
+
+function findStaffByEmail(string $email): ?array {
+    $email = strtolower(trim($email));
+
+    foreach (getStaffAccounts() as $account) {
+        if (strtolower((string) ($account['email'] ?? '')) === $email) {
+            return $account;
+        }
+    }
+
+    return null;
+}
+
+function currentStaff(): ?array {
+    startSessionIfNeeded();
+
+    return $_SESSION['clicket_staff'] ?? null;
+}
+
+function isStaffLoggedIn(?string $role = null): bool {
+    $staff = currentStaff();
+    if (!$staff) {
+        return false;
+    }
+
+    return $role === null || ($staff['role'] ?? '') === $role;
+}
+
+function loginStaff(array $staff): void {
+    startSessionIfNeeded();
+    session_regenerate_id(true);
+
+    $_SESSION['clicket_staff'] = [
+        'id' => $staff['id'],
+        'name' => $staff['name'],
+        'email' => $staff['email'],
+        'role' => $staff['role'],
+        'venues' => is_array($staff['venues'] ?? null) ? $staff['venues'] : [],
+    ];
+}
+
+function loginStaffWithEmail(string $email, string $password, string $role): array {
+    $staff = findStaffByEmail($email);
+
+    if (
+        !$staff
+        || ($staff['role'] ?? '') !== $role
+        || !password_verify($password, $staff['password'] ?? '')
+    ) {
+        return ['success' => false, 'errors' => ['Invalid staff email, password, or portal.']];
+    }
+
+    loginStaff($staff);
+
+    return ['success' => true];
+}
+
+function logoutStaff(): void {
+    startSessionIfNeeded();
+    unset($_SESSION['clicket_staff']);
 }
 
 function findUserByEmail(string $email): ?array {

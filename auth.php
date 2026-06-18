@@ -2,12 +2,20 @@
 require_once __DIR__ . '/includes/log.php';
 
 $mode = $_GET['mode'] ?? 'login';
-$mode = $mode === 'signup' ? 'signup' : 'login';
+$mode = in_array($mode, ['signup', 'admin', 'organizer'], true) ? $mode : 'login';
+$isStaffMode = in_array($mode, ['admin', 'organizer'], true);
 $errors = [];
 $notif = pullFlashMessage();
 $returnTo = trim((string) ($_GET['return'] ?? $_POST['return'] ?? ''));
-if ($returnTo !== '' && !preg_match('/^(checkout|ticket|show|events)\.php\?[A-Za-z0-9_=&%.-]+$/', $returnTo)) {
+if ($isStaffMode || ($returnTo !== '' && !preg_match('/^(checkout|ticket|show|events)\.php\?[A-Za-z0-9_=&%.-]+$/', $returnTo))) {
     $returnTo = '';
+}
+
+if (isset($_GET['staff_logout'])) {
+    logoutStaff();
+    setFlashMessage('success', 'Staff account signed out successfully.');
+    header('Location: auth.php?mode=admin');
+    exit;
 }
 
 if (isset($_GET['logout'])) {
@@ -24,8 +32,12 @@ if (isset($_GET['logout'])) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mode = $_POST['mode'] ?? 'login';
+    $mode = in_array($mode, ['signup', 'admin', 'organizer'], true) ? $mode : 'login';
+    $isStaffMode = in_array($mode, ['admin', 'organizer'], true);
 
-    if ($mode === 'signup') {
+    if ($isStaffMode) {
+        $result = loginStaffWithEmail($_POST['email'] ?? '', $_POST['password'] ?? '', $mode);
+    } elseif ($mode === 'signup') {
         $result = registerUser(
             $_POST['name'] ?? '',
             $_POST['email'] ?? '',
@@ -37,12 +49,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($result['success']) {
+        if ($isStaffMode) {
+            $staff = currentStaff();
+            $staffName = userDisplayName($staff);
+            $message = 'Welcome to the ' . ucfirst($mode) . ' portal' . ($staffName !== '' ? ', ' . $staffName : '') . '!';
+            setFlashMessage('success', $message);
+            header('Location: auth.php?mode=' . rawurlencode($mode));
+            exit;
+        }
+
         $authUser = currentUser();
         $firstName = userDisplayName($authUser);
         $message = $mode === 'signup'
             ? 'Welcome to ClicKet' . ($firstName !== '' ? ', ' . $firstName : '') . '!'
             : 'Welcome back' . ($firstName !== '' ? ', ' . $firstName : '') . '!';
-
         setFlashMessage('success', $message);
         header('Location: ' . ($returnTo !== '' ? $returnTo : 'index.php'));
         exit;
@@ -52,11 +72,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $user = currentUser();
+$staff = currentStaff();
 
-if ($user) {
+if ($isStaffMode && $staff && ($staff['role'] ?? '') !== $mode) {
+    $staff = null;
+}
+
+if (!$isStaffMode && $user) {
     header('Location: index.php');
     exit;
 }
+
+if ($isStaffMode && $user) {
+    $user = null;
+}
+
+$authTitle = match ($mode) {
+    'signup' => 'Join ClicKet',
+    'admin' => 'Admin portal',
+    'organizer' => 'Organizer portal',
+    default => 'Sign in to continue',
+};
+$authEyebrow = match ($mode) {
+    'signup' => 'Create Account',
+    'admin' => 'ClicKet Staff',
+    'organizer' => 'Venue Access',
+    default => 'Welcome Back',
+};
+$authCopy = match ($mode) {
+    'signup' => 'Set up your account to book events faster and keep all your tickets in one place.',
+    'admin' => 'Sign in with an admin account to manage events, orders, users, payments, seats, and reports.',
+    'organizer' => 'Sign in with an organizer account to manage assigned venue events, tiers, seats, orders, and check-ins.',
+    default => 'Access your tickets, event history, and booking details.',
+};
+$submitLabel = match ($mode) {
+    'signup' => 'Create Account',
+    'admin' => 'Log In as Admin',
+    'organizer' => 'Log In as Organizer',
+    default => 'Log In',
+};
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -78,7 +132,7 @@ if ($user) {
     }
   </style>
 </head>
-<body class="auth-body auth-mode-<?= $mode === 'signup' ? 'signup' : 'login' ?>">
+<body class="auth-body auth-mode-<?= $mode === 'signup' ? 'signup' : 'login' ?> <?= $isStaffMode ? 'auth-mode-staff' : '' ?>">
 
 <!-- ============================================================
      FLASH NOTIFICATION BAR
@@ -200,7 +254,7 @@ if ($user) {
       <div class="bg-card bg-card--tall" style="background-image:url('https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&q=80')">
         <div class="bg-card__info">
           <span class="bg-card__title">Grand Finale</span>
-          <span class="bg-card__meta">MOA Arena · Aug 1</span>
+          <span class="bg-card__meta">Mall of Asia Arena · Aug 1</span>
         </div>
       </div>
 
@@ -431,17 +485,29 @@ if ($user) {
              LOGIN / SIGNUP FORM
              ==================================================== -->
         <div class="gc-header">
-          <p class="gc-eyebrow" data-auth-eyebrow><?= $mode === 'signup' ? 'Create Account' : 'Welcome Back' ?></p>
-          <h2 class="gc-title" data-auth-title><?= $mode === 'signup' ? 'Join ClicKet' : 'Sign in to continue' ?></h2>
-          <p class="gc-copy" data-auth-copy>
-            <?= $mode === 'signup'
-              ? 'Set up your account to book events faster and keep all your tickets in one place.'
-              : 'Access your tickets, event history, and booking details.' ?>
-          </p>
+          <p class="gc-eyebrow" data-auth-eyebrow><?= htmlspecialchars($authEyebrow) ?></p>
+          <h2 class="gc-title" data-auth-title><?= htmlspecialchars($authTitle) ?></h2>
+          <p class="gc-copy" data-auth-copy><?= htmlspecialchars($authCopy) ?></p>
         </div>
 
         <!-- Mode toggle tabs -->
-        <div class="mode-tabs" role="tablist">
+        <div class="mode-tabs" role="tablist" aria-label="Account portal">
+          <a href="auth.php?mode=login"
+             class="mode-tab <?= !$isStaffMode ? 'mode-tab--active' : '' ?>">
+            User
+          </a>
+          <a href="auth.php?mode=admin"
+             class="mode-tab <?= $mode === 'admin' ? 'mode-tab--active' : '' ?>">
+            Admin
+          </a>
+          <a href="auth.php?mode=organizer"
+             class="mode-tab <?= $mode === 'organizer' ? 'mode-tab--active' : '' ?>">
+            Organizer
+          </a>
+        </div>
+
+        <?php if (!$isStaffMode): ?>
+        <div class="mode-tabs" role="tablist" aria-label="User login mode">
           <a href="auth.php?mode=login"
              class="mode-tab <?= $mode !== 'signup' ? 'mode-tab--active' : '' ?>"
              data-auth-switch="login"
@@ -457,6 +523,24 @@ if ($user) {
             Sign Up
           </a>
         </div>
+        <?php endif; ?>
+
+        <?php if ($staff && $isStaffMode): ?>
+          <div class="auth-alert auth-staff-card" role="status">
+            <svg class="auth-alert__icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.4"/>
+              <path d="M4.8 8.2 7 10.3l4.2-4.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <strong><?= htmlspecialchars($staff['name'] ?? 'Staff') ?></strong>
+              <span><?= htmlspecialchars(ucfirst((string) ($staff['role'] ?? 'staff'))) ?> account signed in.</span>
+              <?php if (($staff['role'] ?? '') === 'organizer' && !empty($staff['venues'])): ?>
+                <small>Assigned venues: <?= htmlspecialchars(implode(', ', $staff['venues'])) ?></small>
+              <?php endif; ?>
+              <a href="auth.php?staff_logout=1">Sign out staff account</a>
+            </div>
+          </div>
+        <?php endif; ?>
 
         <?php if ($errors): ?>
           <div class="auth-alert" role="alert">
@@ -473,8 +557,9 @@ if ($user) {
           </div>
         <?php endif; ?>
 
-        <form class="auth-form" method="post" action="auth.php" id="authForm" novalidate>
-          <input type="hidden" name="mode" id="authModeInput" value="<?= $mode === 'signup' ? 'signup' : 'login' ?>">
+        <?php if (!$staff || !$isStaffMode): ?>
+        <form class="auth-form" method="post" action="auth.php?mode=<?= htmlspecialchars($mode) ?>" id="authForm" novalidate>
+          <input type="hidden" name="mode" id="authModeInput" value="<?= htmlspecialchars($mode) ?>">
           <input type="hidden" name="return" value="<?= htmlspecialchars($returnTo) ?>">
 
           <div class="field-group auth-signup-field <?= $mode === 'signup' ? '' : 'auth-field--hidden' ?>">
@@ -501,7 +586,7 @@ if ($user) {
               id="emailField"
               name="email"
               value="<?= oldInput('email') ?>"
-              placeholder="you@email.com"
+              placeholder="<?= $isStaffMode ? 'staff@clicket.test' : 'you@email.com' ?>"
               autocomplete="email"
               required
             >
@@ -515,7 +600,7 @@ if ($user) {
                 type="password"
                 name="password"
                 id="pwField"
-                placeholder="<?= $mode === 'signup' ? '8+ chars, uppercase, number, symbol' : 'Enter your password' ?>"
+                placeholder="<?= $mode === 'signup' ? '8+ chars, uppercase, number, symbol' : ($isStaffMode ? 'Enter staff password' : 'Enter your password') ?>"
                 autocomplete="<?= $mode === 'signup' ? 'new-password' : 'current-password' ?>"
                 required
               >
@@ -558,13 +643,17 @@ if ($user) {
           </div>
 
           <button type="submit" class="auth-submit" id="authSubmit">
-            <span class="btn-label" data-auth-submit-label><?= $mode === 'signup' ? 'Create Account' : 'Log In' ?></span>
+            <span class="btn-label" data-auth-submit-label><?= htmlspecialchars($submitLabel) ?></span>
             <span class="spinner" aria-hidden="true"></span>
           </button>
         </form>
+        <?php endif; ?>
 
         <p class="gc-footer-note">
-          By continuing, you agree to ClicKet's <a href="terms.php">Terms</a> and <a href="#">Privacy Policy</a>.
+          <?= $isStaffMode
+            ? 'Staff access is restricted to authorized ClicKet admins and venue organizers.'
+            : "By continuing, you agree to ClicKet's" ?>
+          <?php if (!$isStaffMode): ?><a href="terms.php">Terms</a> and <a href="#">Privacy Policy</a>.<?php endif; ?>
         </p>
 
     </div><!-- /glass-card -->

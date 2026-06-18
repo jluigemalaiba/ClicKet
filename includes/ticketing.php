@@ -72,7 +72,7 @@ function clicketTicketCategories(): array {
 
 function clicketVenueProfiles(): array {
     return [
-        'MOA Arena' => [
+        'Mall of Asia Arena' => [
             'layout' => 'arena',
             'stageLabel' => 'Main Stage',
             'subtitle' => 'End-stage arena layout',
@@ -122,17 +122,9 @@ function clicketVenueProfiles(): array {
             ],
         ],
         'Newport Performing Arts Theater' => clicketTheaterProfile('Newport Performing Arts Theater', 'Orchestra', 'Balcony'),
-        'Metropolitan Theater' => clicketTheaterProfile('Metropolitan Theater', 'Orchestra', 'Grand Balcony'),
-        'Solaire Resort Entertainment City' => clicketTheaterProfile('The Theatre at Solaire', 'Premium Orchestra', 'Upper Balcony'),
-        'Tanghalang Pilipino' => clicketTheaterProfile('Tanghalang Pilipino', 'Center Orchestra', 'Gallery'),
-        'Resorts World Manila' => clicketTheaterProfile('Newport World Resorts', 'Stalls', 'Balcony'),
-        'Samsung Hall' => clicketHallProfile('Samsung Hall'),
-        'Philsports Arena' => clicketCourtProfile('Philsports Arena'),
-        'Filoil EcoOil Centre' => clicketCourtProfile('Filoil EcoOil Centre'),
-        'Cuneta Astrodome' => clicketCunetaProfile(),
-        'Muntinlupa Sports Center' => clicketCourtProfile('Muntinlupa Sports Center'),
-        'Ninoy Aquino Stadium and Rizal Memorial' => clicketStadiumProfile(),
-        'Nuvali' => clicketOutdoorProfile(),
+        'The Theatre at Solaire' => clicketTheaterProfile('The Theatre at Solaire', 'Premium Orchestra', 'Upper Balcony'),
+        'Tanghalang Ignacio Jimenez' => clicketTheaterProfile('Tanghalang Ignacio Jimenez', 'Center Orchestra', 'Gallery'),
+        'PhilSports Arena' => clicketCourtProfile('PhilSports Arena'),
     ];
 }
 
@@ -188,39 +180,6 @@ function clicketCourtProfile(string $name): array {
             ['id' => 'upper-east', 'label' => 'Upper East', 'category' => 'silver', 'zone' => 'side-right'],
             ['id' => 'general', 'label' => 'General Admission', 'category' => 'bronze', 'zone' => 'rear'],
         ],
-    ];
-}
-
-function clicketCunetaProfile(): array {
-    $sections = [];
-
-    foreach ([
-        ['tier' => 'floor', 'start' => 101, 'count' => 16, 'capacity' => 100, 'category' => 'vip', 'label' => 'Floor Seating', 'mapColor' => '#166f83'],
-        ['tier' => 'lower', 'start' => 201, 'count' => 16, 'capacity' => 200, 'category' => 'gold', 'label' => 'Lower Box', 'mapColor' => '#f2c542'],
-        ['tier' => 'upper', 'start' => 301, 'count' => 16, 'capacity' => 300, 'category' => 'platinum', 'label' => 'Upper Box', 'mapColor' => '#178ba0'],
-        ['tier' => 'general', 'start' => 401, 'count' => 16, 'capacity' => 150, 'category' => 'general', 'label' => 'General Admission', 'mapColor' => '#b61f36'],
-    ] as $tier) {
-        for ($index = 0; $index < $tier['count']; $index++) {
-            $number = $tier['start'] + $index;
-            $sections[] = [
-                'id' => 'cuneta-' . $tier['tier'] . '-' . $number,
-                'label' => $tier['label'] . ' ' . $number,
-                'number' => (string) $number,
-                'category' => $tier['category'],
-                'tier' => $tier['tier'],
-                'capacity' => $tier['capacity'],
-                'mapColor' => $tier['mapColor'],
-                'zone' => 'ring-' . $tier['tier'],
-            ];
-        }
-    }
-
-    return [
-        'layout' => 'court',
-        'stageLabel' => 'Basketball Court',
-        'subtitle' => 'Cuneta Astrodome four-tier arena bowl',
-        'capacity' => 12000,
-        'sections' => $sections,
     ];
 }
 
@@ -363,6 +322,50 @@ function clicketTanghalanTierForSvgId(string $id): ?array {
     return null;
 }
 
+function clicketNewportTierForSvgId(string $id): ?array {
+    $normalized = strtolower($id);
+    $tiers = [
+        'svip' => ['tier' => 'svip', 'category' => 'vip', 'label' => 'SVIP', 'color' => '#fff86b'],
+        'vip' => ['tier' => 'vip', 'category' => 'platinum', 'label' => 'VIP', 'color' => '#fff0a8'],
+        'balconyc' => ['tier' => 'balcony-center', 'category' => 'silver', 'label' => 'Balcony Center', 'color' => '#afd3ff'],
+        'premierel' => ['tier' => 'premiere-left', 'category' => 'gold', 'label' => 'Premiere Left', 'color' => '#bfe8c8'],
+        'premierer' => ['tier' => 'premiere-right', 'category' => 'gold', 'label' => 'Premiere Right', 'color' => '#bfe8c8'],
+        'deluxel' => ['tier' => 'deluxe-left', 'category' => 'bronze', 'label' => 'Deluxe Left', 'color' => '#d8b7ff'],
+        'deluxer' => ['tier' => 'deluxe-right', 'category' => 'bronze', 'label' => 'Deluxe Right', 'color' => '#d8b7ff'],
+        'balconyl' => ['tier' => 'balcony-left', 'category' => 'general', 'label' => 'Balcony Left', 'color' => '#ffc58f'],
+        'balconyr' => ['tier' => 'balcony-right', 'category' => 'general', 'label' => 'Balcony Right', 'color' => '#ffc58f'],
+        'outerbalcl' => ['tier' => 'outer-balcony-left', 'category' => 'general', 'label' => 'Outer Balcony Left', 'color' => '#f2a0aa'],
+        'outerbalcr' => ['tier' => 'outer-balcony-right', 'category' => 'general', 'label' => 'Outer Balcony Right', 'color' => '#f2a0aa'],
+    ];
+
+    foreach ($tiers as $prefix => $tier) {
+        if (strpos($normalized, $prefix) === 0) {
+            return $tier;
+        }
+    }
+
+    return null;
+}
+
+function clicketSolaireTierForSvgId(string $id): ?array {
+    $normalized = strtolower($id);
+    $tiers = [
+        'vip_' => ['tier' => 'vip', 'category' => 'vip', 'label' => 'VIP', 'color' => '#fff0a8'],
+        'ares_' => ['tier' => 'a-reserve', 'category' => 'platinum', 'label' => 'A Reserve', 'color' => '#bfe8c8'],
+        'bres_' => ['tier' => 'b-reserve', 'category' => 'gold', 'label' => 'B Reserve', 'color' => '#afd3ff'],
+        'cres_' => ['tier' => 'c-reserve', 'category' => 'silver', 'label' => 'C Reserve', 'color' => '#ffc58f'],
+        'dres_' => ['tier' => 'd-reserve', 'category' => 'bronze', 'label' => 'D Reserve', 'color' => '#f2a0aa'],
+    ];
+
+    foreach ($tiers as $prefix => $tier) {
+        if (strpos($normalized, $prefix) === 0) {
+            return $tier;
+        }
+    }
+
+    return null;
+}
+
 function clicketSvgAttributes(string $tag): array {
     preg_match_all('/([A-Za-z_:][A-Za-z0-9_.:-]*)="([^"]*)"/', $tag, $matches, PREG_SET_ORDER);
     $attributes = [];
@@ -402,6 +405,16 @@ function clicketRectPoints(array $attributes): array {
         $cx = (float) $match[2];
         $cy = (float) $match[3];
         $points = array_map(static fn (array $point): array => clicketRotatePoint($point, $angle, $cx, $cy), $points);
+    }
+    if (!empty($attributes['transform']) && preg_match('/matrix\(([^)]+)\)/', $attributes['transform'], $match)) {
+        $matrix = array_map('floatval', preg_split('/[\s,]+/', trim($match[1])));
+        if (count($matrix) === 6) {
+            [$a, $b, $c, $d, $e, $f] = $matrix;
+            $points = array_map(static fn (array $point): array => [
+                $a * $point[0] + $c * $point[1] + $e,
+                $b * $point[0] + $d * $point[1] + $f,
+            ], $points);
+        }
     }
 
     return $points;
@@ -763,6 +776,26 @@ function clicketTanghalanSvgLayout(): array {
     ]);
 }
 
+function clicketNewportSvgLayout(): array {
+    return clicketArenaSvgLayout('Newport_final2.svg', [
+        'seatPattern' => '/^(?:svip|vip|balconyC|premiereL|premiereR|deluxeL|deluxeR|balconyL|balconyR|outerbalcL|outerbalcR)$/i',
+        'seatGroupPattern' => '/<g\b[^>]*\bid="((?:svip|vip|balconyC|premiereL|premiereR|deluxeL|deluxeR|balconyL|balconyR|outerbalcL|outerbalcR)[^"]*)"[^>]*>(.*?)<\/g>/is',
+        'blockedIds' => ['Stage' => 'Stage'],
+        'capacity' => 1700,
+        'viewBox' => [0, 0, 666, 559],
+    ]);
+}
+
+function clicketSolaireSvgLayout(): array {
+    return clicketArenaSvgLayout('Solaire.svg', [
+        'seatPattern' => '/^(?:vip_|ARes_|BRes_|CRes_|DRes_)sec_\d+$/i',
+        'seatGroupPattern' => '/<g\b[^>]*\bid="((?:vip_|ARes_|BRes_|CRes_|DRes_)sec_\d+)"[^>]*>(.*?)<\/g>/is',
+        'blockedIds' => ['Stage' => 'Stage', 'Line' => ''],
+        'capacity' => 1850,
+        'viewBox' => [0, 0, 697, 804],
+    ]);
+}
+
 function clicketMoaSportsProfile(): array {
     $svgLayout = clicketMoaSportsSvgLayout();
     if (!empty($svgLayout['sections'])) {
@@ -789,7 +822,7 @@ function clicketMoaSportsProfile(): array {
         return [
             'layout' => 'court',
             'stageLabel' => 'Basketball Court',
-            'subtitle' => 'MOA Arena 16,000-seat sports bowl',
+            'subtitle' => 'Mall of Asia Arena 16,000-seat sports bowl',
             'capacity' => 16000,
             'sections' => $sections,
             'svgLayout' => [
@@ -857,7 +890,7 @@ function clicketMoaSportsProfile(): array {
     return [
         'layout' => 'court',
         'stageLabel' => 'Basketball Court',
-        'subtitle' => 'MOA Arena 16,000-seat sports bowl',
+        'subtitle' => 'Mall of Asia Arena 16,000-seat sports bowl',
         'capacity' => 16000,
         'sections' => $sections,
     ];
@@ -889,7 +922,7 @@ function clicketMoaConcertProfile(): array {
         return [
             'layout' => 'arena',
             'stageLabel' => 'Stage',
-            'subtitle' => 'MOA Arena 13,000-seat end-stage concert layout',
+            'subtitle' => 'Mall of Asia Arena 13,000-seat end-stage concert layout',
             'capacity' => 13000,
             'sections' => $sections,
             'svgLayout' => [
@@ -926,7 +959,7 @@ function clicketMoaConcertProfile(): array {
     return [
         'layout' => 'arena',
         'stageLabel' => 'Stage',
-        'subtitle' => 'MOA Arena 13,000-seat end-stage concert layout',
+        'subtitle' => 'Mall of Asia Arena 13,000-seat end-stage concert layout',
         'capacity' => 13000,
         'sections' => $sections,
     ];
@@ -1085,7 +1118,7 @@ function clicketPhilsportsProfile(): array {
         ];
     }
 
-    return clicketCourtProfile('Philsports Arena');
+    return clicketCourtProfile('PhilSports Arena');
 }
 
 function clicketTanghalanProfile(): array {
@@ -1157,7 +1190,7 @@ function clicketTanghalanProfile(): array {
         return [
             'layout' => 'theater',
             'stageLabel' => 'Stage',
-            'subtitle' => 'Tanghalang Pilipino 320-seat theater layout',
+            'subtitle' => 'Tanghalang Ignacio Jimenez 320-seat theater layout',
             'capacity' => $targetCapacity,
             'sections' => $sections,
             'svgLayout' => [
@@ -1167,7 +1200,84 @@ function clicketTanghalanProfile(): array {
         ];
     }
 
-    return clicketTheaterProfile('Tanghalang Pilipino', 'Center Orchestra', 'Gallery');
+    return clicketTheaterProfile('Tanghalang Ignacio Jimenez', 'Center Orchestra', 'Gallery');
+}
+
+function clicketNewportProfile(): array {
+    $svgLayout = clicketNewportSvgLayout();
+    if (!empty($svgLayout['sections'])) {
+        $sections = [];
+        foreach ($svgLayout['sections'] as $section) {
+            $tier = clicketNewportTierForSvgId($section['id']);
+            if (!$tier) {
+                continue;
+            }
+            $sections[] = [
+                'id' => $section['id'],
+                'label' => $tier['label'],
+                'number' => $tier['label'],
+                'category' => $tier['category'],
+                'tier' => $tier['tier'],
+                'capacity' => $section['capacity'],
+                'mapColor' => $tier['color'],
+                'zone' => 'svg-' . $tier['tier'],
+                'svgShape' => $section['shape'],
+            ];
+        }
+
+        return [
+            'layout' => 'theater',
+            'stageLabel' => 'Stage',
+            'subtitle' => 'Newport Performing Arts Theater 1,700-seat layout',
+            'capacity' => 1700,
+            'sections' => $sections,
+            'svgLayout' => [
+                'viewBox' => $svgLayout['viewBox'],
+                'nonSeats' => $svgLayout['nonSeats'],
+            ],
+        ];
+    }
+
+    return clicketTheaterProfile('Newport Performing Arts Theater', 'Orchestra', 'Balcony');
+}
+
+function clicketSolaireProfile(): array {
+    $svgLayout = clicketSolaireSvgLayout();
+    if (!empty($svgLayout['sections'])) {
+        $sections = [];
+        foreach ($svgLayout['sections'] as $section) {
+            $tier = clicketSolaireTierForSvgId($section['id']);
+            if (!$tier || !preg_match('/sec_(\d+)/i', $section['id'], $numberMatch)) {
+                continue;
+            }
+            $number = $numberMatch[1];
+            $sections[] = [
+                'id' => $section['id'],
+                'label' => $tier['label'] . ' ' . $number,
+                'number' => $number,
+                'category' => $tier['category'],
+                'tier' => $tier['tier'],
+                'capacity' => $section['capacity'],
+                'mapColor' => $tier['color'],
+                'zone' => 'svg-' . $tier['tier'],
+                'svgShape' => $section['shape'],
+            ];
+        }
+
+        return [
+            'layout' => 'theater',
+            'stageLabel' => 'Stage',
+            'subtitle' => 'The Theatre at Solaire 1,850-seat layout',
+            'capacity' => 1850,
+            'sections' => $sections,
+            'svgLayout' => [
+                'viewBox' => $svgLayout['viewBox'],
+                'nonSeats' => $svgLayout['nonSeats'],
+            ],
+        ];
+    }
+
+    return clicketTheaterProfile('The Theatre at Solaire', 'Premium Orchestra', 'Upper Balcony');
 }
 
 function clicketStadiumProfile(): array {
@@ -1210,30 +1320,22 @@ function clicketOutdoorProfile(): array {
 function clicketVenueMap(string $venue, string $categoryKey): array {
     $variant = $categoryKey === 'sports' ? 'sports' : 'concert';
     $maps = [
-        'MOA Arena' => [
+        'Mall of Asia Arena' => [
             'concert' => ['mapKey' => 'moa-concert', 'mapType' => 'end-stage', 'stageLabel' => 'Main Stage', 'subtitle' => 'End-stage arena concert layout'],
             'sports' => ['mapKey' => 'moa-sports', 'mapType' => 'court', 'stageLabel' => 'Ring / Court', 'subtitle' => 'Center-floor arena sports layout'],
         ],
         'Philippine Arena' => [
             'concert' => ['mapKey' => 'philippine-concert', 'mapType' => 'end-stage', 'stageLabel' => 'Concert Stage', 'subtitle' => 'Large-capacity concert bowl layout'],
-            'sports' => ['mapKey' => 'philippine-sports', 'mapType' => 'court', 'stageLabel' => 'Playing Court', 'subtitle' => 'Large-capacity arena sports layout'],
+            'sports' => ['mapKey' => 'philippine-concert', 'mapType' => 'end-stage', 'stageLabel' => 'Concert Stage', 'subtitle' => 'Large-capacity arena SVG layout'],
         ],
         'Smart Araneta Coliseum' => [
             'concert' => ['mapKey' => 'araneta-concert', 'mapType' => 'end-stage', 'stageLabel' => 'Main Stage', 'subtitle' => 'End-stage coliseum concert layout'],
             'sports' => ['mapKey' => 'araneta-sports', 'mapType' => 'court', 'stageLabel' => 'Playing Court', 'subtitle' => 'Center-court coliseum sports layout'],
         ],
-        'Newport Performing Arts Theater' => ['default' => ['mapKey' => 'newport', 'mapType' => 'theater']],
-        'Metropolitan Theater' => ['default' => ['mapKey' => 'metropolitan', 'mapType' => 'theater-reverse']],
-        'Solaire Resort Entertainment City' => ['default' => ['mapKey' => 'solaire', 'mapType' => 'theater-reverse']],
-        'Tanghalang Pilipino' => ['default' => ['mapKey' => 'tanghalan-svg', 'mapType' => 'theater-round', 'stageLabel' => 'Stage', 'subtitle' => 'Tanghalang Pilipino theater layout']],
-        'Resorts World Manila' => ['default' => ['mapKey' => 'resorts', 'mapType' => 'end-stage']],
-        'Samsung Hall' => ['default' => ['mapKey' => 'samsung', 'mapType' => 'theater-reverse']],
-        'Philsports Arena' => ['default' => ['mapKey' => 'philsports-svg', 'mapType' => 'court', 'stageLabel' => 'Court', 'subtitle' => 'PhilSports Arena sports layout']],
-        'Filoil EcoOil Centre' => ['default' => ['mapKey' => 'filoil', 'mapType' => 'court']],
-        'Cuneta Astrodome' => ['default' => ['mapKey' => 'cuneta', 'mapType' => 'cuneta-bowl', 'stageLabel' => 'Basketball Court', 'subtitle' => 'Cuneta Astrodome four-tier arena bowl', 'capacity' => 12000]],
-        'Muntinlupa Sports Center' => ['default' => ['mapKey' => 'muntinlupa', 'mapType' => 'court']],
-        'Ninoy Aquino Stadium and Rizal Memorial' => ['default' => ['mapKey' => 'ninoy', 'mapType' => 'court']],
-        'Nuvali' => ['default' => ['mapKey' => 'nuvali', 'mapType' => 'tennis', 'stageLabel' => 'Competition Court', 'subtitle' => 'Open-air competition court layout']],
+        'Newport Performing Arts Theater' => ['default' => ['mapKey' => 'newport-svg', 'mapType' => 'theater', 'stageLabel' => 'Stage', 'subtitle' => 'Newport Performing Arts Theater 1,700-seat layout']],
+        'The Theatre at Solaire' => ['default' => ['mapKey' => 'solaire-svg', 'mapType' => 'theater-reverse', 'stageLabel' => 'Stage', 'subtitle' => 'The Theatre at Solaire 1,850-seat layout']],
+        'Tanghalang Ignacio Jimenez' => ['default' => ['mapKey' => 'tanghalan-svg', 'mapType' => 'theater-round', 'stageLabel' => 'Stage', 'subtitle' => 'Tanghalang Ignacio Jimenez theater layout']],
+        'PhilSports Arena' => ['default' => ['mapKey' => 'philsports-svg', 'mapType' => 'court', 'stageLabel' => 'Court', 'subtitle' => 'PhilSports Arena sports layout']],
     ];
 
     $venueMaps = $maps[$venue] ?? [];
@@ -1247,19 +1349,23 @@ function clicketVenueMap(string $venue, string $categoryKey): array {
 
 function clicketVenueProfile(string $venue, string $categoryKey = ''): array {
     $profiles = clicketVenueProfiles();
-    if ($venue === 'MOA Arena' && $categoryKey === 'sports') {
+    if ($venue === 'Mall of Asia Arena' && $categoryKey === 'sports') {
         $profile = clicketMoaSportsProfile();
-    } elseif ($venue === 'MOA Arena' && $categoryKey === 'concerts') {
+    } elseif ($venue === 'Mall of Asia Arena' && $categoryKey === 'concerts') {
         $profile = clicketMoaConcertProfile();
-    } elseif ($venue === 'Philippine Arena' && $categoryKey === 'concerts') {
+    } elseif ($venue === 'Philippine Arena') {
         $profile = clicketPhilippineArenaProfile();
     } elseif ($venue === 'Smart Araneta Coliseum' && $categoryKey === 'concerts') {
         $profile = clicketAranetaConcertProfile();
     } elseif ($venue === 'Smart Araneta Coliseum' && $categoryKey === 'sports') {
         $profile = clicketAranetaSportsProfile();
-    } elseif ($venue === 'Philsports Arena') {
+    } elseif ($venue === 'Newport Performing Arts Theater') {
+        $profile = clicketNewportProfile();
+    } elseif ($venue === 'The Theatre at Solaire') {
+        $profile = clicketSolaireProfile();
+    } elseif ($venue === 'PhilSports Arena') {
         $profile = clicketPhilsportsProfile();
-    } elseif ($venue === 'Tanghalang Pilipino') {
+    } elseif ($venue === 'Tanghalang Ignacio Jimenez') {
         $profile = clicketTanghalanProfile();
     } else {
         $profile = $profiles[$venue] ?? clicketHallProfile($venue);
