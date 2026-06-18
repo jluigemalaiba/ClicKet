@@ -549,7 +549,9 @@
                 "category": "VIP",
                 "price": 1800
             }
-        ]
+        ],
+        "approved_by": "newport.organizer@clicket.test",
+        "approved_at": "2026-06-18T17:07:21+02:00"
     },
     {
         "order_id": "CKO-BE7562DB2B",

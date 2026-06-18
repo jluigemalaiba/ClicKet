@@ -6,13 +6,13 @@ require_once __DIR__ . '/includes/log.php';
 # Araneta (2)/, Solaire, MOA (2)/, Phil Arena/, Newport, Tanghalan, PhilSports
 
 $venues = [
-    ['file' => 'MOA.png',        'name' => 'Mall of Asia Arena',                               'location' => 'Pasay City',         'type' => 'Concert and sports arena',     'capacity' => '~20,000'],
-    ['file' => 'Newport.png',    'name' => 'Newport Performing Arts Theater',         'location' => 'Pasay City',         'type' => 'Performing arts theater',      'capacity' => '~1,700'],
-    ['file' => 'PArena.png',     'name' => 'Philippine Arena',                        'location' => 'Bulacan',            'type' => 'Large-scale arena',            'capacity' => '~55,000'],
-    ['file' => 'Philsports.png', 'name' => 'PhilSports Arena',                        'location' => 'Pasig City',         'type' => 'Indoor arena',                 'capacity' => '~15,000'],
-    ['file' => 'Smart.png',      'name' => 'Smart Araneta Coliseum',                  'location' => 'Quezon City',        'type' => 'Coliseum and live events venue','capacity' => '~25,000'],
-    ['file' => 'Solaire.png',    'name' => 'The Theatre at Solaire',       'location' => 'Paranaque City',     'type' => 'Resort theater',               'capacity' => '~1,850'],
-    ['file' => 'TP.png',         'name' => 'Tanghalang Ignacio Jimenez',                     'location' => 'Pasay City',         'type' => 'Cultural theater',             'capacity' => '~600'],
+    ['file' => 'MOA.png',        'name' => 'Mall of Asia Arena',                               'location' => 'Pasay City',         'type' => 'Premier venue for concerts and sports',     'capacity' => '13,000 - 16,000'],
+    ['file' => 'Newport.png',    'name' => 'Newport Performing Arts Theater',         'location' => 'Pasay City',         'type' => 'Home of world-class stage productions',      'capacity' => '1,700'],
+    ['file' => 'PArena.png',     'name' => 'Philippine Arena',                        'location' => 'Bulacan',            'type' => "The world's largest indoor arena",            'capacity' => '55,000'],
+    ['file' => 'Philsports.png', 'name' => 'PhilSports Arena',                        'location' => 'Pasig City',         'type' => 'Multi-purpose venue for sports and events',                 'capacity' => '10,000'],
+    ['file' => 'Smart.png',      'name' => 'Smart Araneta Coliseum',                  'location' => 'Quezon City',        'type' => 'Iconic arena for concerts and sports','capacity' => '13,000 - 18,000'],
+    ['file' => 'Solaire.png',    'name' => 'The Theatre at Solaire',       'location' => 'Paranaque City',     'type' => 'Luxury theater for live performances',               'capacity' => '1,850'],
+    ['file' => 'TP.png',         'name' => 'Tanghalang Ignacio Jimenez',                     'location' => 'Pasay City',         'type' => 'Modern venue for Filipino performing arts',             'capacity' => '320'],
 ];
 
 $venueHeroPhotos = [

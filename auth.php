@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $staffName = userDisplayName($staff);
             $message = 'Welcome to the ' . ucfirst($mode) . ' portal' . ($staffName !== '' ? ', ' . $staffName : '') . '!';
             setFlashMessage('success', $message);
-            header('Location: auth.php?mode=' . rawurlencode($mode));
+            header('Location: staff-panel.php');
             exit;
         }
 
@@ -537,6 +537,7 @@ $submitLabel = match ($mode) {
               <?php if (($staff['role'] ?? '') === 'organizer' && !empty($staff['venues'])): ?>
                 <small>Assigned venues: <?= htmlspecialchars(implode(', ', $staff['venues'])) ?></small>
               <?php endif; ?>
+              <a href="staff-panel.php">Open <?= htmlspecialchars(ucfirst((string) ($staff['role'] ?? 'staff'))) ?> panel</a>
               <a href="auth.php?staff_logout=1">Sign out staff account</a>
             </div>
           </div>
