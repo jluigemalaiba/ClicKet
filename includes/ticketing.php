@@ -344,6 +344,25 @@ function clicketPhilsportsTierForSvgId(string $id): ?array {
     return null;
 }
 
+function clicketTanghalanTierForSvgId(string $id): ?array {
+    $normalized = strtolower($id);
+    $tiers = [
+        'svip_' => ['tier' => 'svip', 'category' => 'vip', 'label' => 'SVIP', 'color' => '#fff0a8'],
+        'ccp_' => ['tier' => 'ccp', 'category' => 'platinum', 'label' => 'CCP House Seats', 'color' => '#bfe8c8'],
+        'vip_' => ['tier' => 'vip', 'category' => 'silver', 'label' => 'VIP', 'color' => '#d8b7ff'],
+        'vp_' => ['tier' => 'vp', 'category' => 'gold', 'label' => 'VP House Seats', 'color' => '#ffc58f'],
+        'reg_' => ['tier' => 'regular', 'category' => 'general', 'label' => 'Regular', 'color' => '#f2a0aa'],
+    ];
+
+    foreach ($tiers as $prefix => $tier) {
+        if (strpos($normalized, $prefix) === 0) {
+            return $tier;
+        }
+    }
+
+    return null;
+}
+
 function clicketSvgAttributes(string $tag): array {
     preg_match_all('/([A-Za-z_:][A-Za-z0-9_.:-]*)="([^"]*)"/', $tag, $matches, PREG_SET_ORDER);
     $attributes = [];
@@ -734,6 +753,16 @@ function clicketPhilsportsSvgLayout(): array {
     ]);
 }
 
+function clicketTanghalanSvgLayout(): array {
+    return clicketArenaSvgLayout('Tanghalan.svg', [
+        'seatPattern' => '/^(?:svip_|ccp_|vip_|vp_|reg_)/i',
+        'seatGroupPattern' => '/<g\b[^>]*\bid="((?:svip_|ccp_|vip_|vp_|reg_)[^"]+)"[^>]*>(.*?)<\/g>/is',
+        'blockedIds' => ['Stage' => 'Stage'],
+        'capacity' => 320,
+        'viewBox' => [0, 0, 405, 435],
+    ]);
+}
+
 function clicketMoaSportsProfile(): array {
     $svgLayout = clicketMoaSportsSvgLayout();
     if (!empty($svgLayout['sections'])) {
@@ -1059,6 +1088,88 @@ function clicketPhilsportsProfile(): array {
     return clicketCourtProfile('Philsports Arena');
 }
 
+function clicketTanghalanProfile(): array {
+    $svgLayout = clicketTanghalanSvgLayout();
+    if (!empty($svgLayout['sections'])) {
+        $sections = [];
+        $fixedCapacity = 0;
+        $flexArea = 0.0;
+
+        foreach ($svgLayout['sections'] as $section) {
+            $tier = clicketTanghalanTierForSvgId($section['id']);
+            if (!$tier || !preg_match('/sec_(\d+)/i', $section['id'], $numberMatch)) {
+                continue;
+            }
+            $capacity = $tier['tier'] === 'svip' ? 8 : 0;
+            $fixedCapacity += $capacity;
+            if ($tier['tier'] !== 'svip') {
+                $flexArea += (float) ($section['area'] ?? 0);
+            }
+            $number = $numberMatch[1];
+            $sections[] = [
+                'id' => $section['id'],
+                'label' => $tier['label'] . ' ' . $number,
+                'number' => $number,
+                'category' => $tier['category'],
+                'tier' => $tier['tier'],
+                'capacity' => $capacity,
+                'mapColor' => $tier['color'],
+                'zone' => 'svg-' . $tier['tier'],
+                'svgShape' => $section['shape'],
+                'area' => $section['area'] ?? 0,
+            ];
+        }
+
+        $targetCapacity = 320;
+        $remainingCapacity = max(0, $targetCapacity - $fixedCapacity);
+        $allocated = 0;
+        foreach ($sections as $index => $section) {
+            if ($section['tier'] === 'svip') {
+                $sections[$index]['remainder'] = 0;
+                continue;
+            }
+            $exact = $flexArea > 0 ? (((float) $section['area']) / $flexArea) * $remainingCapacity : 0;
+            $capacity = max(1, (int) floor($exact));
+            $sections[$index]['capacity'] = $capacity;
+            $sections[$index]['remainder'] = $exact - floor($exact);
+            $allocated += $capacity;
+        }
+
+        $difference = $remainingCapacity - $allocated;
+        $flexIndexes = array_keys(array_filter($sections, static fn (array $section): bool => $section['tier'] !== 'svip'));
+        usort($flexIndexes, static fn (int $a, int $b): int => ($sections[$b]['remainder'] ?? 0) <=> ($sections[$a]['remainder'] ?? 0));
+        for ($cursor = 0; $difference > 0 && !empty($flexIndexes); $cursor = ($cursor + 1) % count($flexIndexes)) {
+            $sections[$flexIndexes[$cursor]]['capacity']++;
+            $difference--;
+        }
+        for ($cursor = 0; $difference < 0 && !empty($flexIndexes); $cursor = ($cursor + 1) % count($flexIndexes)) {
+            $index = $flexIndexes[$cursor];
+            if ($sections[$index]['capacity'] > 1) {
+                $sections[$index]['capacity']--;
+                $difference++;
+            }
+        }
+
+        foreach ($sections as $index => $section) {
+            unset($sections[$index]['area'], $sections[$index]['remainder']);
+        }
+
+        return [
+            'layout' => 'theater',
+            'stageLabel' => 'Stage',
+            'subtitle' => 'Tanghalang Pilipino 320-seat theater layout',
+            'capacity' => $targetCapacity,
+            'sections' => $sections,
+            'svgLayout' => [
+                'viewBox' => $svgLayout['viewBox'],
+                'nonSeats' => $svgLayout['nonSeats'],
+            ],
+        ];
+    }
+
+    return clicketTheaterProfile('Tanghalang Pilipino', 'Center Orchestra', 'Gallery');
+}
+
 function clicketStadiumProfile(): array {
     return [
         'layout' => 'stadium',
@@ -1114,7 +1225,7 @@ function clicketVenueMap(string $venue, string $categoryKey): array {
         'Newport Performing Arts Theater' => ['default' => ['mapKey' => 'newport', 'mapType' => 'theater']],
         'Metropolitan Theater' => ['default' => ['mapKey' => 'metropolitan', 'mapType' => 'theater-reverse']],
         'Solaire Resort Entertainment City' => ['default' => ['mapKey' => 'solaire', 'mapType' => 'theater-reverse']],
-        'Tanghalang Pilipino' => ['default' => ['mapKey' => 'tanghalan', 'mapType' => 'theater-round']],
+        'Tanghalang Pilipino' => ['default' => ['mapKey' => 'tanghalan-svg', 'mapType' => 'theater-round', 'stageLabel' => 'Stage', 'subtitle' => 'Tanghalang Pilipino theater layout']],
         'Resorts World Manila' => ['default' => ['mapKey' => 'resorts', 'mapType' => 'end-stage']],
         'Samsung Hall' => ['default' => ['mapKey' => 'samsung', 'mapType' => 'theater-reverse']],
         'Philsports Arena' => ['default' => ['mapKey' => 'philsports-svg', 'mapType' => 'court', 'stageLabel' => 'Court', 'subtitle' => 'PhilSports Arena sports layout']],
@@ -1148,6 +1259,8 @@ function clicketVenueProfile(string $venue, string $categoryKey = ''): array {
         $profile = clicketAranetaSportsProfile();
     } elseif ($venue === 'Philsports Arena') {
         $profile = clicketPhilsportsProfile();
+    } elseif ($venue === 'Tanghalang Pilipino') {
+        $profile = clicketTanghalanProfile();
     } else {
         $profile = $profiles[$venue] ?? clicketHallProfile($venue);
     }
