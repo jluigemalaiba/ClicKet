@@ -26,20 +26,18 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <div class="container-xl px-4">
       <div class="about-hero-layout">
         <div class="about-hero-copy">
-          <p class="about-kicker">ClicKet Company Profile</p>
+          <p class="about-kicker">ClicKet Profile</p>
           <h1>ONLINE TICKETING <span>PLATFORM</span></h1>
           <p>
-            ClicKet helps fans discover verified events, choose seats, purchase securely, and enter venues with mobile-ready digital tickets.
+            ClicKet enables event-goers to discover verified events, select their preferred seats, purchase tickets securely, and access venues seamlessly with mobile-ready digital tickets.
           </p>
           <div class="about-hero-actions">
-            <a href="events.php" class="btn-primary">Browse Events</a>
+            <a href="events.php" class="btn-primary"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg> Browse Events</a>
             <a href="#mission" class="about-link-btn">Learn More</a>
           </div>
         </div>
 
         <div class="about-hero-visual" aria-hidden="true">
-          <div class="about-hero-glow about-hero-glow--one"></div>
-          <div class="about-hero-glow about-hero-glow--two"></div>
           <div class="about-tag-cloud">
             <span class="about-ticket-tag tag-red tag-xl" style="--x: 18%; --y: 3%; --r: -1.5deg; --d: 0s;">Concerts</span>
             <span class="about-ticket-tag tag-white" style="--x: 58%; --y: 2%; --r: 1.8deg; --d: .35s;">Sports</span>
@@ -78,11 +76,11 @@ $currentPage = basename($_SERVER['PHP_SELF']);
           </p>
           <div class="about-proof-row" aria-label="ClicKet company statistics">
             <div>
-              <strong>1,000+</strong>
+              <strong>500+</strong>
               <span>Events supported</span>
             </div>
             <div>
-              <strong>300k+</strong>
+              <strong>50k+</strong>
               <span>Tickets delivered</span>
             </div>
             <div>
@@ -107,7 +105,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
           <span>01</span>
           <h3>Our Mission</h3>
           <p>
-            To make live events easy to find, book, enter, and remember by removing friction from ticket purchase, payment, and venue admission.
+            To simplify the event experience by making it easier to discover, reserve, and attend live events through a seamless ticketing and admission process.
           </p>
         </article>
 
@@ -115,7 +113,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
           <span>02</span>
           <h3>Our Vision</h3>
           <p>
-            To become the ticketing partner people choose first for concerts, theater, sports, campus events, and local productions across the Philippines.
+            To become the preferred ticketing platform for concerts, theater productions, sporting events, campus activities, and community events across the Philippines.
           </p>
         </article>
 
@@ -123,7 +121,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
           <span>03</span>
           <h3>Our Standard</h3>
           <p>
-            Clear pricing, secure checkout, verified tickets, responsive support, and tools that help organizers understand demand before doors open.
+            Transparent pricing, secure transactions, verified ticketing, responsive customer support, and data-driven tools that help organizers manage and anticipate event demand.
           </p>
         </article>
       </div>
@@ -134,10 +132,10 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <div class="container-xl px-4">
       <div class="owners-layout">
         <div class="owners-copy">
-          <p class="about-kicker">Owners</p>
-          <h2>Guided by people who understand event operations.</h2>
+          <p class="about-kicker">Founders</p>
+          <h2>Driven by a team passionate about transforming the event ticketing experience</h2>
           <p>
-            ClicKet is led by a small ownership group focused on reliable technology, practical venue workflows, and better fan support.
+            ClicKet is led by a dedicated ownership team committed to building reliable technology, streamlining venue operations, and delivering a seamless experience for both event organizers and attendees.
           </p>
         </div>
 
@@ -145,22 +143,22 @@ $currentPage = basename($_SERVER['PHP_SELF']);
           <article class="owner-row">
             <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&h=300&fit=crop" alt="Alex Herrera" loading="lazy">
             <div>
-              <h3>Alex Herrera</h3>
-              <p>Founder &amp; Managing Owner</p>
+              <h3>Justine Luige Malaiba</h3>
+              <p>Lead UI/UX Designer & Full-Stack Developer</p>
             </div>
           </article>
           <article class="owner-row">
             <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&h=300&fit=crop" alt="Camille Reyes" loading="lazy">
             <div>
-              <h3>Camille Reyes</h3>
-              <p>Operations &amp; Venue Partnerships Owner</p>
+              <h3>Chrizyl Abella</h3>
+              <p>UI/UX Designer & Full-Stack Developer</p>
             </div>
           </article>
           <article class="owner-row">
             <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop" alt="Rafael Ong" loading="lazy">
             <div>
-              <h3>Rafael Ong</h3>
-              <p>Technology &amp; Product Owner</p>
+              <h3>Trisha Mae Talas</h3>
+              <p>Lead Backend Developer & Database Architect</p>
             </div>
           </article>
         </div>
@@ -335,8 +333,8 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <p>Yes. Partner organizers can monitor sales performance, attendance signals, and customer trends for smarter planning.</p>
           </details>
           <details>
-            <summary>Do fans need printed tickets?</summary>
-            <p>No. ClicKet is designed around mobile tickets that can be scanned at the gate.</p>
+            <summary>Do attendees receive digital tickets immediately after purchase?</summary>
+            <p>No. After completing their order, attendees will receive a ticket claim form containing their purchase details. This form must be presented to the event organizers, who will verify the order and issue the official printed ticket for venue entry.</p>
           </details>
         </div>
       </div>

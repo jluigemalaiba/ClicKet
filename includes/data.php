@@ -97,8 +97,6 @@ $theater_events = [
 $sports_events = [
   ['title'=>'PBA Finals Game 7','league'=>'PBA','venue'=>'Smart Araneta Coliseum','date'=>'Dec 5, 2025','rating'=>5,'type'=>'Basketball'],
   ['title'=>'FIBA Asia Cup QF','league'=>'FIBA','venue'=>'Philippine Arena','date'=>'Mar 2, 2026','rating'=>5,'type'=>'Basketball'],
-  ['title'=>'Pacquiao Exhibition Bout','league'=>'WBA','venue'=>'Mall of Asia Arena','date'=>'Jan 30, 2026','rating'=>5,'type'=>'Boxing'],
   ['title'=>'UAAP Season 88 Finals','league'=>'UAAP','venue'=>'Smart Araneta Coliseum','date'=>'Nov 22, 2025','rating'=>5,'type'=>'Basketball'],
-  ['title'=>'WWE Live Manila','league'=>'WWE','venue'=>'Philippine Arena','date'=>'Feb 20, 2026','rating'=>5,'type'=>'Wrestling'],
   ['title'=>'PVL AFC Final','league'=>'PVL','venue'=>'PhilSports Arena','date'=>'May 18, 2026','rating'=>5,'type'=>'Volleyball'],
 ];

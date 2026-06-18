@@ -390,24 +390,11 @@
 .category-card-bottom {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
   margin-top: auto;
   padding-top: 14px;
   border-top: 1px solid var(--gray-200);
-}
-
-.category-stars {
-  display: inline-flex;
-  gap: 1px;
-  color: #F59E0B;
-  font-size: 13px;
-  letter-spacing: .8px;
-  white-space: nowrap;
-}
-
-.category-stars .empty {
-  color: #D8D8D8;
 }
 
 .category-book-btn,

@@ -49,10 +49,7 @@
   align-items: center;
   padding: 142px 0 72px;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 88% 28%, rgba(232, 22, 43, .07) 0 220px, transparent 221px),
-    radial-gradient(circle at 8% 100%, rgba(232, 22, 43, .045) 0 180px, transparent 181px),
-    #fff;
+  background: #fff;
   isolation: isolate;
   border-bottom: 3px solid var(--red-primary);
 }
@@ -69,8 +66,8 @@
 
 .about-hero-layout {
   display: grid;
-  grid-template-columns: minmax(0, 530px) minmax(480px, 1fr);
-  gap: clamp(36px, 6vw, 90px);
+  grid-template-columns: minmax(0, 560px) minmax(620px, 1fr);
+  gap: clamp(28px, 4.5vw, 72px);
   align-items: center;
 }
 
@@ -123,7 +120,8 @@
 
 .about-hero-visual {
   position: relative;
-  min-height: 390px;
+  min-height: clamp(470px, 32vw, 560px);
+  margin-right: clamp(-54px, -3vw, -18px);
   overflow: visible;
   isolation: isolate;
   --mx: 0px;
@@ -133,28 +131,27 @@
 .about-hero-visual::before {
   content: "";
   position: absolute;
-  inset: -42px -46px -34px -32px;
+  inset: -78px -116px -92px -74px;
   z-index: 0;
   background-image:
     linear-gradient(rgba(232, 22, 43, .07) 1px, transparent 1px),
     linear-gradient(90deg, rgba(232, 22, 43, .07) 1px, transparent 1px),
     linear-gradient(rgba(17, 17, 17, .035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(17, 17, 17, .035) 1px, transparent 1px);
-  background-size: 56px 56px, 56px 56px, 28px 28px, 28px 28px;
+  background-size: 58px 58px, 58px 58px, 29px 29px, 29px 29px;
   background-position: center;
-  mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 92%, transparent 100%);
+  mask-image: radial-gradient(ellipse at 55% 52%, #000 0 62%, rgba(0,0,0,.88) 75%, transparent 100%);
   pointer-events: none;
 }
 
 .about-hero-visual::after {
   content: "";
   position: absolute;
-  inset: -50px -54px -42px -40px;
+  inset: -70px -110px -86px -64px;
   z-index: 1;
-  background:
-    radial-gradient(circle at 38% 44%, rgba(232,22,43,.16), transparent 36%),
-    radial-gradient(circle at 75% 22%, rgba(232,22,43,.1), transparent 28%),
-    radial-gradient(circle at 70% 82%, rgba(232,22,43,.08), transparent 30%);
+  background: linear-gradient(118deg, transparent 12%, rgba(232,22,43,.06) 34%, rgba(232,22,43,.13) 53%, rgba(232,22,43,.045) 72%, transparent 92%);
+  filter: blur(28px);
+  opacity: .9;
   pointer-events: none;
 }
 
@@ -165,31 +162,6 @@
   transform: translate3d(var(--mx), var(--my), 0);
   transition: transform .42s cubic-bezier(.22, .61, .36, 1);
   will-change: transform;
-}
-
-.about-hero-glow {
-  position: absolute;
-  z-index: 2;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(2px);
-}
-
-.about-hero-glow--one {
-  width: 420px;
-  height: 420px;
-  top: 44%;
-  left: 43%;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(232,22,43,.16) 0%, rgba(232,22,43,.08) 38%, transparent 70%);
-}
-
-.about-hero-glow--two {
-  width: 260px;
-  height: 260px;
-  right: 2%;
-  bottom: 4%;
-  background: radial-gradient(circle, rgba(232,22,43,.12) 0%, transparent 68%);
 }
 
 .about-ticket-tag {
@@ -427,7 +399,7 @@
   display: grid;
   grid-template-columns: minmax(0, 470px) minmax(0, 1fr);
   gap: clamp(34px, 6vw, 82px);
-  align-items: start;
+  align-items: center;
 }
 
 .owners-list {
@@ -946,9 +918,7 @@
   .about-hero {
     min-height: 0;
     padding: 140px 0 58px;
-    background:
-      radial-gradient(circle at 78% 62%, rgba(232, 22, 43, .12) 0 180px, transparent 181px),
-      #fff;
+    background: #fff;
   }
 
   .about-hero-copy {
@@ -1034,7 +1004,7 @@
   .about-hero-visual::before {
     inset: -26px -22px -28px;
     background-size: 48px 48px, 48px 48px, 24px 24px, 24px 24px;
-    mask-image: linear-gradient(90deg, transparent 0%, #000 7%, #000 94%, transparent 100%);
+    mask-image: radial-gradient(ellipse at 52% 52%, #000 0 68%, rgba(0,0,0,.86) 82%, transparent 100%);
   }
 
   .about-hero-visual::after {

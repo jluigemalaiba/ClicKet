@@ -6,7 +6,6 @@
  */
 function renderEventCard(array $event, string $category, int $idx): void {
     $poster = posterUrl($category, $idx + 10);
-    $stars  = str_repeat('★', $event['rating'] ?? 4) . str_repeat('☆', 5 - ($event['rating'] ?? 4));
     $sub    = $event['artist'] ?? $event['company'] ?? $event['league'] ?? '';
     $type   = htmlspecialchars($event['type'] ?? '');
     $title  = htmlspecialchars($event['title']);
@@ -59,7 +58,6 @@ function renderEventCard(array $event, string $category, int $idx): void {
         </div>
 
         <div class="event-footer">
-          <div class="event-stars" aria-label="Rating"><?= $stars ?></div>
           <a class="event-book-btn" href="<?= $detailUrl ?>">View Event</a>
         </div>
       </div>
@@ -85,17 +83,6 @@ function renderFeaturedCard(array $event, int $pos): void {
       </div>
     </a>
 <?php }
-
-/**
- * Renders star icons.
- */
-function renderStars(int $n): string {
-    $out = '';
-    for ($i = 1; $i <= 5; $i++) {
-        $out .= $i <= $n ? '★' : '☆';
-    }
-    return $out;
-}
 
 /**
  * Renders a Netflix-style category showcase with a large landscape preview
@@ -126,7 +113,6 @@ function renderCategoryShowcase(
             <span class="showcase-type"><?= htmlspecialchars($firstType) ?></span>
           </div>
           <h3 class="showcase-title"><?= htmlspecialchars($first['title']) ?></h3>
-          <div class="showcase-stars" aria-label="Rating"><?= renderStars((int)($first['rating'] ?? 4)) ?></div>
           <p class="showcase-meta">
             <?= htmlspecialchars($first['date']) ?> &bull; <?= htmlspecialchars($first['venue']) ?><?= $firstSub ? ' &bull; ' . htmlspecialchars($firstSub) : '' ?>
           </p>
@@ -135,7 +121,6 @@ function renderCategoryShowcase(
             <a href="<?= htmlspecialchars(eventDetailUrl($category, 0)) ?>" class="btn-primary showcase-book">
               View Event
             </a>
-            <a href="<?= htmlspecialchars($seeAllUrl) ?>" class="btn-outline showcase-see-all">See More</a>
           </div>
         </div>
 
@@ -157,7 +142,6 @@ function renderCategoryShowcase(
               <?php foreach ($events as $idx => $event):
                   $sub = $event['artist'] ?? $event['company'] ?? $event['league'] ?? '';
                   $type = $event['type'] ?? $label;
-                  $rating = (int)($event['rating'] ?? 4);
               ?>
                 <a
                   class="showcase-card <?= $idx === 0 ? 'active' : '' ?>"
@@ -167,7 +151,6 @@ function renderCategoryShowcase(
                   data-date="<?= htmlspecialchars($event['date']) ?>"
                   data-venue="<?= htmlspecialchars($event['venue']) ?>"
                   data-sub="<?= htmlspecialchars($sub) ?>"
-                  data-rating="<?= $rating ?>"
                   data-category="<?= htmlspecialchars($label) ?>"
                   data-image="<?= landscapeUrl($category, $idx + 10) ?>"
                   data-link="<?= htmlspecialchars(eventDetailUrl($category, $idx)) ?>"

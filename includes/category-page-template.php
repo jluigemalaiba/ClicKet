@@ -12,20 +12,6 @@ if (!function_exists('categoryPagePriceValue')) {
     }
 }
 
-if (!function_exists('categoryPageStars')) {
-    function categoryPageStars(int $rating): string {
-        $rating = max(0, min(5, $rating));
-        $stars = '';
-
-        for ($i = 1; $i <= 5; $i++) {
-            $filled = $i <= $rating;
-            $stars .= '<span class="' . ($filled ? 'filled' : 'empty') . '">' . ($filled ? '&#9733;' : '&#9734;') . '</span>';
-        }
-
-        return $stars;
-    }
-}
-
 $pageTitle = $categoryPage['title'] ?? 'Events';
 $pageAccent = $categoryPage['accent'] ?? $pageTitle;
 $pageEyebrow = $categoryPage['eyebrow'] ?? 'ClicKet Events';
@@ -56,7 +42,6 @@ foreach ($rawEvents as $idx => $event) {
         'venue' => $event['venue'] ?? 'Venue TBA',
         'price' => $price,
         'priceValue' => categoryPagePriceValue($price),
-        'rating' => (int) ($event['rating'] ?? 4),
         'type' => $type,
         'sub' => $sub,
         'poster' => posterUrl($posterCategory, $idx + 10),
@@ -116,7 +101,6 @@ sort($typeOptions, SORT_NATURAL | SORT_FLAG_CASE);
         <div class="category-field">
           <label for="sortFilter">Sorting</label>
           <select class="category-select" id="sortFilter">
-            <option value="rating-asc">Lowest Rating &rarr; Highest Rating</option>
             <option value="price-asc">Lowest Price &rarr; Highest Price</option>
             <option value="title-asc">A &rarr; Z</option>
           </select>
@@ -139,7 +123,6 @@ sort($typeOptions, SORT_NATURAL | SORT_FLAG_CASE);
           <article
             class="category-card"
             data-type="<?= htmlspecialchars($event['type']) ?>"
-            data-rating="<?= (int) $event['rating'] ?>"
             data-price="<?= (int) $event['priceValue'] ?>"
             data-title="<?= htmlspecialchars(strtolower($event['title'])) ?>"
           >
@@ -176,9 +159,6 @@ sort($typeOptions, SORT_NATURAL | SORT_FLAG_CASE);
               </div>
 
               <div class="category-card-bottom">
-                <div class="category-stars" aria-label="<?= (int) $event['rating'] ?> out of 5 stars">
-                  <?= categoryPageStars((int) $event['rating']) ?>
-                </div>
                 <a href="auth.php?mode=login&amp;event=<?= urlencode($event['id']) ?>" class="category-book-btn">Book Now</a>
               </div>
             </div>
@@ -227,7 +207,7 @@ sort($typeOptions, SORT_NATURAL | SORT_FLAG_CASE);
         return a.dataset.title.localeCompare(b.dataset.title);
       }
 
-      return Number(a.dataset.rating) - Number(b.dataset.rating);
+      return Number(a.dataset.price) - Number(b.dataset.price);
     });
 
     sorted.forEach(card => grid.appendChild(card));

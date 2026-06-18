@@ -103,8 +103,9 @@ require_once __DIR__ . '/includes/log.php';
     </h1>
 
     <p class="hero-subtitle">
-      Concerts, theater plays, and sports events—all in one place.
-      Interactive seat selection, virtual queuing, and secure online payments.
+      Bringing concerts, theater, and sports together in one destination, with interactive seat selection, 
+      smart virtual queuing, and safe, hassle-free online payments.
+      
     </p>
 
     <div class="hero-cta-group">
@@ -178,7 +179,7 @@ require_once __DIR__ . '/includes/log.php';
       'concert',
       'Concert',
       'Live Music',
-      'From K-Pop megastars to Eraserheads reunion shows, catch the biggest acts performing live on Philippine stages.',
+      'From world-class concerts to unforgettable live performances, experience the biggest events taking center stage across the Philippines.',
       'Events',
       'events.php?category=concerts'
     ); ?>
@@ -187,7 +188,7 @@ require_once __DIR__ . '/includes/log.php';
       <!-- Left meta panel -->
       <div class="netflix-meta-panel">
         <div class="netflix-big-title">Live<br>Music</div>
-        <p class="netflix-description">From K-Pop megastars to Eraserheads reunion shows—catch the biggest acts performing live on Philippine stages.</p>
+        <p class="netflix-description">From world-class concerts to unforgettable live performances, experience the biggest events taking center stage across the Philippines.</p>
         <a href="events.php?category=concerts" class="see-all-btn">See All Concerts</a>
         <div class="netflix-scroll-nav">
           <button class="scroll-nav-btn" onclick="scrollTrack('concertsTrack',-1)" aria-label="Prev">
@@ -237,7 +238,7 @@ require_once __DIR__ . '/includes/log.php';
       'theater',
       'Theater',
       'Stage Magic',
-      'Broadway hits, beloved Filipino musicals, and world-class operas gracing the grandest stages in Manila.',
+      'Immerse yourself in exceptional theatrical experiences, featuring renowned musicals, compelling stage performances, and world-class operas.',
       'Shows',
       'events.php?category=theater'
     ); ?>
@@ -245,7 +246,7 @@ require_once __DIR__ . '/includes/log.php';
     <div class="netflix-row legacy-event-row">
       <div class="netflix-meta-panel">
         <div class="netflix-big-title">Stage<br>Magic</div>
-        <p class="netflix-description">Broadway hits, beloved Filipino musicals, and world-class operas gracing the grandest stages in Manila.</p>
+        <p class="netflix-description">Immerse yourself in exceptional theatrical experiences, featuring renowned musicals, compelling stage performances, and world-class operas.</p>
         <a href="events.php?category=theater" class="see-all-btn">See All Theater</a>
         <div class="netflix-scroll-nav">
           <button class="scroll-nav-btn" onclick="scrollTrack('theaterTrack',-1)" aria-label="Prev">
@@ -294,7 +295,7 @@ require_once __DIR__ . '/includes/log.php';
       'sports',
       'Sports',
       'Sports Action',
-      'Court battles, boxing bouts, football derbies, and volleyball championships, feel the energy live in the arena.',
+      'Experience the thrill of live sports, from intense rivalries and championship matches to unforgettable moments in the arena.',
       'Events',
       'events.php?category=sports'
     ); ?>
@@ -302,7 +303,7 @@ require_once __DIR__ . '/includes/log.php';
     <div class="netflix-row legacy-event-row">
       <div class="netflix-meta-panel">
         <div class="netflix-big-title">Sports<br>Action</div>
-        <p class="netflix-description">Court battles, boxing bouts, football derbies, and volleyball championships—feel the energy live in the arena.</p>
+        <p class="netflix-description">Experience the thrill of live sports, from intense rivalries and championship matches to unforgettable moments in the arena.</p>
         <a href="events.php?category=sports" class="see-all-btn">See All Sports</a>
         <div class="netflix-scroll-nav">
           <button class="scroll-nav-btn" onclick="scrollTrack('sportsTrack',-1)" aria-label="Prev">
@@ -451,11 +452,6 @@ function scrollTrack(id, dir) {
 (function () {
   'use strict';
 
-  function stars(rating) {
-    const n = Math.max(0, Math.min(5, Number(rating) || 0));
-    return '★'.repeat(n) + '☆'.repeat(5 - n);
-  }
-
   function visibleShowcaseCards(showcase) {
     return Array.from(showcase.querySelectorAll('.showcase-card')).filter(card => !card.hidden);
   }
@@ -467,7 +463,6 @@ function scrollTrack(id, dir) {
     const title = showcase.querySelector('.showcase-title');
     const type = showcase.querySelector('.showcase-type');
     const meta = showcase.querySelector('.showcase-meta');
-    const rating = showcase.querySelector('.showcase-stars');
     const book = showcase.querySelector('.showcase-book');
 
     showcase.querySelectorAll('.showcase-card').forEach(item => item.classList.toggle('active', item === card));
@@ -480,7 +475,6 @@ function scrollTrack(id, dir) {
     }
     if (title) title.textContent = card.dataset.title || '';
     if (type) type.textContent = card.dataset.type || '';
-    if (rating) rating.textContent = stars(card.dataset.rating);
     if (book) book.href = card.dataset.link || '#';
     if (meta) {
       const pieces = [card.dataset.date, card.dataset.venue, card.dataset.sub].filter(Boolean);
@@ -492,7 +486,10 @@ function scrollTrack(id, dir) {
 
   document.querySelectorAll('.category-showcase').forEach(showcase => {
     showcase.querySelectorAll('.showcase-card').forEach(card => {
-      card.addEventListener('click', () => activateShowcaseCard(showcase, card));
+      card.addEventListener('click', event => {
+        event.preventDefault();
+        activateShowcaseCard(showcase, card);
+      });
     });
 
     showcase.querySelectorAll('[data-showcase-nav]').forEach(btn => {

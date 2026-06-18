@@ -9,15 +9,6 @@ $eventFavoriteIds = $eventsUser
     ? clicketFavoriteIdsForUser((string) ($eventsUser['id'] ?? ''))
     : [];
 
-function eventPageStars(int $rating): string {
-    $rating = max(0, min(5, $rating));
-    $stars = '';
-    for ($i = 1; $i <= 5; $i++) {
-        $stars .= '<span class="' . ($i <= $rating ? 'filled' : 'empty') . '">' . ($i <= $rating ? '&#9733;' : '&#9734;') . '</span>';
-    }
-    return $stars;
-}
-
 function buildEventPageRows(array $events, string $categoryKey, string $categoryLabel, string $posterCategory, int $timeOffset): array {
     $times = ['6:00 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM'];
     $rows = [];
@@ -31,7 +22,6 @@ function buildEventPageRows(array $events, string $categoryKey, string $category
             'dateValue' => strtotime($event['date']) ?: 0,
             'time' => $times[($idx + $timeOffset) % count($times)],
             'venue' => $event['venue'],
-            'rating' => (int) ($event['rating'] ?? 4),
             'type' => $event['type'] ?? $categoryLabel,
             'sub' => $sub,
             'categoryKey' => $categoryKey,
@@ -765,24 +755,11 @@ $heroTickets = [
     .events-card-bottom {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       gap: 12px;
       margin-top: auto;
       padding-top: 14px;
       border-top: 1px solid var(--gray-200);
-    }
-
-    .events-stars {
-      display: inline-flex;
-      gap: 1px;
-      color: #F59E0B;
-      font-size: 13px;
-      letter-spacing: .8px;
-      white-space: nowrap;
-    }
-
-    .events-stars .empty {
-      color: #D8D8D8;
     }
 
     .events-book-btn {
@@ -1025,12 +1002,10 @@ $heroTickets = [
         <div class="events-filter-field">
           <label for="sortFilter">Sorting</label>
           <select class="events-select" id="sortFilter">
-            <option value="rating-desc">Highest Rating &rarr; Lowest Rating</option>
-            <option value="rating-asc">Lowest Rating &rarr; Highest Rating</option>
-            <option value="title-asc">A &rarr; Z</option>
-            <option value="title-desc">Z &rarr; A</option>
             <option value="date-asc">Earliest Date &rarr; Latest Date</option>
             <option value="date-desc">Latest Date &rarr; Earliest Date</option>
+            <option value="title-asc">A &rarr; Z</option>
+            <option value="title-desc">Z &rarr; A</option>
           </select>
         </div>
       </div>
@@ -1051,7 +1026,6 @@ $heroTickets = [
           <article
             class="events-card"
             data-category="<?= htmlspecialchars($event['categoryKey']) ?>"
-            data-rating="<?= (int) $event['rating'] ?>"
             data-date="<?= (int) $event['dateValue'] ?>"
             data-title="<?= htmlspecialchars(strtolower($event['title'])) ?>"
             data-venue="<?= htmlspecialchars($event['venue']) ?>"
@@ -1098,9 +1072,6 @@ $heroTickets = [
               </div>
 
               <div class="events-card-bottom">
-                <div class="events-stars" aria-label="<?= (int) $event['rating'] ?> out of 5 stars">
-                  <?= eventPageStars((int) $event['rating']) ?>
-                </div>
                 <a href="show.php?event=<?= urlencode($event['id']) ?>" class="events-book-btn">View Event</a>
               </div>
             </div>
@@ -1165,11 +1136,7 @@ $heroTickets = [
         return Number(b.dataset.date) - Number(a.dataset.date);
       }
 
-      if (mode === 'rating-asc') {
-        return Number(a.dataset.rating) - Number(b.dataset.rating);
-      }
-
-      return Number(b.dataset.rating) - Number(a.dataset.rating);
+      return Number(a.dataset.date) - Number(b.dataset.date);
     });
 
     sorted.forEach(card => grid.appendChild(card));
