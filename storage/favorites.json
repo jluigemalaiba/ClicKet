@@ -1,1 +1,28 @@
-[]
+[
+    {
+        "event_id": "theater-1",
+        "title": "Miss Saigon",
+        "date": "Oct 22, 2025",
+        "time": "7:00 PM",
+        "venue": "Newport Performing Arts Theater",
+        "category": "Theater",
+        "type": "Musical",
+        "poster": "https://picsum.photos/seed/2010/400/600",
+        "url": "show.php?event=theater-1",
+        "user_id": "f15868540ddf697c",
+        "created_at": "2026-06-19T15:38:03+08:00"
+    },
+    {
+        "event_id": "theater-3",
+        "title": "Ang Huling El Bimbo",
+        "date": "Nov 8, 2025",
+        "time": "8:00 PM",
+        "venue": "The Theatre at Solaire",
+        "category": "Theater",
+        "type": "Musical",
+        "poster": "https://picsum.photos/seed/2012/400/600",
+        "url": "show.php?event=theater-3",
+        "user_id": "f15868540ddf697c",
+        "created_at": "2026-06-19T15:38:06+08:00"
+    }
+]
