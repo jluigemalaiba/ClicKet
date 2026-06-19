@@ -1,5 +1,9 @@
 <?php
-// includes/log.php - simple file-based auth for ClicKet
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/otp.php';
 
 function startSessionIfNeeded(): void {
     if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
@@ -9,53 +13,48 @@ function startSessionIfNeeded(): void {
 
 startSessionIfNeeded();
 
-// Initialize cart session
 if (!isset($_SESSION['clicket_cart'])) {
     $_SESSION['clicket_cart'] = [];
 }
-
-if (!defined('CLICKET_USERS_FILE')) {
-    define('CLICKET_USERS_FILE', __DIR__ . '/../storage/users.json');
-}
-if (!defined('CLICKET_STAFF_FILE')) {
-    define('CLICKET_STAFF_FILE', __DIR__ . '/../storage/staff.json');
-}
-
-// ── CART SESSION FUNCTIONS ──────────────────────────────────
 
 function addToCart(array $item): void {
     if (!isset($_SESSION['clicket_cart'])) {
         $_SESSION['clicket_cart'] = [];
     }
-    
+
     $itemId = $item['id'] ?? null;
-    if (!$itemId) return;
-    
-    // Check if item exists and increment qty
+    if (!$itemId) {
+        return;
+    }
+
     foreach ($_SESSION['clicket_cart'] as &$cartItem) {
-        if ($cartItem['id'] === $itemId) {
+        if (($cartItem['id'] ?? null) === $itemId) {
             $cartItem['qty'] = ($cartItem['qty'] ?? 1) + 1;
             return;
         }
     }
-    
-    // Add new item
+
     $_SESSION['clicket_cart'][] = array_merge($item, ['qty' => 1]);
 }
 
 function removeFromCart(string $itemId): void {
-    if (!isset($_SESSION['clicket_cart'])) return;
-    $_SESSION['clicket_cart'] = array_filter(
+    if (!isset($_SESSION['clicket_cart'])) {
+        return;
+    }
+
+    $_SESSION['clicket_cart'] = array_values(array_filter(
         $_SESSION['clicket_cart'],
-        fn($item) => ($item['id'] ?? null) !== $itemId
-    );
-    $_SESSION['clicket_cart'] = array_values($_SESSION['clicket_cart']);
+        static fn (array $item): bool => ($item['id'] ?? null) !== $itemId
+    ));
 }
 
 function updateCartQty(string $itemId, int $qty): void {
-    if (!isset($_SESSION['clicket_cart']) || $qty < 1) return;
+    if (!isset($_SESSION['clicket_cart']) || $qty < 1) {
+        return;
+    }
+
     foreach ($_SESSION['clicket_cart'] as &$item) {
-        if ($item['id'] === $itemId) {
+        if (($item['id'] ?? null) === $itemId) {
             $item['qty'] = $qty;
             return;
         }
@@ -67,15 +66,19 @@ function getCart(): array {
 }
 
 function getCartCount(): int {
-    return array_sum(array_map(fn($item) => $item['qty'] ?? 1, $_SESSION['clicket_cart'] ?? []));
+    return array_sum(array_map(
+        static fn (array $item): int => (int) ($item['qty'] ?? 1),
+        $_SESSION['clicket_cart'] ?? []
+    ));
 }
 
 function getCartTotal(): int {
     $total = 0;
     foreach ($_SESSION['clicket_cart'] ?? [] as $item) {
-        $price = (int) preg_replace('/[^0-9]/', '', $item['price'] ?? '0');
-        $total += $price * ($item['qty'] ?? 1);
+        $price = (int) preg_replace('/[^0-9]/', '', (string) ($item['price'] ?? '0'));
+        $total += $price * (int) ($item['qty'] ?? 1);
     }
+
     return $total;
 }
 
@@ -84,122 +87,70 @@ function clearCart(): void {
 }
 
 function ensureUserStore(): void {
-    $dir = dirname(CLICKET_USERS_FILE);
+    clicketDb();
+}
 
-    if (!is_dir($dir)) {
-        mkdir($dir, 0775, true);
-    }
+function ensureStaffStore(): void {
+    clicketDb();
+}
 
-    if (!file_exists(CLICKET_USERS_FILE)) {
-        file_put_contents(CLICKET_USERS_FILE, json_encode([], JSON_PRETTY_PRINT));
-    }
-
-    $users = json_decode(file_get_contents(CLICKET_USERS_FILE) ?: '[]', true);
-    $users = is_array($users) ? $users : [];
-    $changed = false;
-
-    foreach ($users as &$user) {
-        if (!isset($user['role']) || !in_array((string) $user['role'], ['admin', 'organizer', 'customer'], true)) {
-            $user['role'] = 'customer';
-            $changed = true;
-        }
-    }
-    unset($user);
-
-    $hasAdmin = false;
-    $knownEmails = [];
-    foreach ($users as $user) {
-        $email = strtolower((string) ($user['email'] ?? ''));
-        if ($email !== '') {
-            $knownEmails[$email] = true;
-        }
-        if (($user['role'] ?? '') === 'admin') {
-            $hasAdmin = true;
-        }
-    }
-
-    if (!$hasAdmin) {
-        $adminEmail = 'admin@clicket.local';
-        if (isset($knownEmails[$adminEmail])) {
-            foreach ($users as &$user) {
-                if (strtolower((string) ($user['email'] ?? '')) === $adminEmail) {
-                    $user['role'] = 'admin';
-                    $user['venues'] = ['all'];
-                    if (empty($user['password'])) {
-                        $user['password'] = password_hash('admin123', PASSWORD_DEFAULT);
-                    }
-                    $changed = true;
-                    break;
-                }
-            }
-            unset($user);
-        } else {
-            $users[] = [
-                'id' => 'admin-root',
-                'name' => 'CLICKET Admin',
-                'email' => $adminEmail,
-                'password' => password_hash('admin123', PASSWORD_DEFAULT),
-                'role' => 'admin',
-                'venues' => ['all'],
-                'created_at' => date('c'),
-            ];
-            $knownEmails[$adminEmail] = true;
-            $changed = true;
-        }
-    }
-
-    if (file_exists(CLICKET_STAFF_FILE)) {
-        $legacyStaff = json_decode(file_get_contents(CLICKET_STAFF_FILE) ?: '[]', true);
-        if (is_array($legacyStaff)) {
-            foreach ($legacyStaff as $account) {
-                if (($account['role'] ?? '') !== 'organizer') {
-                    continue;
-                }
-                $email = strtolower((string) ($account['email'] ?? ''));
-                if ($email === '' || isset($knownEmails[$email])) {
-                    continue;
-                }
-                $users[] = [
-                    'id' => (string) ($account['id'] ?? bin2hex(random_bytes(8))),
-                    'name' => (string) ($account['name'] ?? 'Organizer'),
-                    'email' => (string) ($account['email'] ?? ''),
-                    'password' => (string) ($account['password'] ?? password_hash('organizer123', PASSWORD_DEFAULT)),
-                    'role' => 'organizer',
-                    'venues' => is_array($account['venues'] ?? null) ? $account['venues'] : [],
-                    'created_at' => (string) ($account['created_at'] ?? date('c')),
-                    'migrated_from' => 'staff_store',
-                ];
-                $knownEmails[$email] = true;
-                $changed = true;
-            }
-        }
-    }
-
-    if ($changed) {
-        file_put_contents(
-            CLICKET_USERS_FILE,
-            json_encode(array_values($users), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
-            LOCK_EX
-        );
-    }
+function clicketUserRowToApp(array $row): array {
+    return [
+        'id' => (string) $row['id'],
+        'name' => (string) $row['name'],
+        'email' => (string) $row['email'],
+        'password' => (string) $row['password_hash'],
+        'role' => 'customer',
+        'status' => (string) ($row['status'] ?? 'active'),
+        'email_verified_at' => (string) ($row['email_verified_at'] ?? ''),
+        'created_at' => clicketDbDisplayDateTime((string) ($row['created_at'] ?? '')),
+    ];
 }
 
 function getUsers(): array {
-    ensureUserStore();
+    $rows = clicketDbFetchAll(
+        'SELECT * FROM users ORDER BY created_at, id'
+    );
 
-    $users = json_decode(file_get_contents(CLICKET_USERS_FILE) ?: '[]', true);
-
-    return is_array($users) ? $users : [];
+    return array_map('clicketUserRowToApp', $rows);
 }
 
 function saveUsers(array $users): bool {
-    ensureUserStore();
+    $pdo = clicketDb();
+    $pdo->beginTransaction();
 
-    return file_put_contents(
-        CLICKET_USERS_FILE,
-        json_encode(array_values($users), JSON_PRETTY_PRINT),
-        LOCK_EX
-    ) !== false;
+    try {
+        foreach ($users as $user) {
+            $email = strtolower(trim((string) ($user['email'] ?? '')));
+            if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                continue;
+            }
+
+            clicketDbExecute(
+                'INSERT INTO users (name, email, password_hash, status, created_at)
+                 VALUES (:name, :email, :password_hash, :status, :created_at)
+                 ON DUPLICATE KEY UPDATE
+                   name = VALUES(name),
+                   password_hash = VALUES(password_hash),
+                   status = VALUES(status)',
+                [
+                    'name' => trim((string) ($user['name'] ?? 'ClicKet User')),
+                    'email' => $email,
+                    'password_hash' => (string) ($user['password'] ?? $user['password_hash'] ?? password_hash(bin2hex(random_bytes(12)), PASSWORD_DEFAULT)),
+                    'status' => in_array((string) ($user['status'] ?? 'active'), ['active', 'inactive'], true)
+                        ? (string) ($user['status'] ?? 'active')
+                        : 'active',
+                    'created_at' => clicketDbDateTime((string) ($user['created_at'] ?? 'now')),
+                ]
+            );
+        }
+
+        $pdo->commit();
+        return true;
+    } catch (Throwable) {
+        $pdo->rollBack();
+        return false;
+    }
 }
 
 function defaultStaffAccounts(): array {
@@ -273,50 +224,264 @@ function defaultStaffAccounts(): array {
             'email' => 'philsports.organizer@clicket.test',
             'password' => password_hash('Organizer@123', PASSWORD_DEFAULT),
             'role' => 'organizer',
-            'venues' => ['Philsports Arena'],
+            'venues' => ['PhilSports Arena'],
             'created_at' => date('c'),
         ],
     ];
 }
 
-function ensureStaffStore(): void {
-    $dir = dirname(CLICKET_STAFF_FILE);
-
-    if (!is_dir($dir)) {
-        mkdir($dir, 0775, true);
+function clicketStaffRowToApp(array $row): array {
+    $venues = [];
+    if (($row['role'] ?? '') === 'admin') {
+        $venues = ['all'];
+    } elseif (!empty($row['venues'])) {
+        $venues = array_values(array_filter(explode("\n", (string) $row['venues'])));
     }
 
-    if (!file_exists(CLICKET_STAFF_FILE)) {
-        file_put_contents(
-            CLICKET_STAFF_FILE,
-            json_encode(defaultStaffAccounts(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
-            LOCK_EX
-        );
-    }
+    return [
+        'id' => (string) $row['id'],
+        'session_user_id' => (string) $row['id'],
+        'name' => (string) $row['name'],
+        'email' => (string) $row['email'],
+        'password' => (string) $row['password_hash'],
+        'role' => (string) $row['role'],
+        'status' => (string) ($row['status'] ?? 'active'),
+        'venues' => $venues,
+        'created_at' => clicketDbDisplayDateTime((string) ($row['created_at'] ?? '')),
+    ];
 }
 
 function getStaffAccounts(): array {
-    return array_values(array_filter(getUsers(), static function (array $user): bool {
-        return in_array((string) ($user['role'] ?? ''), ['admin', 'organizer'], true);
-    }));
+    $rows = clicketDbFetchAll(
+        'SELECT sa.*,
+                GROUP_CONCAT(v.name ORDER BY v.name SEPARATOR "\n") AS venues
+         FROM staff_accounts sa
+         LEFT JOIN staff_venue_assignments sva ON sva.staff_id = sa.id
+         LEFT JOIN venues v ON v.id = sva.venue_id
+         GROUP BY sa.id
+         ORDER BY FIELD(sa.role, "admin", "organizer"), sa.name'
+    );
+
+    return array_map('clicketStaffRowToApp', $rows);
 }
 
 function findStaffByEmail(string $email): ?array {
-    $email = strtolower(trim($email));
+    $row = clicketDbFetch(
+        'SELECT sa.*,
+                GROUP_CONCAT(v.name ORDER BY v.name SEPARATOR "\n") AS venues
+         FROM staff_accounts sa
+         LEFT JOIN staff_venue_assignments sva ON sva.staff_id = sa.id
+         LEFT JOIN venues v ON v.id = sva.venue_id
+         WHERE LOWER(sa.email) = LOWER(:email)
+         GROUP BY sa.id
+         LIMIT 1',
+        ['email' => trim($email)]
+    );
 
-    foreach (getUsers() as $account) {
-        if (strtolower((string) ($account['email'] ?? '')) === $email) {
-            return $account;
+    return $row ? clicketStaffRowToApp($row) : null;
+}
+
+function clicketNormalizeRole(string $role): string {
+    $role = strtolower(trim(str_replace([' ', '-'], '_', $role)));
+
+    return in_array($role, ['customer', 'organizer', 'admin'], true) ? $role : '';
+}
+
+function clicketSetAuthSession(array $account): void {
+    startSessionIfNeeded();
+
+    $role = clicketNormalizeRole((string) ($account['role'] ?? ''));
+    if ($role === '') {
+        throw new InvalidArgumentException('Invalid CLICKET auth role.');
+    }
+
+    $payload = [
+        'user_id' => (string) ($account['user_id'] ?? $account['id'] ?? ''),
+        'role' => $role,
+        'email' => strtolower(trim((string) ($account['email'] ?? ''))),
+        'display_name' => trim((string) ($account['display_name'] ?? $account['name'] ?? '')),
+        'account_table' => (string) ($account['account_table'] ?? ($role === 'customer' ? 'users' : 'staff_accounts')),
+        'venues' => is_array($account['venues'] ?? null) ? array_values($account['venues']) : [],
+        'authenticated_at' => date('c'),
+    ];
+
+    $_SESSION['clicket_auth'] = $payload;
+    $_SESSION['user_id'] = $payload['user_id'];
+    $_SESSION['role'] = $payload['role'];
+    $_SESSION['email'] = $payload['email'];
+    $_SESSION['display_name'] = $payload['display_name'];
+}
+
+function clicketClearAuthSession(): void {
+    unset(
+        $_SESSION['clicket_auth'],
+        $_SESSION['user_id'],
+        $_SESSION['role'],
+        $_SESSION['email'],
+        $_SESSION['display_name']
+    );
+}
+
+function currentAuth(): ?array {
+    startSessionIfNeeded();
+
+    if (is_array($_SESSION['clicket_auth'] ?? null)) {
+        $auth = $_SESSION['clicket_auth'];
+        $role = clicketNormalizeRole((string) ($auth['role'] ?? ''));
+        if ($role !== '' && (string) ($auth['user_id'] ?? '') !== '' && (string) ($auth['email'] ?? '') !== '') {
+            $auth['role'] = $role;
+            $auth['user_id'] = (string) $auth['user_id'];
+            $auth['email'] = (string) $auth['email'];
+            $auth['display_name'] = (string) ($auth['display_name'] ?? '');
+            $auth['venues'] = is_array($auth['venues'] ?? null) ? $auth['venues'] : [];
+
+            return $auth;
         }
+    }
+
+    if (is_array($_SESSION['clicket_staff'] ?? null)) {
+        $staff = $_SESSION['clicket_staff'];
+        return [
+            'user_id' => (string) ($staff['session_user_id'] ?? $staff['id'] ?? ''),
+            'role' => clicketNormalizeRole((string) ($staff['role'] ?? '')),
+            'email' => (string) ($staff['email'] ?? ''),
+            'display_name' => (string) ($staff['display_name'] ?? $staff['name'] ?? ''),
+            'account_table' => 'staff_accounts',
+            'venues' => is_array($staff['venues'] ?? null) ? $staff['venues'] : [],
+        ];
+    }
+
+    if (is_array($_SESSION['clicket_user'] ?? null)) {
+        $user = $_SESSION['clicket_user'];
+        return [
+            'user_id' => (string) ($user['user_id'] ?? $user['id'] ?? ''),
+            'role' => 'customer',
+            'email' => (string) ($user['email'] ?? ''),
+            'display_name' => (string) ($user['display_name'] ?? $user['name'] ?? ''),
+            'account_table' => 'users',
+            'venues' => [],
+        ];
+    }
+
+    $role = clicketNormalizeRole((string) ($_SESSION['role'] ?? ''));
+    if ($role !== '' && !empty($_SESSION['user_id']) && !empty($_SESSION['email'])) {
+        return [
+            'user_id' => (string) $_SESSION['user_id'],
+            'role' => $role,
+            'email' => (string) $_SESSION['email'],
+            'display_name' => (string) ($_SESSION['display_name'] ?? ''),
+            'account_table' => $role === 'customer' ? 'users' : 'staff_accounts',
+            'venues' => [],
+        ];
     }
 
     return null;
 }
 
+function clicketAuthHasRole(string|array $roles): bool {
+    $auth = currentAuth();
+    if (!$auth) {
+        return false;
+    }
+
+    $allowed = array_map('clicketNormalizeRole', (array) $roles);
+
+    return in_array((string) ($auth['role'] ?? ''), $allowed, true);
+}
+
+function clicketAuthRedirectForRole(?string $role = null): string {
+    $role = clicketNormalizeRole((string) ($role ?? (currentAuth()['role'] ?? '')));
+
+    return match ($role) {
+        'admin' => 'admin-panel.php',
+        'organizer' => 'organizer-panel.php',
+        default => 'index.php',
+    };
+}
+
+function clicketLoginUrlForRoles(string|array $roles): string {
+    $roles = array_map('clicketNormalizeRole', (array) $roles);
+    if (in_array('admin', $roles, true)) {
+        return 'auth.php?mode=admin';
+    }
+    if (in_array('organizer', $roles, true)) {
+        return 'auth.php?mode=organizer';
+    }
+
+    return 'auth.php?mode=login';
+}
+
+function clicketRequireRole(string|array $roles, ?string $message = null): array {
+    $auth = currentAuth();
+    if ($auth && clicketAuthHasRole($roles)) {
+        return $auth;
+    }
+
+    if ($auth) {
+        setFlashMessage('error', $message ?: 'You do not have permission to open that page.');
+        header('Location: ' . clicketAuthRedirectForRole((string) ($auth['role'] ?? '')));
+        exit;
+    }
+
+    setFlashMessage('error', $message ?: 'Please sign in to continue.');
+    header('Location: ' . clicketLoginUrlForRoles($roles));
+    exit;
+}
+
+function clicketRequireRoleJson(string|array $roles, string $message = 'Unauthorized.'): array {
+    $auth = currentAuth();
+    if ($auth && clicketAuthHasRole($roles)) {
+        return $auth;
+    }
+
+    http_response_code($auth ? 403 : 401);
+    echo json_encode(['success' => false, 'message' => $message]);
+    exit;
+}
+
+function clicketRequireCustomer(): array {
+    return clicketRequireRole('customer', 'Please sign in with a customer account.');
+}
+
+function clicketRequireStaff(?string $role = null): array {
+    return clicketRequireRole($role ?: ['admin', 'organizer'], 'Please sign in with an admin or organizer account.');
+}
+
+function clicketRequireAdmin(): array {
+    return clicketRequireRole('admin', 'Admin access required.');
+}
+
+function clicketRequireOrganizer(): array {
+    return clicketRequireRole('organizer', 'Organizer access required.');
+}
+
 function currentStaff(): ?array {
     startSessionIfNeeded();
 
-    return $_SESSION['clicket_staff'] ?? null;
+    if (is_array($_SESSION['clicket_staff'] ?? null)) {
+        return $_SESSION['clicket_staff'];
+    }
+
+    $auth = currentAuth();
+    if (!$auth || !in_array((string) ($auth['role'] ?? ''), ['admin', 'organizer'], true)) {
+        return null;
+    }
+
+    $staff = findStaffByEmail((string) ($auth['email'] ?? ''));
+    if (!$staff) {
+        return null;
+    }
+
+    return [
+        'id' => (string) $staff['id'],
+        'user_id' => (string) $staff['id'],
+        'session_user_id' => (string) ($staff['session_user_id'] ?? $staff['id']),
+        'name' => (string) $staff['name'],
+        'display_name' => (string) $staff['name'],
+        'email' => (string) $staff['email'],
+        'role' => (string) $staff['role'],
+        'venues' => is_array($staff['venues'] ?? null) ? $staff['venues'] : [],
+    ];
 }
 
 function isStaffLoggedIn(?string $role = null): bool {
@@ -331,13 +496,25 @@ function isStaffLoggedIn(?string $role = null): bool {
 function loginStaff(array $staff): void {
     startSessionIfNeeded();
     session_regenerate_id(true);
+    unset($_SESSION['clicket_user']);
+
+    clicketSetAuthSession([
+        'id' => (string) $staff['id'],
+        'name' => (string) $staff['name'],
+        'email' => (string) $staff['email'],
+        'role' => (string) $staff['role'],
+        'venues' => is_array($staff['venues'] ?? null) ? $staff['venues'] : [],
+        'account_table' => 'staff_accounts',
+    ]);
 
     $_SESSION['clicket_staff'] = [
-        'id' => $staff['id'],
-        'session_user_id' => $staff['id'],
-        'name' => $staff['name'],
-        'email' => $staff['email'],
-        'role' => $staff['role'],
+        'id' => (string) $staff['id'],
+        'user_id' => (string) $staff['id'],
+        'session_user_id' => (string) ($staff['session_user_id'] ?? $staff['id']),
+        'name' => (string) $staff['name'],
+        'display_name' => (string) $staff['name'],
+        'email' => (string) $staff['email'],
+        'role' => (string) $staff['role'],
         'venues' => is_array($staff['venues'] ?? null) ? $staff['venues'] : [],
     ];
 }
@@ -347,11 +524,12 @@ function loginStaffWithEmail(string $email, string $password, string $role): arr
 
     if (
         !$staff
+        || ($staff['status'] ?? 'active') !== 'active'
         || !in_array((string) ($staff['role'] ?? ''), ['admin', 'organizer'], true)
         || ($staff['role'] ?? '') !== $role
         || !empty($staff['disabled'])
         || strtolower((string) ($staff['status'] ?? 'active')) !== 'active'
-        || !password_verify($password, $staff['password'] ?? '')
+        || !password_verify($password, (string) ($staff['password'] ?? ''))
     ) {
         return ['success' => false, 'errors' => ['Invalid email, password, or portal role.']];
     }
@@ -363,25 +541,44 @@ function loginStaffWithEmail(string $email, string $password, string $role): arr
 
 function logoutStaff(): void {
     startSessionIfNeeded();
+    $auth = currentAuth();
     unset($_SESSION['clicket_staff']);
+    if ($auth && in_array((string) ($auth['role'] ?? ''), ['admin', 'organizer'], true)) {
+        clicketClearAuthSession();
+    }
 }
 
 function findUserByEmail(string $email): ?array {
-    $email = strtolower(trim($email));
+    clicketOtpEnsureSchema();
 
-    foreach (getUsers() as $user) {
-        if (strtolower((string) ($user['email'] ?? '')) === $email) {
-            return $user;
-        }
-    }
+    $row = clicketDbFetch(
+        'SELECT * FROM users WHERE LOWER(email) = LOWER(:email) LIMIT 1',
+        ['email' => trim($email)]
+    );
 
-    return null;
+    return $row ? clicketUserRowToApp($row) : null;
 }
 
 function currentUser(): ?array {
     startSessionIfNeeded();
 
-    return $_SESSION['clicket_user'] ?? null;
+    if (is_array($_SESSION['clicket_user'] ?? null)) {
+        return $_SESSION['clicket_user'];
+    }
+
+    $auth = currentAuth();
+    if (!$auth || (string) ($auth['role'] ?? '') !== 'customer') {
+        return null;
+    }
+
+    return [
+        'id' => (string) $auth['user_id'],
+        'user_id' => (string) $auth['user_id'],
+        'name' => (string) ($auth['display_name'] ?? ''),
+        'display_name' => (string) ($auth['display_name'] ?? ''),
+        'email' => (string) ($auth['email'] ?? ''),
+        'role' => 'customer',
+    ];
 }
 
 function isLoggedIn(): bool {
@@ -391,16 +588,29 @@ function isLoggedIn(): bool {
 function loginUser(array $user): void {
     startSessionIfNeeded();
     session_regenerate_id(true);
+    unset($_SESSION['clicket_staff']);
+
+    clicketSetAuthSession([
+        'id' => (string) $user['id'],
+        'name' => (string) $user['name'],
+        'email' => (string) $user['email'],
+        'role' => 'customer',
+        'account_table' => 'users',
+    ]);
 
     $_SESSION['clicket_user'] = [
-        'id' => $user['id'],
-        'name' => $user['name'],
-        'email' => $user['email'],
-        'role' => (string) ($user['role'] ?? 'customer'),
+        'id' => (string) $user['id'],
+        'user_id' => (string) $user['id'],
+        'name' => (string) $user['name'],
+        'display_name' => (string) $user['name'],
+        'email' => (string) $user['email'],
+        'role' => 'customer',
     ];
 }
 
 function registerUser(string $name, string $email, string $password, string $confirm): array {
+    clicketOtpEnsureSchema();
+
     $name = trim($name);
     $email = strtolower(trim($email));
     $errors = [];
@@ -431,7 +641,7 @@ function registerUser(string $name, string $email, string $password, string $con
         $errors[] = 'Passwords do not match.';
     }
 
-    if (findUserByEmail($email)) {
+    if (findUserByEmail($email) || findStaffByEmail($email)) {
         $errors[] = 'An account with that email already exists.';
     }
 
@@ -439,36 +649,59 @@ function registerUser(string $name, string $email, string $password, string $con
         return ['success' => false, 'errors' => $errors];
     }
 
-    $users = getUsers();
-    $user = [
-        'id' => bin2hex(random_bytes(8)),
-        'name' => $name,
-        'email' => $email,
-        'password' => password_hash($password, PASSWORD_DEFAULT),
-        'role' => 'customer',
-        'created_at' => date('c'),
-    ];
-
-    $users[] = $user;
-
-    if (!saveUsers($users)) {
+    try {
+        clicketDbExecute(
+            'INSERT INTO users (name, email, password_hash, status, email_verified_at)
+             VALUES (:name, :email, :password_hash, "inactive", NULL)',
+            [
+                'name' => $name,
+                'email' => $email,
+                'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+            ]
+        );
+    } catch (Throwable) {
         return ['success' => false, 'errors' => ['Unable to create your account right now.']];
     }
 
-    loginUser($user);
+    $user = findUserByEmail($email);
+    if ($user) {
+        $otp = clicketOtpSendForUser($user);
+        startSessionIfNeeded();
+        $_SESSION['clicket_pending_verification_email'] = $email;
 
-    return ['success' => true];
+        return [
+            'success' => true,
+            'needs_verification' => true,
+            'email' => $email,
+            'mail_sent' => (bool) ($otp['success'] ?? false),
+            'mail_error' => (string) ($otp['error'] ?? ''),
+        ];
+    }
+
+    return ['success' => false, 'errors' => ['Unable to prepare email verification.']];
 }
 
 function loginWithEmail(string $email, string $password): array {
+    clicketOtpEnsureSchema();
+
     $user = findUserByEmail($email);
 
-    if (!$user || !empty($user['disabled']) || strtolower((string) ($user['status'] ?? 'active')) !== 'active' || !password_verify($password, $user['password'] ?? '')) {
+    if (!$user || !password_verify($password, $user['password'] ?? '')) {
         return ['success' => false, 'errors' => ['Invalid email or password.']];
     }
 
-    if (in_array((string) ($user['role'] ?? 'customer'), ['admin', 'organizer'], true)) {
-        return ['success' => false, 'errors' => ['Please use the admin or organizer portal for this account.']];
+    if (!clicketOtpIsVerified($user)) {
+        $otp = clicketOtpSendForUser($user);
+        startSessionIfNeeded();
+        $_SESSION['clicket_pending_verification_email'] = strtolower(trim($email));
+
+        return [
+            'success' => false,
+            'needs_verification' => true,
+            'email' => strtolower(trim($email)),
+            'mail_sent' => (bool) ($otp['success'] ?? false),
+            'errors' => [($otp['cooldown'] ?? false) ? 'Please enter the verification code already sent to your email.' : 'Please verify your email before signing in.'],
+        ];
     }
 
     loginUser($user);
@@ -527,8 +760,7 @@ function userDisplayName(?array $user): string {
         return '';
     }
 
-    $name = trim((string)($user['name'] ?? ''));
-
+    $name = trim((string) ($user['name'] ?? ''));
     if ($name === '') {
         return '';
     }

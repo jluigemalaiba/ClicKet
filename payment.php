@@ -5,6 +5,7 @@ require_once __DIR__ . '/includes/log.php';
 require_once __DIR__ . '/includes/order-history-data.php';
 require_once __DIR__ . '/includes/ticket-data.php';
 require_once __DIR__ . '/includes/reservation.php';
+require_once __DIR__ . '/includes/payment-qr-config.php';
 
 $status = trim((string) ($_GET['status'] ?? ''));
 $lastBooking = $_SESSION['clicket_last_booking'] ?? null;
@@ -51,7 +52,7 @@ if (in_array($status, ['processing', 'success'], true)) {
         'qrph' => 'QR Ph',
     ];
     $receiptSeats = is_array($lastBooking['seats'] ?? null) ? $lastBooking['seats'] : [];
-    $isPaymentReview = strtolower((string) ($lastBooking['payment_status'] ?? '')) === 'pending';
+    $isPaymentReview = in_array(strtolower((string) ($lastBooking['payment_status'] ?? '')), ['pending', 'pending payment'], true);
     $receiptSubtotal = (int) ($lastBooking['subtotal'] ?? array_sum(array_map(fn($seat) => (int) ($seat['price'] ?? 0), $receiptSeats)));
     $receiptServiceFee = (int) ($lastBooking['service_fee'] ?? max(0, (int) ($lastBooking['total'] ?? 0) - $receiptSubtotal));
     $receiptPaymentMethod = $lastBooking['payment_method_label']
@@ -66,7 +67,7 @@ if (in_array($status, ['processing', 'success'], true)) {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title><?= $isPaymentReview ? 'Payment Under Review' : 'Booking Confirmed' ?> | ClicKet</title>
+          <title><?= $isPaymentReview ? 'Pending Payment' : 'Booking Confirmed' ?> | ClicKet</title>
       <link rel="stylesheet" href="css/ticket.css">
     </head>
     <body class="checkout-page">
@@ -93,8 +94,8 @@ if (in_array($status, ['processing', 'success'], true)) {
             <section class="receipt-section" aria-labelledby="receipt-booking-heading">
               <div class="receipt-section-heading">
                 <div>
-                <p class="ticket-panel-kicker"><?= $isPaymentReview ? 'Payment submitted' : 'Booking summary' ?></p>
-                <h2 id="receipt-booking-heading"><?= $isPaymentReview ? 'Your payment is under review' : htmlspecialchars($lastBooking['event_title'] ?? 'ClicKet Event') ?></h2>
+                <p class="ticket-panel-kicker"><?= $isPaymentReview ? 'Pending payment' : 'Booking summary' ?></p>
+                <h2 id="receipt-booking-heading"><?= $isPaymentReview ? 'Upload your proof from Order History' : htmlspecialchars($lastBooking['event_title'] ?? 'ClicKet Event') ?></h2>
                 </div>
                 <span><?= count($receiptSeats) ?> <?= count($receiptSeats) === 1 ? 'ticket' : 'tickets' ?></span>
               </div>
@@ -148,7 +149,7 @@ if (in_array($status, ['processing', 'success'], true)) {
             <section class="receipt-payment" aria-label="Payment breakdown">
               <div>
                 <p class="ticket-panel-kicker">Payment breakdown</p>
-                <p class="receipt-payment-note"><?= $isPaymentReview ? 'Your proof has been submitted. Tickets will be issued after staff approval.' : 'This receipt confirms your completed transaction.' ?></p>
+                <p class="receipt-payment-note"><?= $isPaymentReview ? 'Your order is pending until you upload proof of payment from Order History.' : 'This receipt confirms your completed transaction.' ?></p>
               </div>
               <div class="receipt-totals">
                 <div><span>Tickets (<?= count($receiptSeats) ?>)</span><strong>PHP <?= number_format($receiptSubtotal) ?></strong></div>
@@ -230,6 +231,11 @@ $cardNumber = '';
 $walletMobile = '';
 $paymentAccount = '';
 $proofName = '';
+$venueQrCodes = [
+    'gcash' => clicketPaymentQrForVenue((string) ($event['venue'] ?? ''), 'gcash'),
+    'maya' => clicketPaymentQrForVenue((string) ($event['venue'] ?? ''), 'maya'),
+    'qrph' => clicketPaymentQrForVenue((string) ($event['venue'] ?? ''), 'qrph'),
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $paymentMethod = $selectedPaymentMethod;
@@ -281,31 +287,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $paymentErrors[] = 'Confirm that you completed the QR Ph payment.';
     }
 
-    if (in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true)) {
-        $proof = $_FILES['payment_proof'] ?? null;
-        if (!is_array($proof) || ($proof['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
-            $paymentErrors[] = 'Choose a proof of payment image.';
-        } else {
-            $allowedProofTypes = ['image/jpeg' => 'jpg', 'image/png' => 'png'];
-            $proofType = function_exists('mime_content_type') && !empty($proof['tmp_name'])
-                ? mime_content_type((string) $proof['tmp_name'])
-                : '';
-            if (!isset($allowedProofTypes[$proofType])) {
-                $paymentErrors[] = 'Upload a valid JPG or PNG proof of payment.';
-            } else {
-                $proofDirectory = __DIR__ . '/storage/payment-proofs';
-                if (!is_dir($proofDirectory) && !mkdir($proofDirectory, 0775, true) && !is_dir($proofDirectory)) {
-                    $paymentErrors[] = 'Payment proof storage is unavailable. Please try again.';
-                } else {
-                    $proofName = 'proof-' . bin2hex(random_bytes(10)) . '.' . $allowedProofTypes[$proofType];
-                    if (!move_uploaded_file((string) $proof['tmp_name'], $proofDirectory . '/' . $proofName)) {
-                        $paymentErrors[] = 'Could not save your proof of payment. Please try again.';
-                    }
-                }
-            }
-        }
-    }
-
     if ($paymentErrors) {
         $paymentError = implode(' ', $paymentErrors);
     } else {
@@ -352,12 +333,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'payment_account' => $paymentAccount,
             'proof_of_payment' => $proofName,
             'non_transferable' => true,
-            'payment_status' => in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true) ? 'Pending' : 'Paid',
-            'order_status' => in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true) ? 'Payment Review' : 'Confirmed',
+            'payment_status' => in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true) ? 'Pending Payment' : 'Payment Verified',
+            'order_status' => in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true) ? 'Pending Payment' : 'Payment Verified',
             'booked_at' => (new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('c'),
             'payment_logs' => [[
-                'action' => in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true) ? 'Proof submitted' : 'Payment confirmed',
-                'note' => in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true) ? 'Awaiting staff review.' : 'Automatically confirmed card payment.',
+                'action' => in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true) ? 'Order created' : 'Payment confirmed',
+                'note' => in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true) ? 'Awaiting proof upload from Order History.' : 'Automatically confirmed card payment.',
                 'actor' => (string) ($currentBuyer['email'] ?? 'buyer'),
                 'at' => (new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('c'),
             ]],
@@ -499,7 +480,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <p class="ticket-panel-kicker">E-wallet details</p>
               <h3>Confirm your wallet account</h3>
             </div>
-            <div class="payment-instruction">After confirmation, a secure payment request will be sent to your selected wallet. Open the app and approve the PHP <?= number_format($total) ?> charge.</div>
+            <div class="payment-instruction">Scan the QR for <?= htmlspecialchars((string) ($event['venue'] ?? 'this venue')) ?>, pay PHP <?= number_format($total) ?>, then upload your proof from Order History.</div>
+            <div class="qr-payment-layout payment-wallet-qr-list">
+              <?php foreach (['gcash' => 'GCash', 'maya' => 'Maya'] as $qrMethod => $qrLabel): $qr = $venueQrCodes[$qrMethod] ?? null; ?>
+                <div class="venue-payment-qr" data-wallet-qr="<?= htmlspecialchars($qrMethod) ?>">
+                  <?php if (($qr['exists'] ?? false) && !empty($qr['path'])): ?>
+                    <img data-payment-qr-image data-payment-qr-method="<?= htmlspecialchars($qrMethod) ?>" data-src="<?= htmlspecialchars($qr['path']) ?>" alt="<?= htmlspecialchars(($qr['venue_label'] ?? $event['venue']) . ' ' . $qrLabel . ' QR code') ?>">
+                  <?php else: ?>
+                    <div class="qr-placeholder" role="img" aria-label="<?= htmlspecialchars($qrLabel) ?> QR code pending upload"><span><?= htmlspecialchars($qrLabel) ?></span></div>
+                  <?php endif; ?>
+                  <small><?= htmlspecialchars($qrLabel) ?> QR for <?= htmlspecialchars((string) ($qr['venue_label'] ?? $event['venue'] ?? 'venue')) ?></small>
+                </div>
+              <?php endforeach; ?>
+            </div>
             <div class="payment-field-grid">
               <label class="payment-field payment-field--full">
                 <span>Mobile number</span>
@@ -508,11 +501,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <label class="payment-field payment-field--full">
                 <span>Account name</span>
                 <input type="text" name="wallet_name" autocomplete="name" placeholder="Name registered to the wallet" value="<?= htmlspecialchars((string) ($_POST['wallet_name'] ?? '')) ?>" data-payment-required="wallet">
-              </label>
-              <label class="payment-field payment-field--full payment-file-field">
-                <span>Proof of payment</span>
-                <input type="file" name="payment_proof" accept="image/jpeg,image/png,.jpg,.jpeg,.png" data-payment-required="wallet">
-                <small>JPG or PNG only. Your screenshot is saved securely for staff payment review.</small>
               </label>
             </div>
           </div>
@@ -523,7 +511,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <h3>Scan and confirm payment</h3>
             </div>
             <div class="qr-payment-layout">
-              <div class="qr-placeholder" role="img" aria-label="QR Ph payment code placeholder"><span>QR Ph</span></div>
+              <?php $qr = $venueQrCodes['qrph'] ?? null; ?>
+              <?php if (($qr['exists'] ?? false) && !empty($qr['path'])): ?>
+                <img class="venue-payment-qr-image" data-payment-qr-image data-payment-qr-method="qrph" data-src="<?= htmlspecialchars($qr['path']) ?>" alt="<?= htmlspecialchars(($qr['venue_label'] ?? $event['venue']) . ' QR Ph payment QR code') ?>">
+              <?php else: ?>
+                <div class="qr-placeholder" role="img" aria-label="QR Ph payment code pending upload"><span>QR Ph</span></div>
+              <?php endif; ?>
               <div class="qr-payment-copy">
                 <span>Reference number</span><strong><?= htmlspecialchars($qrReference) ?></strong>
                 <span>Amount due</span><strong>PHP <?= number_format($total) ?></strong>
@@ -533,11 +526,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label class="qr-confirmation">
               <input type="checkbox" name="qr_confirmed" value="1" <?= ($_POST['qr_confirmed'] ?? '') === '1' ? 'checked' : '' ?> data-payment-required="qr">
               <span>I have completed the QR Ph payment using the reference shown above.</span>
-            </label>
-            <label class="payment-field payment-file-field qr-proof-field">
-              <span>Proof of payment</span>
-              <input type="file" name="payment_proof" accept="image/jpeg,image/png,.jpg,.jpeg,.png" data-payment-required="qr">
-              <small>JPG or PNG only. Your screenshot is saved securely for staff payment review.</small>
             </label>
           </div>
           <p class="payment-validation" id="paymentDetailsError" role="alert"></p>

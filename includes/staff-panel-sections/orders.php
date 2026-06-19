@@ -5,7 +5,7 @@ $ordersForClient = array_map(static function (array $order): array {
     return $order;
 }, $orders);
 $confirmedCount = count(array_filter($orders, static fn (array $order): bool => strtolower((string) ($order['order_status'] ?? '')) === 'confirmed'));
-$pendingCount = count(array_filter($orders, static fn (array $order): bool => strtolower((string) ($order['payment_status'] ?? '')) === 'pending'));
+$pendingCount = count(array_filter($orders, static fn (array $order): bool => in_array(strtolower((string) ($order['payment_status'] ?? '')), ['pending', 'pending payment', 'for verification', 'payment submitted'], true)));
 ?>
 
 <section class="staff-orders-workspace" data-subsection="table">
@@ -28,7 +28,7 @@ $pendingCount = count(array_filter($orders, static fn (array $order): bool => st
     <thead><tr><th>Order ID</th><th>Event</th><th>Customer</th><th>Payment</th><th>Total</th><th>Status</th><th></th></tr></thead>
     <tbody>
       <?php foreach ($orders as $order): ?>
-        <?php $state = strtolower((string) ($order['payment_status'] ?? 'pending')); $orderState = strtolower((string) ($order['order_status'] ?? '')); $filterState = in_array($orderState, ['cancelled', 'refunded'], true) ? 'closed' : $state; ?>
+        <?php $state = strtolower((string) ($order['payment_status'] ?? 'pending')); $orderState = strtolower((string) ($order['order_status'] ?? '')); $filterState = in_array($orderState, ['cancelled', 'refunded'], true) ? 'closed' : (in_array($state, ['pending payment', 'for verification', 'payment submitted'], true) ? 'pending' : $state); ?>
         <tr data-search-row data-order-row="<?= sp_h($order['order_id'] ?? '') ?>" data-order-filter-row="<?= sp_h($filterState) ?>">
           <td><strong><?= sp_h($order['order_id'] ?? 'Order') ?></strong><small><?= sp_h($order['booked_at'] ?? '') ?></small></td>
           <td><strong><?= sp_h($order['event_title'] ?? $order['event'] ?? '') ?></strong><small><?= sp_h($order['venue'] ?? '') ?> · <?= sp_count(clicketStaffTicketCount($order)) ?> seats</small></td>

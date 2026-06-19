@@ -991,6 +991,12 @@ a { color: inherit; text-decoration: none; }
 .qr-placeholder { position: relative; display: grid; width: 150px; aspect-ratio: 1; place-items: center; overflow: hidden; border: 8px solid #fff; outline: 1px solid var(--ticket-line); border-radius: 8px; background: repeating-conic-gradient(#121214 0 25%, #fff 0 50%) 0 / 18px 18px; }
 .qr-placeholder::before { content: ''; position: absolute; inset: 38px; border: 8px solid #fff; background: #fff; }
 .qr-placeholder span { position: relative; z-index: 1; padding: 5px 8px; border-radius: 5px; background: #fff; color: #244a9b; font-size: 12px; font-weight: 900; }
+.venue-payment-qr-image,
+.venue-payment-qr img { display: block; width: 150px; aspect-ratio: 1; object-fit: contain; border: 8px solid #fff; outline: 1px solid var(--ticket-line); border-radius: 8px; background: #fff; }
+.payment-wallet-qr-list { margin-bottom: 16px; }
+.venue-payment-qr { display: grid; gap: 7px; justify-items: center; }
+.venue-payment-qr[hidden] { display: none; }
+.venue-payment-qr small { max-width: 170px; color: var(--ticket-muted); font-size: 10px; line-height: 1.4; text-align: center; }
 .qr-payment-copy span, .qr-payment-copy strong { display: block; }
 .qr-payment-copy span { color: var(--ticket-muted); font-size: 10px; }
 .qr-payment-copy strong { margin: 2px 0 10px; font-size: 13px; }

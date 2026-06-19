@@ -1,4 +1,6 @@
 <?php
 
-$clicketPanelRole = 'organizer';
-require __DIR__ . '/staff-panel.php';
+require_once __DIR__ . '/includes/log.php';
+clicketRequireOrganizer();
+header('Location: organizer/dashboard.php');
+exit;

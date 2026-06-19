@@ -79,21 +79,25 @@
   }
 
   function showPanel(panelKey, subtarget = '', shouldHash = true) {
-    const nextPanel = panelViews.find(panel => panel.dataset.panelView === panelKey);
+    const panelFallbacks = { payments: 'orders', reservations: 'dashboard', settings: 'dashboard' };
+    const nextPanelKey = panelViews.some(panel => panel.dataset.panelView === panelKey)
+      ? panelKey
+      : (panelFallbacks[panelKey] || 'dashboard');
+    const nextPanel = panelViews.find(panel => panel.dataset.panelView === nextPanelKey) || panelViews[0];
     if (!nextPanel) return;
 
     panelViews.forEach(panel => {
       panel.classList.toggle('is-active', panel === nextPanel);
     });
-    openGroup(panelKey);
-    setActiveNav(panelKey, subtarget);
+    openGroup(nextPanelKey);
+    setActiveNav(nextPanelKey, subtarget);
     updateContext(nextPanel, subtarget);
     applySearch();
     body.classList.remove('sidebar-open');
 
     if (shouldHash) {
       const suffix = subtarget ? `:${subtarget}` : '';
-      history.replaceState(null, '', `#${panelKey}${suffix}`);
+      history.replaceState(null, '', `#${nextPanelKey}${suffix}`);
     }
   }
 
@@ -439,6 +443,109 @@
     modal.hidden = false;
   }
 
+  function staffEventLayoutOptions() {
+    const source = document.getElementById('staffEventLayoutOptionsJson');
+    if (!source) return [];
+    try {
+      return JSON.parse(source.textContent || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  function eventStatusOptions(selected) {
+    const statuses = body.classList.contains('staff-role-organizer')
+      ? ['draft', 'published', 'paused']
+      : ['draft', 'published', 'paused', 'archived'];
+
+    return statuses.map(status => {
+      const label = status.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+      return `<option value="${status}" ${status === selected ? 'selected' : ''}>${label}</option>`;
+    }).join('');
+  }
+
+  function eventCategoryOptions(selected) {
+    return ['concert', 'sports', 'theater'].map(category => {
+      const label = category.replace(/\b\w/g, char => char.toUpperCase());
+      return `<option value="${category}" ${category === selected ? 'selected' : ''}>${label}</option>`;
+    }).join('');
+  }
+
+  function eventLayoutOptions(selectedLayoutId) {
+    return staffEventLayoutOptions().map(option => `
+      <option value="${escapeHtml(option.venue_layout_id)}" ${String(option.venue_layout_id) === String(selectedLayoutId) ? 'selected' : ''}>
+        ${escapeHtml(option.label)}
+      </option>
+    `).join('');
+  }
+
+  function openEventEditModal(eventData) {
+    if (!modal || !modalBody || !modalTitle) return;
+    const isCreate = !(eventData.event_key || eventData.key);
+    const title = eventData.title || (isCreate ? 'Add Event' : 'Edit Event');
+    modalTitle.textContent = title;
+    if (modalEyebrow) modalEyebrow.textContent = isCreate ? 'event create' : 'event edit';
+
+    modalBody.innerHTML = `
+      <form class="staff-form-grid" action="staff-events-api.php" method="post">
+        <input type="hidden" name="action" value="${isCreate ? 'create' : 'update'}">
+        <input type="hidden" name="event_key" value="${escapeHtml(eventData.event_key || eventData.key || '')}">
+        <label>
+          <span>Event Title</span>
+          <input type="text" name="title" value="${escapeHtml(eventData.title || '')}" required>
+        </label>
+        <label>
+          <span>Venue</span>
+          <select name="venue_layout_id" required>${eventLayoutOptions(eventData.venue_layout_id)}</select>
+        </label>
+        <label>
+          <span>Category</span>
+          <select name="category" required>${eventCategoryOptions(eventData.category_db || 'concert')}</select>
+        </label>
+        <label>
+          <span>Event Type</span>
+          <input type="text" name="type" value="${escapeHtml(eventData.type || '')}">
+        </label>
+        <label>
+          <span>Owner / Artist / Company / League</span>
+          <input type="text" name="owner_name" value="${escapeHtml(eventData.owner || '')}">
+        </label>
+        <label>
+          <span>Base Price</span>
+          <input type="number" name="base_price" min="0" step="0.01" value="${escapeHtml(eventData.base_price ?? 0)}" required>
+        </label>
+        <label>
+          <span>Performance Date</span>
+          <input type="date" name="performance_date" value="${escapeHtml(eventData.performance_date || '')}" required>
+        </label>
+        <label>
+          <span>Performance Time</span>
+          <input type="time" name="performance_time" value="${escapeHtml(String(eventData.performance_time || '').slice(0, 5))}" required>
+        </label>
+        <label>
+          <span>Status</span>
+          <select name="status" required>${eventStatusOptions(eventData.status_value || 'draft')}</select>
+        </label>
+        <label>
+          <span>Poster URL</span>
+          <input type="url" name="poster_url" value="${escapeHtml(eventData.poster_url || '')}">
+        </label>
+        <label>
+          <span>Banner URL</span>
+          <input type="url" name="banner_url" value="${escapeHtml(eventData.banner_url || '')}">
+        </label>
+        <div class="staff-form-actions">
+          <button class="staff-secondary-btn" type="button" data-modal-close>Cancel</button>
+          <button class="staff-action-btn" type="submit">${isCreate ? 'Create Event' : 'Save Changes'}</button>
+        </div>
+      </form>
+    `;
+    modal.hidden = false;
+    modalBody.querySelectorAll('[data-modal-close]').forEach(button => {
+      button.addEventListener('click', closeModal);
+    });
+  }
+
   function closeModal() {
     if (!modal) return;
     modal.hidden = true;
@@ -449,6 +556,24 @@
     button.addEventListener('click', () => {
       if (button.disabled) return;
       openModal(button.dataset.modalTitle || button.textContent.trim(), button.dataset.modalType || '');
+    });
+  });
+
+  document.querySelectorAll('[data-event-edit]').forEach(button => {
+    button.addEventListener('click', () => {
+      if (button.disabled) return;
+      try {
+        openEventEditModal(JSON.parse(button.dataset.event || '{}'));
+      } catch {
+        openEventEditModal({});
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-event-create]').forEach(button => {
+    button.addEventListener('click', () => {
+      if (button.disabled) return;
+      openEventEditModal({});
     });
   });
 
@@ -466,9 +591,9 @@
   function setPaymentStatusClass(statusEl, status) {
     statusEl.classList.remove('is-success', 'is-danger', 'is-warning', 'is-muted', 'is-info');
     const normalized = String(status || '').toLowerCase();
-    if (normalized === 'paid' || normalized === 'confirmed') {
+    if (normalized === 'paid' || normalized === 'payment verified' || normalized === 'confirmed') {
       statusEl.classList.add('is-success');
-    } else if (normalized === 'failed' || normalized === 'cancelled' || normalized === 'canceled') {
+    } else if (normalized === 'failed' || normalized === 'rejected' || normalized === 'cancelled' || normalized === 'canceled') {
       statusEl.classList.add('is-danger');
     } else if (normalized === 'refunded') {
       statusEl.classList.add('is-muted');
@@ -552,7 +677,8 @@
     modal.classList.add('is-order-record');
     modalTitle.textContent = order.order_id || 'Order details';
     if (modalEyebrow) modalEyebrow.textContent = 'Order record';
-    const statusClass = String(order.payment_status || '').toLowerCase() === 'paid' ? 'is-success' : (String(order.payment_status || '').toLowerCase() === 'pending' ? 'is-warning' : 'is-muted');
+    const normalizedPaymentStatus = String(order.payment_status || '').toLowerCase();
+    const statusClass = ['paid', 'payment verified'].includes(normalizedPaymentStatus) ? 'is-success' : (['pending', 'pending payment', 'for verification'].includes(normalizedPaymentStatus) ? 'is-warning' : (normalizedPaymentStatus === 'rejected' ? 'is-danger' : 'is-muted'));
     const proof = order.proof_url ? `<img class="staff-modal-proof" src="${escapeHtml(order.proof_url)}" alt="Payment proof for ${escapeHtml(order.order_id)}">` : `<div class="staff-order-proof-empty"><span>Proof of payment</span><strong>${order.proof_of_payment ? 'Legacy proof is unavailable' : 'No screenshot uploaded'}</strong><small>${order.proof_of_payment ? escapeHtml(order.proof_of_payment) : 'This order has no attached payment image.'}</small></div>`;
     modalBody.innerHTML = `<div class="staff-order-modal staff-order-record"><header class="staff-order-record-head"><div><span>Order total</span><strong>PHP ${Number(order.total || 0).toLocaleString()}</strong><small>${escapeHtml(order.event_title || order.event || 'ClicKet event')}</small></div><div><span class="staff-status ${statusClass}">${escapeHtml(order.payment_status || 'Pending')}</span><small>${escapeHtml(order.order_status || 'Open')}</small></div></header><div class="staff-order-summary"><div><span>Buyer</span><strong>${escapeHtml(order.buyer_name || 'Guest')}</strong><small>${escapeHtml(order.buyer_email || 'No email')}</small></div><div><span>Event & venue</span><strong>${escapeHtml(order.event_title || order.event || '')}</strong><small>${escapeHtml(order.venue || '')}</small></div><div><span>Payment method</span><strong>${escapeHtml(order.payment_method_label || order.payment_method || '—')}</strong><small>${escapeHtml(order.payment_account || '')}</small></div><div><span>Reference number</span><strong>${escapeHtml(order.payment_reference || order.reference || '—')}</strong><small>${escapeHtml(order.booked_at || '')}</small></div></div><div class="staff-order-record-grid"><section class="staff-order-record-card"><div class="staff-order-record-card__head"><span>Payment proof</span><small>${escapeHtml(order.proof_of_payment || 'No file')}</small></div>${proof}</section><section class="staff-order-record-card"><div class="staff-order-record-card__head"><span>Selected seats</span><small>${Array.isArray(order.seats) ? order.seats.length : 0} ticket(s)</small></div><ul class="staff-order-seat-list">${orderRecordSeatList(order)}</ul></section></div><section class="staff-order-log-card"><div class="staff-order-record-card__head"><span>Payment logs</span><small>${orderRecordLogs(order).length} recorded event(s)</small></div><ul class="staff-order-log-list">${orderRecordLogList(order)}</ul></section></div>`;
     modal.hidden = false;

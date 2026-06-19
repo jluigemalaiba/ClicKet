@@ -1,7 +1,24 @@
 <?php
 
 require_once __DIR__ . '/order-history-data.php';
-require_once __DIR__ . '/ticketing.php';
+
+function clicketTicketEventMedia(array $order): array {
+    $poster = trim((string) ($order['event_poster'] ?? ''));
+    $banner = trim((string) ($order['event_banner'] ?? ''));
+
+    if ($poster === '' || $banner === '') {
+        $event = clicketDbEventByKey((string) ($order['event'] ?? ''));
+        if ($event) {
+            $poster = $poster !== '' ? $poster : (string) ($event['poster_url'] ?? '');
+            $banner = $banner !== '' ? $banner : (string) ($event['banner_url'] ?? $poster);
+        }
+    }
+
+    $poster = $poster !== '' ? $poster : 'assets/Icon_Logo.png';
+    $banner = $banner !== '' ? $banner : $poster;
+
+    return ['poster' => $poster, 'banner' => $banner];
+}
 
 function clicketTicketStatus(array $order): string {
     $paymentStatus = strtolower((string) ($order['payment_status'] ?? ''));
@@ -11,21 +28,21 @@ function clicketTicketStatus(array $order): string {
         return 'Invalid';
     }
 
-    return $paymentStatus === 'paid' && in_array($orderStatus, ['confirmed', 'completed'], true)
+    return in_array($paymentStatus, ['paid', 'payment verified'], true) && in_array($orderStatus, ['confirmed', 'completed', 'payment verified'], true)
         ? 'Valid'
         : 'Pending';
 }
 
 function clicketHydrateOrderTickets(array $order): array {
-    $resolved = clicketResolveEvent((string) ($order['event'] ?? ''));
+    $media = clicketTicketEventMedia($order);
     $orderId = (string) ($order['order_id'] ?? 'CKO-UNKNOWN');
     $bookedAt = (string) ($order['booked_at'] ?? date('c'));
     $seats = is_array($order['seats'] ?? null) ? $order['seats'] : [];
     $tickets = is_array($order['tickets'] ?? null) ? $order['tickets'] : [];
     $status = clicketTicketStatus($order);
 
-    $order['event_poster'] = (string) ($order['event_poster'] ?? ($resolved['poster'] ?? 'assets/Icon_Logo.png'));
-    $order['event_banner'] = (string) ($order['event_banner'] ?? ($resolved['banner'] ?? $order['event_poster']));
+    $order['event_poster'] = $media['poster'];
+    $order['event_banner'] = $media['banner'];
     $order['voucher'] = array_merge([
         'voucher_id' => 'VCH-' . strtoupper(substr(hash('sha256', $orderId), 0, 12)),
         'format_version' => 1,

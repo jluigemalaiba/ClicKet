@@ -3,8 +3,10 @@
 require_once __DIR__ . '/includes/log.php';
 require_once __DIR__ . '/includes/staff-panel-data.php';
 
+clicketRequireStaff($clicketPanelRole ?? null);
 $staff = currentStaff();
 if (!$staff) {
+    logoutStaff();
     setFlashMessage('error', 'Please sign in with an admin or organizer account.');
     header('Location: auth.php?mode=admin');
     exit;
@@ -38,7 +40,7 @@ $metrics = $payload['metrics'];
 $panelTitle = $isAdmin ? 'Admin Panel' : 'Organizer Dashboard';
 $panelScope = $isAdmin
     ? 'Full access across venues, events, inventory, orders, payments, reports, archives, audit logs, and settings.'
-    : 'Limited access for owned event management, reservation overview, and news posting only.';
+    : 'Organizer access for assigned venues, owned events, tickets, reports, and archives.';
 
 function sp_h(mixed $value): string {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -56,9 +58,9 @@ function sp_status_class(mixed $status): string {
     $status = strtolower(trim((string) $status));
 
     return match ($status) {
-        'paid', 'published', 'confirmed', 'enabled', 'active', 'valid', 'open', 'approved', 'success' => 'is-success',
-        'pending', 'draft', 'review', 'held', 'processing', 'warning' => 'is-warning',
-        'failed', 'cancelled', 'canceled', 'void', 'blocked', 'expired', 'suspended' => 'is-danger',
+        'paid', 'payment verified', 'published', 'confirmed', 'enabled', 'active', 'valid', 'open', 'approved', 'success' => 'is-success',
+        'pending', 'pending payment', 'for verification', 'payment submitted', 'draft', 'review', 'held', 'processing', 'warning' => 'is-warning',
+        'failed', 'rejected', 'cancelled', 'canceled', 'void', 'blocked', 'expired', 'suspended' => 'is-danger',
         'refunded', 'archived', 'used', 'disabled' => 'is-muted',
         'info' => 'is-info',
         default => 'is-info',
@@ -133,10 +135,13 @@ $adminModules = [
 ];
 
 $organizerModules = [
-    ['Dashboard', 'Owned event snapshot, upcoming schedules, reservations, and posting workflow.'],
+    ['Dashboard', 'Owned event snapshot, ticket pace, reservations, and reporting shortcuts.'],
+    ['Venues', 'Assigned venue capacity, event revenue, ticket sales, and organizer coverage.'],
     ['Events', 'Create and manage owned event records, schedules, media, and event status.'],
-    ['Reservations', 'Active holds, expired holds, release requests, and abandoned checkout monitoring.'],
-    ['News Management', 'Create event news, save drafts, request publishing, and archive posts.'],
+    ['Tickets', 'Ticket ID, validation code, voucher, seat assignment, and view-only details.'],
+    ['Reports', 'Scoped sales, venue, event, ticket, attendance, PDF, and Excel exports.'],
+    ['News Management', 'Create event news, save drafts, and publish updates.'],
+    ['Archives', 'Archived owned events, closed records, and retention views.'],
 ];
 
 $adminPanelGroups = [
@@ -153,9 +158,12 @@ $adminPanelGroups = [
 
 $organizerPanelGroups = array_intersect_key($adminPanelGroups, array_flip([
     'dashboard',
+    'venues',
     'events',
-    'reservations',
+    'tickets',
+    'reports',
     'news',
+    'archives',
 ]));
 
 $panelGroups = $isAdmin ? $adminPanelGroups : $organizerPanelGroups;
@@ -172,7 +180,7 @@ $assignedVenueNames = clicketStaffAssignedVenueNames($staff);
   <link rel="stylesheet" href="css/staff-panel.css?v=<?= filemtime(__DIR__ . '/css/staff-panel.css') ?>">
 </head>
 <body class="staff-shell staff-role-<?= sp_h($role) ?>">
-  <aside class="staff-sidebar" id="staffSidebar" aria-label="Admin navigation">
+  <aside class="staff-sidebar" id="staffSidebar" aria-label="<?= sp_h(ucfirst($role)) ?> navigation">
     <div class="staff-sidebar-header">
       <a class="staff-brand" href="index.php" aria-label="CLICKET home">
         <img src="assets/Icon_Logo.png" alt="" aria-hidden="true">
@@ -188,10 +196,10 @@ $assignedVenueNames = clicketStaffAssignedVenueNames($staff);
     <nav class="staff-nav staff-nav-tree">
       <?php foreach ($panelGroups as $groupKey => $group): ?>
         <section class="staff-nav-group" data-nav-group="<?= sp_h($groupKey) ?>">
-          <button class="staff-nav-parent <?= $groupKey === 'dashboard' ? 'is-active' : '' ?>" type="button" data-panel-target="<?= sp_h($groupKey) ?>" title="<?= sp_h($group['label']) ?>">
+          <a class="staff-nav-parent <?= $groupKey === 'dashboard' ? 'is-active' : '' ?>" href="<?= sp_h($roleEntry) ?>#<?= sp_h($groupKey) ?>" data-panel-target="<?= sp_h($groupKey) ?>" title="<?= sp_h($group['label']) ?>">
             <span class="staff-nav-icon"><?= sp_panel_icon((string) $groupKey) ?></span>
             <span class="staff-nav-label"><?= sp_h($group['label']) ?></span>
-          </button>
+          </a>
         </section>
       <?php endforeach; ?>
     </nav>
@@ -244,15 +252,15 @@ $assignedVenueNames = clicketStaffAssignedVenueNames($staff);
         </label>
       </div>
       <div class="staff-topbar-actions">
-        <button class="staff-topbar-icon staff-topbar-icon--notify" type="button" data-panel-shortcut="orders" aria-label="Open orders">
+        <button class="staff-topbar-icon staff-topbar-icon--notify" type="button" data-panel-shortcut="<?= $isAdmin ? 'orders' : 'tickets' ?>" aria-label="<?= $isAdmin ? 'Open orders' : 'Open tickets' ?>">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
             <path d="M10 21h4"></path>
           </svg>
           <?php if ($metrics['pendingPayments'] > 0): ?><span><?= sp_count($metrics['pendingPayments']) ?></span><?php endif; ?>
         </button>
-        <button class="staff-topbar-icon" type="button" data-panel-shortcut="settings" aria-label="Open settings">
-          <?= sp_panel_icon('settings') ?>
+        <button class="staff-topbar-icon" type="button" data-panel-shortcut="<?= $isAdmin ? 'settings' : 'reports' ?>" aria-label="<?= $isAdmin ? 'Open settings' : 'Open reports' ?>">
+          <?= sp_panel_icon($isAdmin ? 'settings' : 'reports') ?>
         </button>
         <div class="staff-topbar-profile" aria-label="<?= sp_h(ucfirst($role)) ?> profile">
           <span><?= sp_h(sp_initials((string) ($staff['name'] ?? 'Admin'))) ?></span>
@@ -287,6 +295,7 @@ $assignedVenueNames = clicketStaffAssignedVenueNames($staff);
     </section>
   </div>
 
+  <script type="application/json" id="staffEventLayoutOptionsJson"><?= json_encode($payload['eventVenueOptions'] ?? [], JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?></script>
   <script src="js/staff-panel.js?v=<?= filemtime(__DIR__ . '/js/staff-panel.js') ?>"></script>
 </body>
 </html>

@@ -275,6 +275,108 @@ body.staff-shell {
   color: #fff;
 }
 
+.staff-role-organizer .staff-sidebar {
+  gap: 22px;
+  padding: 24px 16px;
+}
+
+.staff-role-organizer .staff-nav {
+  gap: 7px;
+  padding-right: 0;
+}
+
+.staff-role-organizer .staff-nav-parent {
+  position: relative;
+  min-height: 46px;
+  gap: 12px;
+  padding: 0 13px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: #404040;
+}
+
+.staff-role-organizer .staff-nav-parent:hover {
+  border-color: rgba(232, 22, 43, .14);
+  background: #fff4f5;
+  color: var(--panel-red);
+}
+
+.staff-role-organizer .staff-nav-parent:focus-visible {
+  outline: 3px solid rgba(232, 22, 43, .22);
+  outline-offset: 2px;
+}
+
+.staff-role-organizer .staff-nav-parent.is-active {
+  background: var(--panel-red);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(232, 22, 43, .18);
+}
+
+.staff-role-organizer .staff-nav-icon {
+  width: 28px;
+  height: 28px;
+  flex-basis: 28px;
+}
+
+.staff-role-organizer .staff-nav-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.1;
+}
+
+.staff-role-organizer .staff-nav-label {
+  color: inherit;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.staff-role-organizer .staff-sidebar-footer {
+  gap: 12px;
+}
+
+.staff-role-organizer .staff-signout-link {
+  justify-content: center;
+  gap: 9px;
+  min-height: 42px;
+  border-radius: 9px;
+}
+
+.staff-role-organizer .organizer-order-action {
+  display: grid;
+  gap: 7px;
+  min-width: 180px;
+}
+
+.staff-role-organizer .organizer-order-action + .organizer-order-action {
+  margin-top: 8px;
+}
+
+.staff-role-organizer .organizer-order-action textarea {
+  width: 100%;
+  min-height: 54px;
+  resize: vertical;
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--panel-card);
+  color: var(--panel-ink);
+  font: inherit;
+  font-size: 12px;
+}
+
+.staff-proof-link {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: rgba(232, 22, 43, .08);
+  color: var(--panel-red);
+  font-size: 12px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
 .staff-nav-label {
   min-width: 0;
   max-width: 160px;
@@ -1983,6 +2085,11 @@ body.staff-shell {
 
 .staff-table td:last-child button {
   margin: 2px;
+}
+
+.staff-inline-form {
+  display: inline-flex;
+  margin: 0;
 }
 
 .staff-status {
