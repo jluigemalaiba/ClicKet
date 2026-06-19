@@ -4,125 +4,247 @@
         "name": "Chrizyl Abella",
         "email": "abellachrizyl@gmail.com",
         "password": "$2y$10$TPBipcKUT1j1o8UQgE6LdO0SeQ227QCFEVD1m2SvcNCSHBU.4QQRi",
-        "created_at": "2026-05-22T17:52:20+02:00"
+        "created_at": "2026-05-22T17:52:20+02:00",
+        "role": "customer"
     },
     {
         "id": "850d2ef68b2d2266",
         "name": "Chrizyl",
         "email": "abella@gmail.com",
-        "password": "$2y$10$TlaavkC\/4vT8blNxJvrZWOwS4t3SYbhvSUFr3DRERrs6di77mMKSe",
-        "created_at": "2026-05-22T18:09:47+02:00"
+        "password": "$2y$10$TlaavkC/4vT8blNxJvrZWOwS4t3SYbhvSUFr3DRERrs6di77mMKSe",
+        "created_at": "2026-05-22T18:09:47+02:00",
+        "role": "customer"
     },
     {
         "id": "295e3d7d87693831",
         "name": "Joshua",
         "email": "joshua@gmail.com",
         "password": "$2y$10$duYkrGVXnAb.QVLvisLrQeEsXgtAuNnaZeV51gqboJqTXePjnUiO.",
-        "created_at": "2026-05-22T18:13:35+02:00"
+        "created_at": "2026-05-22T18:13:35+02:00",
+        "role": "customer"
     },
     {
         "id": "4134e20d13d03c3b",
         "name": "Maria",
         "email": "maria@gmail.com",
-        "password": "$2y$10$naUZ0sj\/ph50GrBUbs0KVOefTy7Yfte9z\/qxSenk95366XQv80VCm",
-        "created_at": "2026-05-22T18:23:43+02:00"
+        "password": "$2y$10$naUZ0sj/ph50GrBUbs0KVOefTy7Yfte9z/qxSenk95366XQv80VCm",
+        "created_at": "2026-05-22T18:23:43+02:00",
+        "role": "customer"
     },
     {
         "id": "c868b9201594584e",
         "name": "Chrizyl Abella",
         "email": "chrizyl@gmail.com",
-        "password": "$2y$10$tNyRQPhY48oB3obWzCWENunf\/AdU2\/jtfZTxr1hw87drvq7qIpQSe",
-        "created_at": "2026-05-22T18:36:26+02:00"
+        "password": "$2y$10$tNyRQPhY48oB3obWzCWENunf/AdU2/jtfZTxr1hw87drvq7qIpQSe",
+        "created_at": "2026-05-22T18:36:26+02:00",
+        "role": "customer"
     },
     {
         "id": "60e03ce83dff33d8",
         "name": "Jeonghan Jeon",
         "email": "hannie@gmail.com",
         "password": "$2y$10$kfj9jQ1Ws5doNUMQ1XdJ2uQ8Tpb0dHp8FZQOP0YePLhz7UYtL3pkm",
-        "created_at": "2026-05-22T18:42:57+02:00"
+        "created_at": "2026-05-22T18:42:57+02:00",
+        "role": "customer"
     },
     {
         "id": "ed8c343a1f63ded6",
         "name": "Hannie Hae",
         "email": "jeonghan@gmail.com",
-        "password": "$2y$10$sxkiXDfqBsrTtZV0SDvKP.kGXh2x49FPAPKHI6f\/dYwc4sMj0uS5e",
-        "created_at": "2026-05-22T18:47:15+02:00"
+        "password": "$2y$10$sxkiXDfqBsrTtZV0SDvKP.kGXh2x49FPAPKHI6f/dYwc4sMj0uS5e",
+        "created_at": "2026-05-22T18:47:15+02:00",
+        "role": "customer"
     },
     {
         "id": "993498680c2ca7b6",
         "name": "Abella",
         "email": "jun@gmail.com",
         "password": "$2y$10$631pzTGZ5c4hA.judDRIf.gnER3R49wOgfF7bA0y7VWdaXOMrIH3q",
-        "created_at": "2026-05-23T06:25:51+02:00"
+        "created_at": "2026-05-23T06:25:51+02:00",
+        "role": "customer"
     },
     {
         "id": "e2d5e73cd6737d30",
         "name": "Chrizyl Abella",
         "email": "shua@gmail.com",
         "password": "$2y$10$BUPasqeH5cWJAP5SYtWyvOaVLcUP8HhBuTIj.bZA8x7xi7HygXWKS",
-        "created_at": "2026-06-01T09:03:01+02:00"
+        "created_at": "2026-06-01T09:03:01+02:00",
+        "role": "customer"
     },
     {
         "id": "b0f3ca432f564c5f",
         "name": "123",
         "email": "shao@gmail.com",
-        "password": "$2y$10$n1tzFKd\/ITFnx3rVdxaRIe\/YfTDby6y86NTsaibBMHNsQM8aX7hbi",
-        "created_at": "2026-06-03T01:41:30+02:00"
+        "password": "$2y$10$n1tzFKd/ITFnx3rVdxaRIe/YfTDby6y86NTsaibBMHNsQM8aX7hbi",
+        "created_at": "2026-06-03T01:41:30+02:00",
+        "role": "customer"
     },
     {
         "id": "5ec04db1705caa34",
         "name": "Trisha Talas",
         "email": "talastrisha@gmail.com",
-        "password": "$2y$10$BkYaqBd54R6zi6\/cUy9hz.3SKVlhmSRE4FBSakhXePBeTUpjxSNf2",
-        "created_at": "2026-06-01T21:53:10+02:00"
+        "password": "$2y$10$BkYaqBd54R6zi6/cUy9hz.3SKVlhmSRE4FBSakhXePBeTUpjxSNf2",
+        "created_at": "2026-06-01T21:53:10+02:00",
+        "role": "customer"
     },
     {
         "id": "24b44ef3e545f51e",
         "name": "Ariana Grande",
         "email": "cludygrissy@gmail.com",
         "password": "$2y$10$sKpVJP5M3tM.3r8wuvxAlu8g2a28l7t5JlAJOZD2cmfYrOQeM5uD.",
-        "created_at": "2026-06-04T08:52:26+02:00"
+        "created_at": "2026-06-04T08:52:26+02:00",
+        "role": "customer"
     },
     {
         "id": "f15868540ddf697c",
         "name": "ariana234",
         "email": "arianagrande@gmail.com",
-        "password": "$2y$10$1VmiEq9ZIa\/fBQGfo5vjNuLJXFVs7vwLNsKImMUMeAGmsP.kQ305C",
-        "created_at": "2026-06-10T06:09:16+02:00"
+        "password": "$2y$10$1VmiEq9ZIa/fBQGfo5vjNuLJXFVs7vwLNsKImMUMeAGmsP.kQ305C",
+        "created_at": "2026-06-10T06:09:16+02:00",
+        "role": "customer"
     },
     {
         "id": "687ed596e3c494a8",
         "name": "zylaaaa",
         "email": "zyl@gmail.com",
-        "password": "$2y$10$uI8nHEXuB\/ekwnbGLQ8ZFebMKo7mAoN03q\/wyBe84UQT8pYscMUI.",
-        "created_at": "2026-06-10T16:10:21+02:00"
+        "password": "$2y$10$uI8nHEXuB/ekwnbGLQ8ZFebMKo7mAoN03q/wyBe84UQT8pYscMUI.",
+        "created_at": "2026-06-10T16:10:21+02:00",
+        "role": "customer"
     },
     {
         "id": "674703f12ee8f37d",
         "name": "Ariana",
         "email": "shuazyl@gmail.com",
-        "password": "$2y$10$u\/r9h79K0LzM43Su3Fr7XePXg1FnQgXQ9NsXcHlQXGK4bR7z9Q2Iy",
-        "created_at": "2026-06-14T10:49:51+02:00"
+        "password": "$2y$10$u/r9h79K0LzM43Su3Fr7XePXg1FnQgXQ9NsXcHlQXGK4bR7z9Q2Iy",
+        "created_at": "2026-06-14T10:49:51+02:00",
+        "role": "customer"
     },
     {
         "id": "874ec58c38fa38b8",
         "name": "JunhuiWen",
         "email": "wenjunhui@gmail.com",
-        "password": "$2y$10$smxqB22MR6TI1ouVASRtUO1LOTqXTsYapHsYO\/AhXnSWY4e84bZ5m",
-        "created_at": "2026-06-14T23:14:11+02:00"
+        "password": "$2y$10$smxqB22MR6TI1ouVASRtUO1LOTqXTsYapHsYO/AhXnSWY4e84bZ5m",
+        "created_at": "2026-06-14T23:14:11+02:00",
+        "role": "customer"
     },
     {
         "id": "fd2a75d6d490f677",
         "name": "Trisha_Talas",
         "email": "talastrishamae@gmail.com",
         "password": "$2y$10$Y8Km4DFcy.bpg3b3p1e0..N0mDpgsb79XhLFHOb6ApPUDkRkO76JO",
-        "created_at": "2026-06-17T08:10:58+02:00"
+        "created_at": "2026-06-17T08:10:58+02:00",
+        "role": "customer"
     },
     {
         "id": "e2c058c0f13e7b5b",
         "name": "luige123",
         "email": "justine05luige@gmail.com",
         "password": "$2y$10$RehjJnawnNKS5i1duupPwuR7fBraSlQDTa7sGDZzl6eOEL02LIOyu",
-        "created_at": "2026-06-18T18:03:17+02:00"
+        "created_at": "2026-06-18T18:03:17+02:00",
+        "role": "customer"
+    },
+    {
+        "id": "admin-root",
+        "name": "CLICKET Admin",
+        "email": "admin@clicket.local",
+        "password": "$2y$12$lnz9013BeDNDptD3SQyJI.Zx67xc6sOPWqVeJ.N0UXHoIuAfzCSyS",
+        "role": "admin",
+        "venues": [
+            "all"
+        ],
+        "created_at": "2026-06-19T10:54:48+00:00"
+    },
+    {
+        "id": "org-moa",
+        "name": "MOA Organizer",
+        "email": "moa.organizer@clicket.test",
+        "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
+        "role": "organizer",
+        "venues": [
+            "Mall of Asia Arena"
+        ],
+        "created_at": "2026-06-18T11:44:54+00:00",
+        "migrated_from": "staff_store"
+    },
+    {
+        "id": "org-philippine-arena",
+        "name": "Philippine Arena Organizer",
+        "email": "philippine.organizer@clicket.test",
+        "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
+        "role": "organizer",
+        "venues": [
+            "Philippine Arena"
+        ],
+        "created_at": "2026-06-18T11:44:55+00:00",
+        "migrated_from": "staff_store"
+    },
+    {
+        "id": "org-araneta",
+        "name": "Smart Araneta Organizer",
+        "email": "araneta.organizer@clicket.test",
+        "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
+        "role": "organizer",
+        "venues": [
+            "Smart Araneta Coliseum"
+        ],
+        "created_at": "2026-06-18T11:44:56+00:00",
+        "migrated_from": "staff_store"
+    },
+    {
+        "id": "org-tanghalang",
+        "name": "Tanghalang Pilipino Organizer",
+        "email": "tanghalang.organizer@clicket.test",
+        "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
+        "role": "organizer",
+        "venues": [
+            "Tanghalang Pilipino"
+        ],
+        "created_at": "2026-06-18T11:44:57+00:00",
+        "migrated_from": "staff_store"
+    },
+    {
+        "id": "org-newport",
+        "name": "Newport Organizer",
+        "email": "newport.organizer@clicket.test",
+        "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
+        "role": "organizer",
+        "venues": [
+            "Newport Performing Arts Theater"
+        ],
+        "created_at": "2026-06-18T11:44:58+00:00",
+        "migrated_from": "staff_store"
+    },
+    {
+        "id": "org-solaire",
+        "name": "Solaire Organizer",
+        "email": "solaire.organizer@clicket.test",
+        "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
+        "role": "organizer",
+        "venues": [
+            "The Theatre at Solaire"
+        ],
+        "created_at": "2026-06-18T11:44:59+00:00",
+        "migrated_from": "staff_store"
+    },
+    {
+        "id": "org-philsports",
+        "name": "Philsports Organizer",
+        "email": "philsports.organizer@clicket.test",
+        "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
+        "role": "organizer",
+        "venues": [
+            "Philsports Arena"
+        ],
+        "created_at": "2026-06-18T11:45:00+00:00",
+        "migrated_from": "staff_store"
+    },
+    {
+        "id": "org-test-local",
+        "name": "Test Organizer",
+        "email": "organizer@clicket.local",
+        "password": "$2y$12$GeF6Ft.uKV7dDWlx9eaXDOqIx0xYjCVBNRpabcsWmMb7DKg6EVOXW",
+        "role": "organizer",
+        "venues": [],
+        "created_at": "2026-06-19T00:00:00+08:00"
     }
 ]

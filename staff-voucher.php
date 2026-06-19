@@ -10,6 +10,10 @@ if (!$staff) {
     header('Location: auth.php?mode=admin');
     exit;
 }
+if (($staff['role'] ?? '') !== 'admin') {
+    http_response_code(403);
+    exit('Admin access required.');
+}
 
 $orderId = trim((string) ($_GET['order'] ?? ''));
 $ticketId = trim((string) ($_GET['ticket'] ?? ''));
@@ -43,7 +47,7 @@ if (!$records) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Staff Ticket Print | ClicKet</title>
+  <title>Admin Ticket Print | ClicKet</title>
   <link rel="stylesheet" href="css/voucher.css">
   <style>
     @media print {
@@ -54,9 +58,9 @@ if (!$records) {
 </head>
 <body class="voucher-page">
   <div class="voucher-toolbar">
-    <a href="staff-panel.php#tickets:onsite" class="voucher-toolbar__back">
+    <a href="admin-panel.php#tickets:print" class="voucher-toolbar__back">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-      <span>Back to Staff Panel</span>
+      <span>Back to Admin Panel</span>
     </a>
     <div>
       <button type="button" id="voucherPrint">

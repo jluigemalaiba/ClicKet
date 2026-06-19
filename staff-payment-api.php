@@ -10,7 +10,13 @@ header('Content-Type: application/json');
 $staff = currentStaff();
 if (!$staff) {
     http_response_code(401);
-    echo json_encode(['success' => false, 'message' => 'Staff login required.']);
+    echo json_encode(['success' => false, 'message' => 'Admin login required.']);
+    exit;
+}
+
+if (($staff['role'] ?? '') !== 'admin') {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Admin access required.']);
     exit;
 }
 
@@ -39,7 +45,7 @@ foreach ($orders as $index => $order) {
 
     if (!clicketStaffCanAccessOrder($staff, $order)) {
         http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Order is outside your assigned venue scope.']);
+        echo json_encode(['success' => false, 'message' => 'Order is outside admin scope.']);
         exit;
     }
 

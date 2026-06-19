@@ -93,6 +93,95 @@ function ensureUserStore(): void {
     if (!file_exists(CLICKET_USERS_FILE)) {
         file_put_contents(CLICKET_USERS_FILE, json_encode([], JSON_PRETTY_PRINT));
     }
+
+    $users = json_decode(file_get_contents(CLICKET_USERS_FILE) ?: '[]', true);
+    $users = is_array($users) ? $users : [];
+    $changed = false;
+
+    foreach ($users as &$user) {
+        if (!isset($user['role']) || !in_array((string) $user['role'], ['admin', 'organizer', 'customer'], true)) {
+            $user['role'] = 'customer';
+            $changed = true;
+        }
+    }
+    unset($user);
+
+    $hasAdmin = false;
+    $knownEmails = [];
+    foreach ($users as $user) {
+        $email = strtolower((string) ($user['email'] ?? ''));
+        if ($email !== '') {
+            $knownEmails[$email] = true;
+        }
+        if (($user['role'] ?? '') === 'admin') {
+            $hasAdmin = true;
+        }
+    }
+
+    if (!$hasAdmin) {
+        $adminEmail = 'admin@clicket.local';
+        if (isset($knownEmails[$adminEmail])) {
+            foreach ($users as &$user) {
+                if (strtolower((string) ($user['email'] ?? '')) === $adminEmail) {
+                    $user['role'] = 'admin';
+                    $user['venues'] = ['all'];
+                    if (empty($user['password'])) {
+                        $user['password'] = password_hash('admin123', PASSWORD_DEFAULT);
+                    }
+                    $changed = true;
+                    break;
+                }
+            }
+            unset($user);
+        } else {
+            $users[] = [
+                'id' => 'admin-root',
+                'name' => 'CLICKET Admin',
+                'email' => $adminEmail,
+                'password' => password_hash('admin123', PASSWORD_DEFAULT),
+                'role' => 'admin',
+                'venues' => ['all'],
+                'created_at' => date('c'),
+            ];
+            $knownEmails[$adminEmail] = true;
+            $changed = true;
+        }
+    }
+
+    if (file_exists(CLICKET_STAFF_FILE)) {
+        $legacyStaff = json_decode(file_get_contents(CLICKET_STAFF_FILE) ?: '[]', true);
+        if (is_array($legacyStaff)) {
+            foreach ($legacyStaff as $account) {
+                if (($account['role'] ?? '') !== 'organizer') {
+                    continue;
+                }
+                $email = strtolower((string) ($account['email'] ?? ''));
+                if ($email === '' || isset($knownEmails[$email])) {
+                    continue;
+                }
+                $users[] = [
+                    'id' => (string) ($account['id'] ?? bin2hex(random_bytes(8))),
+                    'name' => (string) ($account['name'] ?? 'Organizer'),
+                    'email' => (string) ($account['email'] ?? ''),
+                    'password' => (string) ($account['password'] ?? password_hash('organizer123', PASSWORD_DEFAULT)),
+                    'role' => 'organizer',
+                    'venues' => is_array($account['venues'] ?? null) ? $account['venues'] : [],
+                    'created_at' => (string) ($account['created_at'] ?? date('c')),
+                    'migrated_from' => 'staff_store',
+                ];
+                $knownEmails[$email] = true;
+                $changed = true;
+            }
+        }
+    }
+
+    if ($changed) {
+        file_put_contents(
+            CLICKET_USERS_FILE,
+            json_encode(array_values($users), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+            LOCK_EX
+        );
+    }
 }
 
 function getUsers(): array {
@@ -207,17 +296,15 @@ function ensureStaffStore(): void {
 }
 
 function getStaffAccounts(): array {
-    ensureStaffStore();
-
-    $staff = json_decode(file_get_contents(CLICKET_STAFF_FILE) ?: '[]', true);
-
-    return is_array($staff) ? $staff : [];
+    return array_values(array_filter(getUsers(), static function (array $user): bool {
+        return in_array((string) ($user['role'] ?? ''), ['admin', 'organizer'], true);
+    }));
 }
 
 function findStaffByEmail(string $email): ?array {
     $email = strtolower(trim($email));
 
-    foreach (getStaffAccounts() as $account) {
+    foreach (getUsers() as $account) {
         if (strtolower((string) ($account['email'] ?? '')) === $email) {
             return $account;
         }
@@ -247,6 +334,7 @@ function loginStaff(array $staff): void {
 
     $_SESSION['clicket_staff'] = [
         'id' => $staff['id'],
+        'session_user_id' => $staff['id'],
         'name' => $staff['name'],
         'email' => $staff['email'],
         'role' => $staff['role'],
@@ -259,10 +347,11 @@ function loginStaffWithEmail(string $email, string $password, string $role): arr
 
     if (
         !$staff
+        || !in_array((string) ($staff['role'] ?? ''), ['admin', 'organizer'], true)
         || ($staff['role'] ?? '') !== $role
         || !password_verify($password, $staff['password'] ?? '')
     ) {
-        return ['success' => false, 'errors' => ['Invalid staff email, password, or portal.']];
+        return ['success' => false, 'errors' => ['Invalid email, password, or portal role.']];
     }
 
     loginStaff($staff);
@@ -279,7 +368,7 @@ function findUserByEmail(string $email): ?array {
     $email = strtolower(trim($email));
 
     foreach (getUsers() as $user) {
-        if (($user['email'] ?? '') === $email) {
+        if (strtolower((string) ($user['email'] ?? '')) === $email) {
             return $user;
         }
     }
@@ -305,6 +394,7 @@ function loginUser(array $user): void {
         'id' => $user['id'],
         'name' => $user['name'],
         'email' => $user['email'],
+        'role' => (string) ($user['role'] ?? 'customer'),
     ];
 }
 
@@ -353,6 +443,7 @@ function registerUser(string $name, string $email, string $password, string $con
         'name' => $name,
         'email' => $email,
         'password' => password_hash($password, PASSWORD_DEFAULT),
+        'role' => 'customer',
         'created_at' => date('c'),
     ];
 
@@ -372,6 +463,10 @@ function loginWithEmail(string $email, string $password): array {
 
     if (!$user || !password_verify($password, $user['password'] ?? '')) {
         return ['success' => false, 'errors' => ['Invalid email or password.']];
+    }
+
+    if (in_array((string) ($user['role'] ?? 'customer'), ['admin', 'organizer'], true)) {
+        return ['success' => false, 'errors' => ['Please use the admin or organizer portal for this account.']];
     }
 
     loginUser($user);
