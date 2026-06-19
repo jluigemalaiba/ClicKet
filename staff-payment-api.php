@@ -7,16 +7,11 @@ require_once __DIR__ . '/includes/ticket-data.php';
 
 header('Content-Type: application/json');
 
+clicketRequireRoleJson('admin', 'Admin access required.');
 $staff = currentStaff();
 if (!$staff) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'Admin login required.']);
-    exit;
-}
-
-if (($staff['role'] ?? '') !== 'admin') {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Admin access required.']);
     exit;
 }
 
@@ -43,11 +38,7 @@ foreach ($orders as $index => $order) {
         continue;
     }
 
-    if (!clicketStaffCanAccessOrder($staff, $order)) {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Order is outside admin scope.']);
-        exit;
-    }
+    clicketRequireStaffCanAccessOrderJson($staff, $order);
 
     if ($action === 'approve') {
         $order['payment_status'] = 'Paid';

@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ . '/data.php';
-require_once __DIR__ . '/ticketing.php';
 require_once __DIR__ . '/order-history-data.php';
 require_once __DIR__ . '/reservation.php';
 require_once __DIR__ . '/favorite-data.php';
@@ -244,35 +242,119 @@ function clicketStaffOrganizerForVenue(string $eventVenue): ?array {
     return null;
 }
 
-function clicketStaffAllEvents(): array {
-    global $concert_events, $theater_events, $sports_events;
+function clicketStaffEventCategoryLabel(string $category): string {
+    return match ($category) {
+        'concert' => 'Concert',
+        'theater' => 'Theater',
+        'sports' => 'Sports',
+        default => ucfirst($category),
+    };
+}
 
-    $catalogs = [
-        'concerts' => ['label' => 'Concert', 'events' => $concert_events ?? []],
-        'theater' => ['label' => 'Theater', 'events' => $theater_events ?? []],
-        'sports' => ['label' => 'Sports', 'events' => $sports_events ?? []],
+function clicketStaffEventCategoryKey(string $category): string {
+    return match ($category) {
+        'concert' => 'concerts',
+        'theater' => 'theater',
+        'sports' => 'sports',
+        default => $category,
+    };
+}
+
+function clicketStaffEventStatusLabel(string $status): string {
+    return ucwords(str_replace('_', ' ', strtolower(trim($status))));
+}
+
+function clicketStaffEventOwnerLabel(array $row): string {
+    $owner = (string) ($row['artist'] ?: ($row['company'] ?: ($row['league'] ?: '')));
+
+    return $owner !== '' ? $owner : (string) ($row['organizer_name'] ?? 'Organizer');
+}
+
+function clicketStaffEventRowToPanel(array $row): array {
+    $primaryDate = (string) ($row['primary_performance_date'] ?? '');
+    $primaryTime = (string) ($row['primary_performance_time'] ?? '');
+    $dateLabel = $primaryDate !== '' ? clicketDbDisplayDate($primaryDate) : 'No performance scheduled';
+    $timeLabel = $primaryTime !== '' ? clicketDbDisplayTime($primaryTime) : '';
+    $category = (string) ($row['category'] ?? '');
+    $status = (string) ($row['status'] ?? 'draft');
+
+    return [
+        'db_id' => (int) $row['id'],
+        'key' => (string) $row['event_key'],
+        'event_key' => (string) $row['event_key'],
+        'organizer_id' => (string) $row['created_by_staff_id'],
+        'organizer_name' => (string) ($row['organizer_name'] ?? 'Organizer'),
+        'organizer_email' => (string) ($row['organizer_email'] ?? ''),
+        'category' => clicketStaffEventCategoryKey($category),
+        'category_db' => $category,
+        'category_label' => clicketStaffEventCategoryLabel($category),
+        'title' => (string) $row['title'],
+        'venue' => (string) $row['venue_name'],
+        'venue_id' => (int) $row['venue_id'],
+        'venue_layout_id' => (int) $row['venue_layout_id'],
+        'layout_key' => (string) ($row['layout_key'] ?? ''),
+        'layout_variant' => (string) ($row['layout_variant'] ?? ''),
+        'date' => trim($dateLabel . ($timeLabel !== '' ? ' at ' . $timeLabel : '')),
+        'performance_date' => $primaryDate,
+        'performance_time' => $primaryTime,
+        'performance_status' => clicketStaffEventStatusLabel((string) ($row['primary_performance_status'] ?? 'scheduled')),
+        'performance_count' => (int) ($row['performance_count'] ?? 0),
+        'type' => (string) ($row['type'] ?? clicketStaffEventCategoryLabel($category)),
+        'price' => clicketDbFormatPrice($row['base_price'] ?? 0),
+        'base_price' => (float) ($row['base_price'] ?? 0),
+        'owner' => clicketStaffEventOwnerLabel($row),
+        'artist' => (string) ($row['artist'] ?? ''),
+        'company' => (string) ($row['company'] ?? ''),
+        'league' => (string) ($row['league'] ?? ''),
+        'poster_url' => (string) ($row['poster_url'] ?? ''),
+        'banner_url' => (string) ($row['banner_url'] ?? ''),
+        'status' => clicketStaffEventStatusLabel($status),
+        'status_value' => $status,
+        'archived_at' => clicketDbDisplayDateTime((string) ($row['archived_at'] ?? '')),
     ];
-    $events = [];
-    foreach ($catalogs as $category => $catalog) {
-        foreach ($catalog['events'] as $index => $event) {
-            $organizer = clicketStaffOrganizerForVenue((string) ($event['venue'] ?? ''));
-            $events[] = [
-                'key' => $category . '-' . ($index + 1),
-                'organizer_id' => (string) ($event['organizer_id'] ?? $organizer['id'] ?? ''),
-                'organizer_name' => (string) ($organizer['name'] ?? 'Unassigned Organizer'),
-                'category' => $category,
-                'category_label' => $catalog['label'],
-                'title' => (string) ($event['title'] ?? ''),
-                'venue' => (string) ($event['venue'] ?? ''),
-                'date' => (string) ($event['date'] ?? ''),
-                'type' => (string) ($event['type'] ?? $catalog['label']),
-                'price' => (string) ($event['price'] ?? 'PHP 750'),
-                'owner' => (string) ($event['artist'] ?? $event['company'] ?? $event['league'] ?? ''),
-                'status' => ($index % 7 === 0) ? 'Draft' : (($index % 5 === 0) ? 'Sold Out' : 'Published'),
-            ];
-        }
+}
+
+function clicketStaffAllEvents(?array $staff = null): array {
+    $isAdmin = !$staff || ($staff['role'] ?? '') === 'admin';
+    $staffId = $staff ? (clicketDbStaffIdBySession($staff) ?? 0) : 0;
+
+    $sql = 'SELECT e.*,
+                   v.name AS venue_name,
+                   vl.layout_key,
+                   vl.variant AS layout_variant,
+                   staff.name AS organizer_name,
+                   staff.email AS organizer_email,
+                   primary_ep.performance_date AS primary_performance_date,
+                   primary_ep.performance_time AS primary_performance_time,
+                   primary_ep.status AS primary_performance_status,
+                   COALESCE(performance_counts.performance_count, 0) AS performance_count
+            FROM events e
+            INNER JOIN venues v ON v.id = e.venue_id
+            INNER JOIN venue_layouts vl ON vl.id = e.venue_layout_id
+            INNER JOIN staff_accounts staff ON staff.id = e.created_by_staff_id
+            LEFT JOIN event_performances primary_ep
+              ON primary_ep.id = (
+                SELECT ep2.id
+                FROM event_performances ep2
+                WHERE ep2.event_id = e.id
+                ORDER BY ep2.performance_date, ep2.performance_time, ep2.id
+                LIMIT 1
+              )
+            LEFT JOIN (
+                SELECT event_id, COUNT(*) AS performance_count
+                FROM event_performances
+                GROUP BY event_id
+            ) performance_counts ON performance_counts.event_id = e.id';
+    $params = [];
+
+    if (!$isAdmin) {
+        $sql .= ' WHERE e.created_by_staff_id = :staff_id';
+        $params['staff_id'] = $staffId;
     }
-    return $events;
+
+    $sql .= ' ORDER BY e.updated_at DESC, e.created_at DESC, e.id DESC';
+
+    return array_map('clicketStaffEventRowToPanel', clicketDbFetchAll($sql, $params));
 }
 
 function clicketStaffEventAllowed(array $staff, array $event, array $scopedVenues): bool {
@@ -287,10 +369,7 @@ function clicketStaffEventAllowed(array $staff, array $event, array $scopedVenue
 }
 
 function clicketStaffScopedEvents(array $staff, array $scopedVenues): array {
-    return array_values(array_filter(
-        clicketStaffAllEvents(),
-        static fn (array $event): bool => clicketStaffEventAllowed($staff, $event, $scopedVenues)
-    ));
+    return clicketStaffAllEvents($staff);
 }
 
 function clicketStaffCanAccessEvent(array $staff, string $eventKey): bool {
@@ -298,13 +377,67 @@ function clicketStaffCanAccessEvent(array $staff, string $eventKey): bool {
         return true;
     }
 
-    foreach (clicketStaffScopedEvents($staff, clicketStaffVenueDefinitions()) as $event) {
-        if ((string) ($event['key'] ?? '') === $eventKey) {
-            return true;
+    $staffId = clicketDbStaffIdBySession($staff);
+    if (!$staffId) {
+        return false;
+    }
+
+    return clicketDbFetch(
+        'SELECT id FROM events WHERE event_key = :event_key AND created_by_staff_id = :staff_id LIMIT 1',
+        ['event_key' => $eventKey, 'staff_id' => $staffId]
+    ) !== null;
+}
+
+function clicketStaffEventLayoutOptions(array $staff): array {
+    $params = [];
+    $where = 'WHERE v.status = "active" AND vl.status = "active"';
+
+    if (($staff['role'] ?? '') !== 'admin') {
+        $staffId = clicketDbStaffIdBySession($staff) ?? 0;
+        $assignedVenueIds = clicketDbFetchAll(
+            'SELECT venue_id FROM staff_venue_assignments WHERE staff_id = :staff_id ORDER BY venue_id',
+            ['staff_id' => $staffId]
+        );
+        $venueIds = array_values(array_map(static fn (array $row): int => (int) $row['venue_id'], $assignedVenueIds));
+
+        if ($venueIds) {
+            $placeholders = implode(',', array_fill(0, count($venueIds), '?'));
+            $where .= ' AND v.id IN (' . $placeholders . ')';
+            $params = $venueIds;
         }
     }
 
-    return false;
+    $rows = clicketDbExecute(
+        'SELECT vl.id AS venue_layout_id,
+                vl.layout_key,
+                vl.variant,
+                vl.category,
+                vl.capacity,
+                v.id AS venue_id,
+                v.name AS venue_name
+         FROM venue_layouts vl
+         INNER JOIN venues v ON v.id = vl.venue_id
+         ' . $where . '
+         ORDER BY v.name, vl.category, vl.variant',
+        $params
+    )->fetchAll();
+
+    return array_map(static function (array $row): array {
+        $category = (string) ($row['category'] ?? '');
+        $variant = (string) ($row['variant'] ?? '');
+        $venue = (string) ($row['venue_name'] ?? '');
+
+        return [
+            'venue_layout_id' => (int) $row['venue_layout_id'],
+            'venue_id' => (int) $row['venue_id'],
+            'venue' => $venue,
+            'variant' => $variant,
+            'category' => $category,
+            'category_label' => clicketStaffEventCategoryLabel($category),
+            'capacity' => (int) ($row['capacity'] ?? 0),
+            'label' => trim($venue . ' - ' . clicketStaffEventCategoryLabel($category) . ($variant !== '' ? ' / ' . ucfirst($variant) : '')),
+        ];
+    }, $rows);
 }
 
 function clicketStaffVenuesForEvents(array $events): array {
@@ -357,12 +490,39 @@ function clicketStaffCanAccessOrder(array $staff, array $order): bool {
         || ($orderEventTitle !== '' && in_array($orderEventTitle, $eventTitles, true));
 }
 
-function clicketStaffReadJsonFile(string $path): array {
-    if (!is_file($path)) {
-        return [];
+function clicketDenyStaffResource(string $message = 'This resource is outside your assigned scope.'): never {
+    http_response_code(403);
+    exit($message);
+}
+
+function clicketRequireStaffCanAccessEventKey(string $eventKey): array {
+    clicketRequireStaff();
+    $staff = currentStaff();
+    if (!$staff || !clicketStaffCanAccessEvent($staff, $eventKey)) {
+        clicketDenyStaffResource('Event is outside your assigned scope.');
     }
-    $data = json_decode(file_get_contents($path) ?: '[]', true);
-    return is_array($data) ? $data : [];
+
+    return $staff;
+}
+
+function clicketRequireStaffCanAccessOrderRecord(array $order): array {
+    clicketRequireStaff();
+    $staff = currentStaff();
+    if (!$staff || !clicketStaffCanAccessOrder($staff, $order)) {
+        clicketDenyStaffResource('Order is outside your assigned scope.');
+    }
+
+    return $staff;
+}
+
+function clicketRequireStaffCanAccessOrderJson(array $staff, array $order): void {
+    if (clicketStaffCanAccessOrder($staff, $order)) {
+        return;
+    }
+
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => 'Order is outside your assigned scope.']);
+    exit;
 }
 
 function clicketStaffEventLookup(array $events): array {
@@ -674,14 +834,15 @@ function clicketStaffArchiveRows(array $orders, array $events): array {
 function clicketStaffPanelPayload(array $staff): array {
     $isAdmin = ($staff['role'] ?? '') === 'admin';
     $events = clicketStaffScopedEvents($staff, clicketStaffVenueDefinitions());
+    $eventLayoutOptions = clicketStaffEventLayoutOptions($staff);
     $scopedVenues = $isAdmin ? clicketStaffVenueDefinitions() : clicketStaffVenuesForEvents($events);
     $orders = clicketStaffScopedOrders($staff, $events);
     $reservations = clicketStaffScopedReservations(
         $staff,
-        clicketStaffReadJsonFile(__DIR__ . '/../storage/reservations.json'),
+        clicketReadReservationRows(),
         $events
     );
-    $favorites = clicketStaffReadJsonFile(__DIR__ . '/../storage/favorites.json');
+    $favorites = clicketReadFavorites();
     $users = getUsers();
     $allStaff = getStaffAccounts();
 
@@ -770,6 +931,7 @@ function clicketStaffPanelPayload(array $staff): array {
 
     return [
         'venues' => $venueRows,
+        'eventVenueOptions' => $eventLayoutOptions,
         'events' => $events,
         'orders' => $isAdmin ? $orders : [],
         'payments' => $isAdmin ? $orders : [],

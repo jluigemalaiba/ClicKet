@@ -99,7 +99,7 @@ if ($resolved['categoryKey'] === 'theater' && $performance > 0) {
 $performanceDateLabel = $performanceDate->format('l, F j, Y');
 $seatIds = array_column($normalized, 'id');
 $bookedSeatIds = clicketBookedSeatIds($eventKey, $performanceDateLabel, $performanceTime);
-if (array_intersect($seatIds, $bookedSeatIds) || !clicketHoldReservationSeats($seatIds)) {
+if (array_intersect($seatIds, $bookedSeatIds) || !clicketHoldReservationSeats($normalized)) {
     http_response_code(409);
     echo json_encode([
         'success' => false,

@@ -275,6 +275,104 @@
     modal.hidden = false;
   }
 
+  function staffEventLayoutOptions() {
+    const source = document.getElementById('staffEventLayoutOptionsJson');
+    if (!source) return [];
+    try {
+      return JSON.parse(source.textContent || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  function eventStatusOptions(selected) {
+    return ['draft', 'published', 'paused', 'archived'].map(status => {
+      const label = status.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+      return `<option value="${status}" ${status === selected ? 'selected' : ''}>${label}</option>`;
+    }).join('');
+  }
+
+  function eventCategoryOptions(selected) {
+    return ['concert', 'sports', 'theater'].map(category => {
+      const label = category.replace(/\b\w/g, char => char.toUpperCase());
+      return `<option value="${category}" ${category === selected ? 'selected' : ''}>${label}</option>`;
+    }).join('');
+  }
+
+  function eventLayoutOptions(selectedLayoutId) {
+    return staffEventLayoutOptions().map(option => `
+      <option value="${escapeHtml(option.venue_layout_id)}" ${String(option.venue_layout_id) === String(selectedLayoutId) ? 'selected' : ''}>
+        ${escapeHtml(option.label)}
+      </option>
+    `).join('');
+  }
+
+  function openEventEditModal(eventData) {
+    if (!modal || !modalBody || !modalTitle) return;
+    const title = eventData.title || 'Edit Event';
+    modalTitle.textContent = title;
+    if (modalEyebrow) modalEyebrow.textContent = 'event edit';
+
+    modalBody.innerHTML = `
+      <form class="staff-form-grid" action="staff-events-api.php" method="post">
+        <input type="hidden" name="action" value="update">
+        <input type="hidden" name="event_key" value="${escapeHtml(eventData.event_key || eventData.key || '')}">
+        <label>
+          <span>Event Title</span>
+          <input type="text" name="title" value="${escapeHtml(eventData.title || '')}" required>
+        </label>
+        <label>
+          <span>Venue</span>
+          <select name="venue_layout_id" required>${eventLayoutOptions(eventData.venue_layout_id)}</select>
+        </label>
+        <label>
+          <span>Category</span>
+          <select name="category" required>${eventCategoryOptions(eventData.category_db || 'concert')}</select>
+        </label>
+        <label>
+          <span>Event Type</span>
+          <input type="text" name="type" value="${escapeHtml(eventData.type || '')}">
+        </label>
+        <label>
+          <span>Owner / Artist / Company / League</span>
+          <input type="text" name="owner_name" value="${escapeHtml(eventData.owner || '')}">
+        </label>
+        <label>
+          <span>Base Price</span>
+          <input type="number" name="base_price" min="0" step="0.01" value="${escapeHtml(eventData.base_price ?? 0)}" required>
+        </label>
+        <label>
+          <span>Performance Date</span>
+          <input type="date" name="performance_date" value="${escapeHtml(eventData.performance_date || '')}" required>
+        </label>
+        <label>
+          <span>Performance Time</span>
+          <input type="time" name="performance_time" value="${escapeHtml(String(eventData.performance_time || '').slice(0, 5))}" required>
+        </label>
+        <label>
+          <span>Status</span>
+          <select name="status" required>${eventStatusOptions(eventData.status_value || 'draft')}</select>
+        </label>
+        <label>
+          <span>Poster URL</span>
+          <input type="url" name="poster_url" value="${escapeHtml(eventData.poster_url || '')}">
+        </label>
+        <label>
+          <span>Banner URL</span>
+          <input type="url" name="banner_url" value="${escapeHtml(eventData.banner_url || '')}">
+        </label>
+        <div class="staff-form-actions">
+          <button class="staff-secondary-btn" type="button" data-modal-close>Cancel</button>
+          <button class="staff-action-btn" type="submit">Save Changes</button>
+        </div>
+      </form>
+    `;
+    modal.hidden = false;
+    modalBody.querySelectorAll('[data-modal-close]').forEach(button => {
+      button.addEventListener('click', closeModal);
+    });
+  }
+
   function closeModal() {
     if (!modal) return;
     modal.hidden = true;
@@ -284,6 +382,17 @@
     button.addEventListener('click', () => {
       if (button.disabled) return;
       openModal(button.dataset.modalTitle || button.textContent.trim(), button.dataset.modalType || '');
+    });
+  });
+
+  document.querySelectorAll('[data-event-edit]').forEach(button => {
+    button.addEventListener('click', () => {
+      if (button.disabled) return;
+      try {
+        openEventEditModal(JSON.parse(button.dataset.event || '{}'));
+      } catch {
+        openEventEditModal({});
+      }
     });
   });
 

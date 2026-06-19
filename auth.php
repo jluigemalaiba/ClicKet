@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $staffName = userDisplayName($staff);
             $message = 'Welcome to the ' . ucfirst($mode) . ' portal' . ($staffName !== '' ? ', ' . $staffName : '') . '!';
             setFlashMessage('success', $message);
-            header('Location: ' . ($mode === 'admin' ? 'admin-panel.php' : 'organizer-panel.php'));
+            header('Location: ' . clicketAuthRedirectForRole($mode));
             exit;
         }
 
