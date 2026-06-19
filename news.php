@@ -1,7 +1,14 @@
 <?php
 // news.php - ClicKet News Page
 require_once __DIR__ . '/includes/log.php';
+require_once __DIR__ . '/includes/news-data.php';
 $currentPage = basename($_SERVER['PHP_SELF']);
+$publishedNews = clicketPublishedNews();
+$requestedArticleId = trim((string) ($_GET['article'] ?? ''));
+$selectedArticle = null;
+foreach ($publishedNews as $article) {
+  if (hash_equals((string) ($article['id'] ?? ''), $requestedArticleId)) { $selectedArticle = $article; break; }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -173,6 +180,35 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 <!-- ===================== MAIN PAGE ===================== -->
 <main class="news-main">
   <div class="container-xl px-4">
+    <?php if ($selectedArticle): ?>
+      <article class="news-admin-article">
+        <a class="news-admin-article__back" href="news.php">← Back to News</a>
+        <span class="news-category-badge"><?= htmlspecialchars((string) ($selectedArticle['category'] ?? 'Platform Updates')) ?></span>
+        <time><?= htmlspecialchars(clicketNewsDate((string) ($selectedArticle['published_at'] ?? ''))) ?></time>
+        <h1><?= htmlspecialchars((string) ($selectedArticle['title'] ?? 'ClicKet update')) ?></h1>
+        <p class="news-admin-article__lead"><?= htmlspecialchars((string) ($selectedArticle['description'] ?? '')) ?></p>
+        <?php if (!empty($selectedArticle['banner'])): ?><img class="news-admin-article__banner" src="storage/news-banners/<?= rawurlencode(basename((string) $selectedArticle['banner'])) ?>" alt="<?= htmlspecialchars((string) ($selectedArticle['title'] ?? 'News banner')) ?>"><?php endif; ?>
+        <?php foreach ((array) ($selectedArticle['sections'] ?? []) as $section): ?>
+          <section><h2><?= htmlspecialchars((string) ($section['header'] ?? '')) ?></h2><p><?= nl2br(htmlspecialchars((string) ($section['content'] ?? ''))) ?></p></section>
+        <?php endforeach; ?>
+      </article>
+    <?php else: ?>
+      <?php if ($publishedNews): ?>
+        <section class="news-admin-feed" aria-label="Latest ClicKet updates">
+          <div class="news-section-heading"><div><p class="news-kicker">Latest from ClicKet</p><h2>Fresh updates</h2></div><span>Published by ClicKet</span></div>
+          <div class="news-admin-feed__grid">
+            <?php foreach (array_slice($publishedNews, 0, 6) as $index => $article): ?>
+              <a class="news-admin-feed__card <?= $index === 0 ? 'is-newest' : '' ?>" href="news.php?article=<?= urlencode((string) ($article['id'] ?? '')) ?>">
+                <?php if (!empty($article['banner'])): ?><img src="storage/news-banners/<?= rawurlencode(basename((string) $article['banner'])) ?>" alt=""><?php endif; ?>
+                <span class="news-category-badge"><?= htmlspecialchars((string) ($article['category'] ?? 'Platform Updates')) ?></span>
+                <time><?= htmlspecialchars(clicketNewsDate((string) ($article['published_at'] ?? ''))) ?></time>
+                <h3><?= htmlspecialchars((string) ($article['title'] ?? 'ClicKet update')) ?></h3>
+                <p><?= htmlspecialchars((string) ($article['description'] ?? '')) ?></p><strong>Read update →</strong>
+              </a>
+            <?php endforeach; ?>
+          </div>
+        </section>
+      <?php endif; ?>
     <section class="news-trending-section" aria-label="Trending and featured news">
       <div class="news-section-heading">
         <div>
@@ -346,6 +382,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
         </div>
       </aside>
     </section>
+    <?php endif; ?>
   </div>
 </main>
 

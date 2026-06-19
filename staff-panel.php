@@ -85,15 +85,43 @@ function sp_initials(string $label): string {
     return $initials !== '' ? $initials : 'CK';
 }
 
+function sp_panel_icon(string $key): string {
+    $paths = match ($key) {
+        'dashboard' => '<rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect>',
+        'sales' => '<path d="M4 19V5"></path><path d="M4 19h16"></path><path d="M8 15l3-3 3 2 5-7"></path><path d="M17 7h2v2"></path>',
+        'revenue' => '<circle cx="12" cy="12" r="9"></circle><path d="M8 12h8"></path><path d="M12 7v10"></path><path d="M15 9.5A3 3 0 0 0 12 8H9.8a1.8 1.8 0 0 0 0 3.6h4.4a1.8 1.8 0 0 1 0 3.6H12a3 3 0 0 1-3-1.5"></path>',
+        'venues' => '<path d="M4 21V9l8-5 8 5v12"></path><path d="M9 21v-8h6v8"></path><path d="M4 9h16"></path>',
+        'events' => '<path d="M8 2v4"></path><path d="M16 2v4"></path><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path>',
+        'calendar' => '<rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4"></path><path d="M8 3v4"></path><path d="M3 10h18"></path>',
+        'location' => '<path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0z"></path><circle cx="12" cy="10" r="2.5"></circle>',
+        'performer' => '<path d="M12 3v12"></path><path d="M12 3c2 0 3.5 1.1 4.8 2.5-1.3 1.4-2.8 2.5-4.8 2.5"></path><path d="M12 7c-2 0-3.5 1.1-4.8 2.5C8.5 10.9 10 12 12 12"></path><path d="M8 21h8"></path><path d="M10 15h4"></path>',
+        'tiers' => '<path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7"></path><path d="M2 7h20v5H2z"></path><path d="M12 22V7"></path><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>',
+        'inventory' => '<path d="M6 3v18"></path><path d="M18 3v18"></path><path d="M6 7h12"></path><path d="M6 12h12"></path><path d="M6 17h12"></path>',
+        'orders' => '<path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z"></path><path d="M9 7h6"></path><path d="M9 11h6"></path><path d="M9 15h4"></path>',
+        'payments' => '<rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path><path d="M7 15h4"></path>',
+        'tickets' => '<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4V7z"></path><path d="M13 5v14"></path>',
+        'reservations' => '<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>',
+        'users' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
+        'favorites' => '<path d="m12 3 2.7 5.47 6.03.88-4.37 4.25 1.03 6-5.39-2.83-5.39 2.83 1.03-6-4.37-4.25 6.03-.88L12 3z"></path>',
+        'reports' => '<path d="M4 19V5"></path><path d="M4 19h16"></path><rect x="7" y="11" width="3" height="5"></rect><rect x="12" y="7" width="3" height="9"></rect><rect x="17" y="9" width="3" height="7"></rect>',
+        'news' => '<path d="M4 5h13a3 3 0 0 1 3 3v11H7a3 3 0 0 1-3-3V5z"></path><path d="M8 9h8"></path><path d="M8 13h6"></path>',
+        'archives' => '<rect x="3" y="4" width="18" height="5" rx="1"></rect><path d="M5 9v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"></path><path d="M10 13h4"></path>',
+        'audit' => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M8 13h8"></path><path d="M8 17h5"></path>',
+        'settings' => '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.04.04a2 2 0 1 1-2.83 2.83l-.04-.04A1.8 1.8 0 0 0 15 19.4a1.8 1.8 0 0 0-1 .6 1.8 1.8 0 0 0-.4 1.1V21a2 2 0 1 1-4 0v-.06A1.8 1.8 0 0 0 8.6 19.4a1.8 1.8 0 0 0-1.98.36l-.04.04a2 2 0 1 1-2.83-2.83l.04-.04A1.8 1.8 0 0 0 4.6 15a1.8 1.8 0 0 0-.6-1 1.8 1.8 0 0 0-1.1-.4H3a2 2 0 1 1 0-4h.06A1.8 1.8 0 0 0 4.6 8.6a1.8 1.8 0 0 0-.36-1.98l-.04-.04a2 2 0 1 1 2.83-2.83l.04.04A1.8 1.8 0 0 0 9 4.6a1.8 1.8 0 0 0 1-.6 1.8 1.8 0 0 0 .4-1.1V3a2 2 0 1 1 4 0v.06A1.8 1.8 0 0 0 15.4 4.6a1.8 1.8 0 0 0 1.98-.36l.04-.04a2 2 0 1 1 2.83 2.83l-.04.04A1.8 1.8 0 0 0 19.4 9c.36.22.74.4 1.1.4H21a2 2 0 1 1 0 4h-.06a1.8 1.8 0 0 0-1.54 1.6z"></path>',
+        default => '<circle cx="12" cy="12" r="8"></circle>',
+    };
+
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' . $paths . '</svg>';
+}
+
 $adminModules = [
     ['Dashboard', 'Executive sales, tickets, events, payments, reservations, charts, and activity.'],
-    ['Venues', 'Venue cards, details, SVG maps, capacity, revenue, organizers, and status.'],
-    ['Events', 'Create events, schedules, performances, status controls, posters, banners, and archiving.'],
+    ['Venues', 'Venue capacity, event revenue, ticket sales, tier setup, and organizer rosters.'],
+    ['Events', 'Organizer event submissions, banners, performers, sales, and tier availability by venue.'],
     ['Venue Tiers', 'Venue-specific tier structures with capacity, price, revenue, and inventory controls.'],
     ['Seats & Inventory', 'Seat map, available, sold, held, blocked, accessible, complimentary, and section analytics.'],
-    ['Orders', 'Advanced filtering, buyer records, seats, payment references, reissue, refund, cancel, and archive.'],
-    ['Payments', 'Payment review queue, proof viewer, status controls, revenue reports, and service fee analytics.'],
-    ['Tickets', 'Ticket ID, validation code, voucher search, details, reissue, void, and print.'],
+    ['Orders', 'Order records with buyer information, seats, payment references, proof screenshots, and complete details.'],
+    ['Tickets', 'Ticket ID, validation code, voucher, seat assignment, status, and complete view-only details.'],
     ['Reservations', 'Active holds, expired holds, countdown monitoring, and release controls.'],
     ['Users', 'Customer, organizer, role management, assignments, history, suspension, and disabling.'],
     ['Favorites', 'Most favorited events, favorite trends, and popularity analytics.'],
@@ -113,21 +141,14 @@ $organizerModules = [
 
 $adminPanelGroups = [
     'dashboard' => ['label' => 'Dashboard', 'eyebrow' => 'Command Center', 'partial' => 'dashboard.php', 'items' => ['overview' => 'Overview', 'analytics' => 'Analytics', 'orders' => 'Recent Orders', 'payments' => 'Payment Activity']],
-    'venues' => ['label' => 'Venues', 'eyebrow' => 'Venue Operations', 'partial' => 'venues.php', 'items' => ['cards' => 'Venue Cards', 'details' => 'Details Page', 'maps' => 'SVG Seat Maps', 'assignment' => 'Organizer Assignment']],
-    'events' => ['label' => 'Events', 'eyebrow' => 'Event Management', 'partial' => 'events.php', 'items' => ['listing' => 'Listing', 'create' => 'Create Event', 'schedule' => 'Schedules', 'performance' => 'Performance']],
-    'tiers' => ['label' => 'Venue Tiers', 'eyebrow' => 'Pricing Architecture', 'partial' => 'tiers.php', 'items' => ['venue-tiers' => 'Venue Tiers', 'pricing' => 'Pricing', 'inventory' => 'Inventory', 'controls' => 'Controls']],
-    'inventory' => ['label' => 'Seats & Inventory', 'eyebrow' => 'Seat Operations', 'partial' => 'inventory.php', 'items' => ['seat-map' => 'Seat Map', 'search' => 'Seat Search', 'section' => 'Sections', 'tier' => 'Tier Analytics']],
-    'orders' => ['label' => 'Orders', 'eyebrow' => 'Order Operations', 'partial' => 'orders.php', 'items' => ['filters' => 'Filters', 'buyers' => 'Buyers', 'drawer' => 'Details Drawer', 'actions' => 'Actions']],
-    'payments' => ['label' => 'Payments', 'eyebrow' => 'Finance Review', 'partial' => 'payments.php', 'items' => ['queue' => 'Review Queue', 'proof' => 'Proof Viewer', 'revenue' => 'Revenue', 'fees' => 'Service Fees']],
-    'tickets' => ['label' => 'Tickets', 'eyebrow' => 'Ticketing', 'partial' => 'tickets.php', 'items' => ['search' => 'Ticket Search', 'details' => 'Details Modal', 'print' => 'Print']],
-    'reservations' => ['label' => 'Reservations', 'eyebrow' => 'Seat Holds', 'partial' => 'reservations.php', 'items' => ['active' => 'Active Holds', 'expired' => 'Expired Holds', 'monitoring' => 'Monitoring', 'release' => 'Release']],
+    'venues' => ['label' => 'Venues', 'eyebrow' => 'Venue Operations', 'partial' => 'venues.php', 'items' => ['cards' => 'Venue List', 'details' => 'Revenue & Tickets', 'tiers' => 'Tier Setup', 'organizers' => 'Organizer Roster']],
+    'events' => ['label' => 'Events', 'eyebrow' => 'Organizer Event Review', 'partial' => 'events.php', 'items' => ['listing' => 'Event Gallery', 'details' => 'Submission Details', 'sales' => 'Sales & Seats', 'venues' => 'Venue Filter']],
+    'orders' => ['label' => 'Orders', 'eyebrow' => 'Order Operations', 'partial' => 'orders.php', 'items' => ['table' => 'All Orders', 'details' => 'Order Details']],
+    'tickets' => ['label' => 'Tickets', 'eyebrow' => 'Ticket Registry', 'partial' => 'tickets.php', 'items' => ['search' => 'All Tickets', 'details' => 'Ticket Details']],
     'users' => ['label' => 'Users', 'eyebrow' => 'Identity & Roles', 'partial' => 'users.php', 'items' => ['table' => 'User Table', 'roles' => 'Roles', 'assignment' => 'Organizer Assignment', 'history' => 'Order History']],
-    'favorites' => ['label' => 'Favorites', 'eyebrow' => 'Popularity Analytics', 'partial' => 'favorites.php', 'items' => ['top' => 'Most Favorited', 'trends' => 'Trends', 'analytics' => 'Popularity', 'segments' => 'Segments']],
     'reports' => ['label' => 'Reports', 'eyebrow' => 'Exports', 'partial' => 'reports.php', 'items' => ['sales' => 'Sales', 'venue' => 'Venue', 'attendance' => 'Attendance', 'exports' => 'PDF / Excel']],
     'news' => ['label' => 'News Management', 'eyebrow' => 'Content', 'partial' => 'news.php', 'items' => ['create' => 'Create Article', 'editor' => 'Editor', 'publish' => 'Publishing', 'archive' => 'Archive']],
     'archives' => ['label' => 'Archives', 'eyebrow' => 'Retention', 'partial' => 'archives.php', 'items' => ['events' => 'Events', 'orders' => 'Orders', 'scans' => 'Ticket Scans', 'restore' => 'Restore']],
-    'audit' => ['label' => 'Audit Logs', 'eyebrow' => 'Traceability', 'partial' => 'audit.php', 'items' => ['activity' => 'Activity', 'payments' => 'Payments', 'seats' => 'Seats', 'archives' => 'Archives']],
-    'settings' => ['label' => 'Settings', 'eyebrow' => 'Configuration', 'partial' => 'settings.php', 'items' => ['system' => 'System', 'payment' => 'Payment', 'ticket' => 'Ticket', 'roles' => 'Roles']],
 ];
 
 $organizerPanelGroups = array_intersect_key($adminPanelGroups, array_flip([
@@ -150,42 +171,49 @@ $assignedVenueNames = clicketStaffAssignedVenueNames($staff);
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/staff-panel.css?v=<?= filemtime(__DIR__ . '/css/staff-panel.css') ?>">
 </head>
-<body class="staff-shell staff-role-<?= sp_h($role) ?>" data-theme="light">
+<body class="staff-shell staff-role-<?= sp_h($role) ?>">
   <aside class="staff-sidebar" id="staffSidebar" aria-label="Admin navigation">
-    <a class="staff-brand" href="index.php" aria-label="CLICKET home">
-      <img src="assets/Icon_Logo.png" alt="" aria-hidden="true">
-      <img src="assets/Name_Logo.png" alt="CLICKET">
-    </a>
-
-    <div class="staff-role-card">
-      <span><?= $isAdmin ? 'System Role' : 'Organizer Role' ?></span>
-      <strong><?= sp_h(ucwords(str_replace('_', ' ', $role))) ?></strong>
-      <small><?= $isAdmin ? 'All venues and system settings' : sp_count(count($payload['events'])) . ' owned events' ?></small>
+    <div class="staff-sidebar-header">
+      <a class="staff-brand" href="index.php" aria-label="CLICKET home">
+        <img src="assets/Icon_Logo.png" alt="" aria-hidden="true">
+        <img src="assets/Name_Logo.png" alt="CLICKET">
+      </a>
+      <button class="staff-sidebar-collapse" type="button" data-sidebar-collapse aria-label="Collapse sidebar" aria-expanded="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M15 18l-6-6 6-6"></path>
+        </svg>
+      </button>
     </div>
 
     <nav class="staff-nav staff-nav-tree">
-      <?php $navIndex = 1; ?>
       <?php foreach ($panelGroups as $groupKey => $group): ?>
-        <section class="staff-nav-group <?= $groupKey === 'dashboard' ? 'is-open' : '' ?>" data-nav-group="<?= sp_h($groupKey) ?>">
-          <button class="staff-nav-parent <?= $groupKey === 'dashboard' ? 'is-active' : '' ?>" type="button" data-panel-target="<?= sp_h($groupKey) ?>" aria-expanded="<?= $groupKey === 'dashboard' ? 'true' : 'false' ?>">
-            <span class="staff-nav-number"><?= sp_h(str_pad((string) $navIndex, 2, '0', STR_PAD_LEFT)) ?></span>
+        <section class="staff-nav-group" data-nav-group="<?= sp_h($groupKey) ?>">
+          <button class="staff-nav-parent <?= $groupKey === 'dashboard' ? 'is-active' : '' ?>" type="button" data-panel-target="<?= sp_h($groupKey) ?>" title="<?= sp_h($group['label']) ?>">
+            <span class="staff-nav-icon"><?= sp_panel_icon((string) $groupKey) ?></span>
             <span class="staff-nav-label"><?= sp_h($group['label']) ?></span>
-            <small><?= sp_count(count($group['items'])) ?></small>
           </button>
-          <div class="staff-nav-children">
-            <?php foreach ($group['items'] as $itemKey => $itemLabel): ?>
-              <button class="staff-nav-child <?= $groupKey === 'dashboard' && $itemKey === 'overview' ? 'is-active' : '' ?>" type="button" data-panel-target="<?= sp_h($groupKey) ?>" data-subtarget="<?= sp_h($itemKey) ?>">
-                <?= sp_h($itemLabel) ?>
-              </button>
-            <?php endforeach; ?>
-          </div>
         </section>
-        <?php $navIndex++; ?>
       <?php endforeach; ?>
     </nav>
 
     <div class="staff-sidebar-footer">
-      <a href="auth.php?staff_logout=1">Sign out</a>
+      <div class="staff-account-card">
+        <span class="staff-account-avatar"><?= sp_h(sp_initials((string) ($staff['name'] ?? 'Admin'))) ?></span>
+        <span class="staff-account-meta">
+          <strong><?= sp_h($staff['name'] ?? 'Authorized User') ?></strong>
+          <small><?= sp_h(ucwords(str_replace('_', ' ', $role))) ?></small>
+        </span>
+      </div>
+      <a class="staff-signout-link" href="auth.php?staff_logout=1">
+        <span aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M10 17l5-5-5-5"></path>
+            <path d="M15 12H3"></path>
+            <path d="M21 3v18h-7"></path>
+          </svg>
+        </span>
+        <strong>Sign out</strong>
+      </a>
     </div>
   </aside>
 
@@ -196,19 +224,41 @@ $assignedVenueNames = clicketStaffAssignedVenueNames($staff);
         <span></span>
         <span></span>
       </button>
-      <div class="staff-title-block">
-        <p>CLICKET <?= $isAdmin ? 'Enterprise Admin' : 'Organizer Operations' ?></p>
-        <h1><?= sp_h($panelTitle) ?></h1>
-        <span><?= sp_h($panelScope) ?></span>
+      <a class="staff-topbar-logo" href="index.php" aria-label="CLICKET home">
+        <img src="assets/Icon_Logo.png" alt="" aria-hidden="true">
+        <img src="assets/Name_Logo.png" alt="CLICKET">
+      </a>
+      <div class="staff-topbar-search">
+        <button class="staff-search-filter" type="button">
+          <span>All</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M6 9l6 6 6-6"></path>
+          </svg>
+        </button>
+        <label class="staff-search staff-search--topbar">
+          <input type="search" id="staffPanelSearch" placeholder="Search">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="M20 20l-3.5-3.5"></path>
+          </svg>
+        </label>
       </div>
       <div class="staff-topbar-actions">
-        <span class="staff-context-pill" id="staffContextPill">Dashboard / Overview</span>
-        <label class="staff-search">
-          <span>Search</span>
-          <input type="search" id="staffPanelSearch" placeholder="Event, venue, order, ticket">
-        </label>
-        <button class="staff-icon-btn" type="button" data-theme-toggle aria-label="Toggle dark theme" title="Toggle theme">Aa</button>
-        <span class="staff-live-pill" data-live-clock>Live sync ready</span>
+        <button class="staff-topbar-icon staff-topbar-icon--notify" type="button" data-panel-shortcut="orders" aria-label="Open orders">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+            <path d="M10 21h4"></path>
+          </svg>
+          <?php if ($metrics['pendingPayments'] > 0): ?><span><?= sp_count($metrics['pendingPayments']) ?></span><?php endif; ?>
+        </button>
+        <button class="staff-topbar-icon" type="button" data-panel-shortcut="settings" aria-label="Open settings">
+          <?= sp_panel_icon('settings') ?>
+        </button>
+        <div class="staff-topbar-profile" aria-label="<?= sp_h(ucfirst($role)) ?> profile">
+          <span><?= sp_h(sp_initials((string) ($staff['name'] ?? 'Admin'))) ?></span>
+          <strong><?= sp_h($staff['name'] ?? 'Authorized User') ?></strong>
+          <small><?= sp_h($staff['email'] ?? '') ?></small>
+        </div>
       </div>
     </header>
 

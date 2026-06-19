@@ -1,153 +1,47 @@
-<section class="staff-section" data-subsection="filters">
-  <div class="staff-section-heading">
-    <div>
-      <p>Orders</p>
-      <h2><?= $isAdmin ? 'Advanced order management across all venues' : 'Orders for assigned events only' ?></h2>
+<?php
+$orders = $payload['orders'] ?? [];
+$ordersForClient = array_map(static function (array $order): array {
+    $order['proof_url'] = clicketStaffOrderProofUrl($order);
+    return $order;
+}, $orders);
+$confirmedCount = count(array_filter($orders, static fn (array $order): bool => strtolower((string) ($order['order_status'] ?? '')) === 'confirmed'));
+$pendingCount = count(array_filter($orders, static fn (array $order): bool => strtolower((string) ($order['payment_status'] ?? '')) === 'pending'));
+?>
+
+<section class="staff-orders-workspace" data-subsection="table">
+  <header class="staff-orders-head">
+    <div><p>Order registry</p><h2>Every order, ready for a closer look.</h2><span>Open one record to see buyer details, seats, payment reference, and proof of payment.</span></div>
+    <div class="staff-orders-head__summary"><span><b><?= sp_count(count($orders)) ?></b> total</span><span><b><?= sp_count($confirmedCount) ?></b> confirmed</span><span><b><?= sp_count($pendingCount) ?></b> pending</span></div>
+  </header>
+
+  <div class="staff-orders-toolbar">
+    <div class="staff-orders-filters" role="tablist" aria-label="Order filters">
+      <button class="is-active" type="button" data-order-filter="all">All orders <b><?= sp_count(count($orders)) ?></b></button>
+      <button type="button" data-order-filter="confirmed">Confirmed <b><?= sp_count($confirmedCount) ?></b></button>
+      <button type="button" data-order-filter="pending">Pending <b><?= sp_count($pendingCount) ?></b></button>
+      <button type="button" data-order-filter="closed">Closed</button>
     </div>
-    <button class="staff-action-btn" type="button" data-open-modal data-modal-title="Order Details Drawer" data-modal-type="order-detail">Open Details Drawer</button>
+    <div class="staff-orders-toolbar__filters"><label><span>Event</span><select><option>All events</option><?php foreach (array_slice($payload['events'], 0, 10) as $event): ?><option><?= sp_h($event['title']) ?></option><?php endforeach; ?></select></label><label><span>Date range</span><input type="text" placeholder="Any date"></label></div>
   </div>
 
-  <div class="staff-filter-bar">
-    <label>
-      <span>Event</span>
-      <select>
-        <option>All events in scope</option>
-        <?php foreach (array_slice($payload['events'], 0, 10) as $event): ?>
-          <option><?= sp_h($event['title']) ?></option>
-        <?php endforeach; ?>
-      </select>
-    </label>
-    <label>
-      <span>Venue</span>
-      <select>
-        <option>All venues in scope</option>
-        <?php foreach ($payload['venues'] as $venue): ?>
-          <option><?= sp_h($venue['venue']) ?></option>
-        <?php endforeach; ?>
-      </select>
-    </label>
-    <label>
-      <span>Status</span>
-      <select>
-        <option>All order statuses</option>
-        <option>Confirmed</option>
-        <option>Pending</option>
-        <option>Refunded</option>
-        <option>Cancelled</option>
-        <option>Archived</option>
-      </select>
-    </label>
-    <label>
-      <span>Date Range</span>
-      <input type="text" placeholder="Jun 1 - Jun 30">
-    </label>
-    <button type="button">Apply Filters</button>
-  </div>
-
-  <div class="staff-table-wrap">
-    <table class="staff-table">
-      <thead>
-        <tr>
-          <th>Order</th>
-          <th>Buyer Information</th>
-          <th>Event / Seat Details</th>
-          <th>Payment Reference</th>
-          <th>Total</th>
-          <th>Status</th>
-          <th>Actions</th>
+  <div class="staff-orders-table-wrap"><table class="staff-table staff-orders-table">
+    <thead><tr><th>Order ID</th><th>Event</th><th>Customer</th><th>Payment</th><th>Total</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      <?php foreach ($orders as $order): ?>
+        <?php $state = strtolower((string) ($order['payment_status'] ?? 'pending')); $orderState = strtolower((string) ($order['order_status'] ?? '')); $filterState = in_array($orderState, ['cancelled', 'refunded'], true) ? 'closed' : $state; ?>
+        <tr data-search-row data-order-row="<?= sp_h($order['order_id'] ?? '') ?>" data-order-filter-row="<?= sp_h($filterState) ?>">
+          <td><strong><?= sp_h($order['order_id'] ?? 'Order') ?></strong><small><?= sp_h($order['booked_at'] ?? '') ?></small></td>
+          <td><strong><?= sp_h($order['event_title'] ?? $order['event'] ?? '') ?></strong><small><?= sp_h($order['venue'] ?? '') ?> · <?= sp_count(clicketStaffTicketCount($order)) ?> seats</small></td>
+          <td><?= sp_h($order['buyer_name'] ?? '') ?><small><?= sp_h($order['buyer_email'] ?? '') ?></small></td>
+          <td><strong><?= sp_h($order['payment_method_label'] ?? $order['payment_method'] ?? '') ?></strong><small><?= sp_h($order['payment_reference'] ?? $order['reference'] ?? '') ?></small></td>
+          <td><strong><?= sp_money((int) ($order['total'] ?? 0)) ?></strong></td>
+          <td><span class="staff-status <?= sp_status_class($order['payment_status'] ?? 'Pending') ?>"><?= sp_h($order['payment_status'] ?? 'Pending') ?></span><small><?= sp_h($order['order_status'] ?? 'Open') ?></small></td>
+          <td class="staff-orders-table__action"><button type="button" data-order-details="<?= sp_h($order['order_id'] ?? '') ?>">View details <span>→</span></button></td>
         </tr>
-      </thead>
-      <tbody>
-        <?php foreach ($payload['orders'] as $order): ?>
-          <tr data-search-row>
-            <td>
-              <strong><?= sp_h($order['order_id'] ?? 'Order') ?></strong>
-              <small><?= sp_h($order['booked_at'] ?? '') ?></small>
-            </td>
-            <td>
-              <?= sp_h($order['buyer_name'] ?? '') ?>
-              <small><?= sp_h($order['buyer_email'] ?? '') ?></small>
-            </td>
-            <td>
-              <?= sp_h($order['event_title'] ?? $order['event'] ?? '') ?>
-              <small><?= sp_h($order['venue'] ?? '') ?> &middot; <?= sp_count(clicketStaffTicketCount($order)) ?> selected seats</small>
-            </td>
-            <td>
-              <strong><?= sp_h($order['payment_reference'] ?? $order['reference'] ?? '') ?></strong>
-              <small><?= sp_h($order['payment_method_label'] ?? $order['payment_method'] ?? '') ?></small>
-            </td>
-            <td><?= sp_money((int) ($order['total'] ?? 0)) ?></td>
-            <td>
-              <span class="staff-status <?= sp_status_class($order['payment_status'] ?? 'Pending') ?>"><?= sp_h($order['payment_status'] ?? 'Pending') ?></span>
-              <small><?= sp_h($order['order_status'] ?? 'Open') ?></small>
-            </td>
-            <td>
-              <button type="button" data-open-modal data-modal-title="<?= sp_h($order['order_id'] ?? 'Order') ?>" data-modal-type="order-detail">View</button>
-              <button type="button">Reissue</button>
-              <button type="button">Refund</button>
-              <button type="button">Cancel</button>
-              <button type="button" <?= $isAdmin ? '' : 'disabled' ?>>Archive</button>
-            </td>
-          </tr>
-        <?php endforeach; ?>
-        <?php if (!$payload['orders']): ?>
-          <tr><td colspan="7">No orders are available in the current scope yet.</td></tr>
-        <?php endif; ?>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<section class="staff-grid-three" data-subsection="buyers">
-  <article class="staff-card">
-    <div class="staff-card-heading">
-      <div>
-        <p>Buyer Details</p>
-        <h2>Profile snapshot</h2>
-      </div>
-    </div>
-    <?php $firstOrder = $payload['orders'][0] ?? []; ?>
-    <div class="staff-profile-card">
-      <span><?= sp_h(sp_initials((string) ($firstOrder['buyer_name'] ?? 'Buyer'))) ?></span>
-      <strong><?= sp_h($firstOrder['buyer_name'] ?? 'No buyer selected') ?></strong>
-      <small><?= sp_h($firstOrder['buyer_email'] ?? 'Open an order to inspect buyer information') ?></small>
-    </div>
-    <div class="staff-detail-list">
-      <div><span>Orders</span><strong><?= sp_count($metrics['orders']) ?></strong></div>
-      <div><span>Tickets</span><strong><?= sp_count($metrics['tickets']) ?></strong></div>
-      <div><span>Latest Reference</span><strong><?= sp_h($firstOrder['payment_reference'] ?? 'None') ?></strong></div>
-    </div>
-  </article>
-
-  <article class="staff-card" data-subsection="drawer">
-    <div class="staff-card-heading">
-      <div>
-        <p>Order Details Drawer</p>
-        <h2>Seat and payment view</h2>
-      </div>
-    </div>
-    <div class="staff-drawer-preview">
-      <strong><?= sp_h($firstOrder['order_id'] ?? 'Select an order') ?></strong>
-      <span><?= sp_h($firstOrder['event_title'] ?? 'Event details appear here') ?></span>
-      <div>
-        <?php foreach (array_slice((array) ($firstOrder['seats'] ?? []), 0, 4) as $seat): ?>
-          <small><?= sp_h($seat['section'] ?? '') ?> <?= sp_h($seat['row'] ?? '') ?>-<?= sp_h($seat['number'] ?? '') ?></small>
-        <?php endforeach; ?>
-      </div>
-    </div>
-  </article>
-
-  <article class="staff-card" data-subsection="actions">
-    <div class="staff-card-heading">
-      <div>
-        <p>Order Actions</p>
-        <h2>Controlled workflows</h2>
-      </div>
-    </div>
-    <div class="staff-control-grid">
-      <?php foreach (['Reissue ticket', 'Refund order', 'Cancel order', 'Archive order', 'Print receipt', 'Export selection'] as $item): ?>
-        <button type="button" <?= (!$isAdmin && $item === 'Archive order') ? 'disabled' : '' ?>><?= sp_h($item) ?></button>
       <?php endforeach; ?>
-    </div>
-  </article>
+      <?php if (!$orders): ?><tr><td colspan="7">No orders are available in the current scope.</td></tr><?php endif; ?>
+    </tbody>
+  </table></div>
 </section>
+
+<script type="application/json" id="staffOrdersJson"><?= json_encode($ordersForClient, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?></script>

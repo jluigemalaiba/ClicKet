@@ -1,121 +1,49 @@
-<section class="staff-section" data-subsection="table">
-  <div class="staff-section-heading">
-    <div>
-      <p>User Management</p>
-      <h2>Customers, organizers, role controls, and assignments</h2>
-    </div>
-    <button class="staff-action-btn" type="button" data-open-modal data-modal-title="Role Management" data-modal-type="role-management">Manage Roles</button>
-  </div>
+<?php
+$people = $payload['users'] ?? [];
+$peopleByRole = ['customer' => [], 'admin' => [], 'organizer' => []];
+foreach ($people as $person) {
+    $role = strtolower((string) ($person['role'] ?? 'customer'));
+    if (isset($peopleByRole[$role])) $peopleByRole[$role][] = $person;
+}
+$venueAssignments = clicketStaffAssignmentOptions();
+$peopleForClient = array_map(static function (array $person): array {
+    unset($person['password']);
+    return $person;
+}, $people);
+?>
 
-  <div class="staff-filter-bar">
-    <label>
-      <span>Role</span>
-      <select>
-        <option>All roles</option>
-        <option>Admin</option>
-        <option>Organizer</option>
-        <option>Customer</option>
-      </select>
-    </label>
-    <label>
-      <span>Status</span>
-      <select>
-        <option>Active and restricted</option>
-        <option>Active</option>
-        <option>Suspended</option>
-        <option>Disabled</option>
-      </select>
-    </label>
-    <label>
-      <span>Search</span>
-      <input type="search" placeholder="Name or email">
-    </label>
-    <button type="button">Apply Filters</button>
-  </div>
+<section class="staff-people-workspace" data-subsection="table">
+  <header class="staff-people-head"><div><p>People management</p><h2>People, roles, and access—kept in their own lanes.</h2><span>Open a person to review their details. Archived accounts can no longer sign in.</span></div><div class="staff-people-head__counts"><span><b><?= sp_count(count($peopleByRole['customer'])) ?></b> users</span><span><b><?= sp_count(count($peopleByRole['admin'])) ?></b> admins</span><span><b><?= sp_count(count($peopleByRole['organizer'])) ?></b> organizers</span></div></header>
+  <nav class="staff-people-tabs" aria-label="People account groups">
+    <button class="is-active" type="button" data-people-tab="customer"><span>Users</span><b><?= sp_count(count($peopleByRole['customer'])) ?></b></button>
+    <button type="button" data-people-tab="admin"><span>Admins</span><b><?= sp_count(count($peopleByRole['admin'])) ?></b></button>
+    <button type="button" data-people-tab="organizer"><span>Organizers</span><b><?= sp_count(count($peopleByRole['organizer'])) ?></b></button>
+  </nav>
 
-  <div class="staff-table-wrap">
-    <table class="staff-table">
-      <thead>
-        <tr>
-          <th>User</th>
-          <th>Email</th>
-          <th>Role</th>
-          <th>Assigned Venue</th>
-          <th>Order History</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php foreach (array_merge($payload['staff'], array_slice($payload['users'], 0, 10)) as $index => $user):
-            $roleName = (string) ($user['role'] ?? 'customer');
-            $venues = is_array($user['venues'] ?? null) ? implode(', ', $user['venues']) : 'Customer account';
-        ?>
-          <tr data-search-row>
-            <td><strong><?= sp_h($user['name'] ?? 'User') ?></strong><small><?= sp_h($user['id'] ?? '') ?></small></td>
-            <td><?= sp_h($user['email'] ?? '') ?></td>
-            <td><?= sp_h(ucwords(str_replace('_', ' ', $roleName))) ?></td>
-            <td><?= sp_h($venues) ?></td>
-            <td><?= sp_count(($index * 3) % 12) ?> orders</td>
-            <td><span class="staff-status <?= $index % 9 === 0 ? 'is-warning' : 'is-success' ?>"><?= $index % 9 === 0 ? 'Review' : 'Active' ?></span></td>
-            <td>
-              <button type="button" data-open-modal data-modal-title="<?= sp_h($user['name'] ?? 'User') ?>" data-modal-type="user-history">History</button>
-              <button type="button">Assign</button>
-              <button type="button">Suspend</button>
-              <button type="button">Disable</button>
-            </td>
-          </tr>
+  <?php
+  $groups = [
+    'customer' => ['Users', 'Website accounts', 'Archive account'],
+    'admin' => ['Admins', 'Full platform access', 'Disable account'],
+    'organizer' => ['Organizers', 'Venue-scoped access', 'Disable account'],
+  ];
+  ?>
+  <?php foreach ($groups as $role => [$label, $description, $actionLabel]): ?>
+    <section class="staff-people-group <?= $role === 'customer' ? 'is-active' : '' ?>" data-people-group="<?= sp_h($role) ?>" data-subsection="<?= $role === 'customer' ? 'table' : ($role === 'admin' ? 'roles' : 'assignment') ?>">
+      <div class="staff-people-group__head"><div><p><?= sp_h($label) ?></p><h3><?= sp_h($description) ?></h3></div><?php if ($role !== 'customer'): ?><button class="staff-action-btn" type="button" data-person-create="<?= sp_h($role) ?>">+ Add <?= rtrim($label, 's') ?></button><?php endif; ?></div>
+      <div class="staff-people-grid">
+        <?php foreach ($peopleByRole[$role] as $person): ?>
+          <?php $isArchived = !empty($person['disabled']) || strtolower((string) ($person['status'] ?? 'Active')) !== 'active'; $venues = is_array($person['venues'] ?? null) ? array_map('clicketStaffAssignmentLabel', array_filter($person['venues'])) : []; ?>
+          <article class="staff-person-card <?= $isArchived ? 'is-archived' : '' ?>" data-search-row data-person-id="<?= sp_h($person['id'] ?? '') ?>">
+            <div class="staff-person-card__top"><span class="staff-person-avatar"><?= sp_h(sp_initials((string) ($person['name'] ?? 'User'))) ?></span><span class="staff-status <?= $isArchived ? 'is-muted' : 'is-success' ?>"><?= $isArchived ? 'Archived' : 'Active' ?></span></div>
+            <strong><?= sp_h($person['name'] ?? 'Unnamed user') ?></strong><small><?= sp_h($person['email'] ?? '') ?></small>
+            <div class="staff-person-card__facts"><span><b>Role</b><?= sp_h(ucfirst($role)) ?></span><?php if ($role === 'organizer'): ?><span><b>Venue</b><?= sp_h(implode(', ', $venues) ?: 'Not assigned') ?></span><?php elseif ($role === 'customer'): ?><span><b>Joined</b><?= sp_h(clicketNewsDate((string) ($person['created_at'] ?? ''))) ?></span><?php else: ?><span><b>Scope</b>All venues</span><?php endif; ?></div>
+            <div class="staff-person-card__actions"><button type="button" data-person-view="<?= sp_h($person['id'] ?? '') ?>">View</button><?php if ($role === 'organizer' && !$isArchived): ?><button type="button" data-person-assign="<?= sp_h($person['id'] ?? '') ?>">Assign venue</button><?php endif; ?><?php if (!$isArchived): ?><button type="button" class="is-danger" data-person-action="<?= $role === 'customer' ? 'archive' : 'disable' ?>" data-person-id="<?= sp_h($person['id'] ?? '') ?>"><?= sp_h($actionLabel) ?></button><?php endif; ?></div>
+          </article>
         <?php endforeach; ?>
-      </tbody>
-    </table>
-  </div>
+        <?php if (!$peopleByRole[$role]): ?><p class="staff-empty-state">No <?= strtolower($label) ?> found yet.</p><?php endif; ?>
+      </div>
+    </section>
+  <?php endforeach; ?>
 </section>
 
-<section class="staff-grid-two" data-subsection="roles">
-  <article class="staff-card">
-    <div class="staff-card-heading">
-      <div>
-        <p>Role Management</p>
-        <h2>Permission boundaries</h2>
-      </div>
-    </div>
-    <div class="staff-list">
-      <div class="staff-list-row"><span>Admin</span><strong>Full access</strong><small>Can manage all venues, events, users, payments, archives, logs, and settings</small></div>
-      <div class="staff-list-row"><span>Organizer</span><strong>Assigned scope</strong><small>Can manage assigned venues/events, payments, inventory, orders, tickets, and reports</small></div>
-      <div class="staff-list-row"><span>Customer</span><strong>Self service</strong><small>Can browse, favorite, reserve, pay, and view tickets</small></div>
-    </div>
-  </article>
-
-  <article class="staff-card" data-subsection="assignment">
-    <div class="staff-card-heading">
-      <div>
-        <p>Organizer Assignment</p>
-        <h2>Venue access controls</h2>
-      </div>
-    </div>
-    <div class="staff-assignment-panel">
-      <label>
-        <span>Organizer</span>
-        <select>
-          <?php foreach ($payload['staff'] as $account): ?>
-            <?php if (($account['role'] ?? '') === 'organizer'): ?>
-              <option><?= sp_h($account['name'] ?? $account['email']) ?></option>
-            <?php endif; ?>
-          <?php endforeach; ?>
-        </select>
-      </label>
-      <label>
-        <span>Assigned Venue</span>
-        <select>
-          <?php foreach ($payload['venues'] as $venue): ?>
-            <option><?= sp_h($venue['venue']) ?> - <?= sp_h($venue['variant']) ?></option>
-          <?php endforeach; ?>
-        </select>
-      </label>
-      <div class="staff-form-actions">
-        <button class="staff-secondary-btn" type="button">Preview Scope</button>
-        <button class="staff-action-btn" type="button">Save Assignment</button>
-      </div>
-    </div>
-  </article>
-</section>
+<script type="application/json" id="staffPeopleJson"><?= json_encode(['people' => $peopleForClient, 'venues' => $venueAssignments], JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?></script>

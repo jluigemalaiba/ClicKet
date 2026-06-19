@@ -155,16 +155,27 @@
         "created_at": "2026-06-19T10:54:48+00:00"
     },
     {
-        "id": "org-moa",
-        "name": "MOA Organizer",
+        "id": "org-moa-concert",
+        "name": "MOA Concerts Organizer",
         "email": "moa.organizer@clicket.test",
         "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
         "role": "organizer",
         "venues": [
-            "Mall of Asia Arena"
+            "moa-concert"
         ],
         "created_at": "2026-06-18T11:44:54+00:00",
         "migrated_from": "staff_store"
+    },
+    {
+        "id": "org-moa-sports",
+        "name": "MOA Sports Organizer",
+        "email": "moa.sports.organizer@clicket.test",
+        "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
+        "role": "organizer",
+        "venues": [
+            "moa-sports"
+        ],
+        "created_at": "2026-06-20T00:00:00+08:00"
     },
     {
         "id": "org-philippine-arena",
@@ -179,25 +190,36 @@
         "migrated_from": "staff_store"
     },
     {
-        "id": "org-araneta",
-        "name": "Smart Araneta Organizer",
+        "id": "org-araneta-concert",
+        "name": "Araneta Concerts Organizer",
         "email": "araneta.organizer@clicket.test",
         "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
         "role": "organizer",
         "venues": [
-            "Smart Araneta Coliseum"
+            "araneta-concert"
         ],
         "created_at": "2026-06-18T11:44:56+00:00",
         "migrated_from": "staff_store"
     },
     {
+        "id": "org-araneta-sports",
+        "name": "Araneta Sports Organizer",
+        "email": "araneta.sports.organizer@clicket.test",
+        "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
+        "role": "organizer",
+        "venues": [
+            "araneta-sports"
+        ],
+        "created_at": "2026-06-20T00:00:00+08:00"
+    },
+    {
         "id": "org-tanghalang",
-        "name": "Tanghalang Pilipino Organizer",
+        "name": "Tanghalang Ignacio Jimenez Organizer",
         "email": "tanghalang.organizer@clicket.test",
         "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
         "role": "organizer",
         "venues": [
-            "Tanghalang Pilipino"
+            "Tanghalang Ignacio Jimenez"
         ],
         "created_at": "2026-06-18T11:44:57+00:00",
         "migrated_from": "staff_store"

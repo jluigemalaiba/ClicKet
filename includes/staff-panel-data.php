@@ -3,6 +3,7 @@
 require_once __DIR__ . '/data.php';
 require_once __DIR__ . '/ticketing.php';
 require_once __DIR__ . '/order-history-data.php';
+require_once __DIR__ . '/news-data.php';
 require_once __DIR__ . '/reservation.php';
 require_once __DIR__ . '/favorite-data.php';
 
@@ -25,6 +26,7 @@ function clicketStaffVenueDefinitions(): array {
             'profileVenue' => 'Mall of Asia Arena',
             'capacity' => 13000,
             'svg' => 'MOA_Concert_final.svg',
+            'logo' => 'MOA.png',
             'aliases' => ['MOA Arena', 'Mall of Asia Arena'],
             'tiers' => [
                 clicketStaffTier('VIP', '#fff0a8'),
@@ -44,6 +46,7 @@ function clicketStaffVenueDefinitions(): array {
             'profileVenue' => 'Mall of Asia Arena',
             'capacity' => 16000,
             'svg' => 'MOA_Sport_final2.svg',
+            'logo' => 'MOA.png',
             'aliases' => ['MOA Arena', 'Mall of Asia Arena'],
             'tiers' => [
                 clicketStaffTier('Patron', '#bfe8c8'),
@@ -61,6 +64,7 @@ function clicketStaffVenueDefinitions(): array {
             'profileVenue' => 'Philippine Arena',
             'capacity' => 55000,
             'svg' => 'phil_arena.svg',
+            'logo' => 'PArena.png',
             'aliases' => ['Philippine Arena'],
             'tiers' => [
                 clicketStaffTier('VIP', '#fff0a8'),
@@ -81,6 +85,7 @@ function clicketStaffVenueDefinitions(): array {
             'profileVenue' => 'Smart Araneta Coliseum',
             'capacity' => 13000,
             'svg' => 'Araneta_Concert.svg',
+            'logo' => 'Smart.png',
             'aliases' => ['Smart Araneta Coliseum', 'Smart Araneta'],
             'tiers' => [
                 clicketStaffTier('SVIP', '#fdff00'),
@@ -100,6 +105,7 @@ function clicketStaffVenueDefinitions(): array {
             'profileVenue' => 'Smart Araneta Coliseum',
             'capacity' => 18000,
             'svg' => 'Araneta_Sport.svg',
+            'logo' => 'Smart.png',
             'aliases' => ['Smart Araneta Coliseum', 'Smart Araneta'],
             'tiers' => [
                 clicketStaffTier('VIP', '#fff0a8'),
@@ -111,12 +117,13 @@ function clicketStaffVenueDefinitions(): array {
         ],
         [
             'id' => 'tanghalan',
-            'venue' => 'Tanghalang Pilipino',
+            'venue' => 'Tanghalang Ignacio Jimenez',
             'variant' => 'Theater',
             'category' => 'theater',
             'profileVenue' => 'Tanghalang Ignacio Jimenez',
             'capacity' => 320,
             'svg' => 'Tanghalan.svg',
+            'logo' => 'TP.png',
             'aliases' => ['Tanghalang Pilipino', 'Tanghalang Ignacio Jimenez'],
             'tiers' => [
                 clicketStaffTier('SVIP', '#fff0a8'),
@@ -134,6 +141,7 @@ function clicketStaffVenueDefinitions(): array {
             'profileVenue' => 'Newport Performing Arts Theater',
             'capacity' => 1700,
             'svg' => 'Newport_final2.svg',
+            'logo' => 'Newport.png',
             'aliases' => ['Newport Performing Arts Theater'],
             'tiers' => [
                 clicketStaffTier('SVIP', '#fff86b'),
@@ -157,6 +165,7 @@ function clicketStaffVenueDefinitions(): array {
             'profileVenue' => 'The Theatre at Solaire',
             'capacity' => 1850,
             'svg' => 'Solaire.svg',
+            'logo' => 'Solaire.png',
             'aliases' => ['The Theatre at Solaire', 'Solaire Resort Entertainment City', 'Solaire'],
             'tiers' => [
                 clicketStaffTier('VIP', '#fff0a8'),
@@ -174,6 +183,7 @@ function clicketStaffVenueDefinitions(): array {
             'profileVenue' => 'PhilSports Arena',
             'capacity' => 10000,
             'svg' => 'PS_Arena.svg',
+            'logo' => 'Philsports.png',
             'aliases' => ['Philsports Arena', 'PhilSports Arena'],
             'tiers' => [
                 clicketStaffTier('Patron', '#bfe8c8'),
@@ -189,11 +199,28 @@ function clicketStaffAssignedVenueNames(array $staff): array {
     return array_values(array_filter(array_map('strval', $venues)));
 }
 
+function clicketStaffAssignmentOptions(): array {
+    return array_map(static fn (array $venue): array => [
+        'id' => (string) ($venue['id'] ?? ''),
+        'label' => (string) ($venue['venue'] ?? '') . ' — ' . (string) ($venue['variant'] ?? ''),
+    ], clicketStaffVenueDefinitions());
+}
+
+function clicketStaffAssignmentLabel(string $assignment): string {
+    foreach (clicketStaffAssignmentOptions() as $option) {
+        if ($option['id'] === $assignment) return $option['label'];
+    }
+    return $assignment;
+}
+
 function clicketStaffVenueAllowed(array $staff, array $venue): bool {
     if (($staff['role'] ?? '') === 'admin') {
         return true;
     }
     $assigned = array_map('strtolower', clicketStaffAssignedVenueNames($staff));
+    if (in_array(strtolower((string) ($venue['id'] ?? '')), $assigned, true)) {
+        return true;
+    }
     foreach ($venue['aliases'] as $alias) {
         if (in_array(strtolower($alias), $assigned, true)) {
             return true;
@@ -229,13 +256,15 @@ function clicketStaffVenueNamesMatch(string $left, string $right): bool {
     return false;
 }
 
-function clicketStaffOrganizerForVenue(string $eventVenue): ?array {
+function clicketStaffOrganizerForVenue(string $eventVenue, string $eventCategory = ''): ?array {
     foreach (getStaffAccounts() as $account) {
         if (($account['role'] ?? '') !== 'organizer') {
             continue;
         }
-        foreach (clicketStaffAssignedVenueNames($account) as $assignedVenue) {
-            if (clicketStaffVenueNamesMatch($eventVenue, $assignedVenue)) {
+        foreach (clicketStaffVenueDefinitions() as $venue) {
+            if (($eventCategory === '' || strtolower((string) ($venue['category'] ?? '')) === strtolower($eventCategory))
+                && clicketStaffVenueAllowed($account, $venue)
+                && array_filter((array) ($venue['aliases'] ?? []), static fn (string $alias): bool => clicketStaffVenueNamesMatch($eventVenue, $alias))) {
                 return $account;
             }
         }
@@ -255,7 +284,14 @@ function clicketStaffAllEvents(): array {
     $events = [];
     foreach ($catalogs as $category => $catalog) {
         foreach ($catalog['events'] as $index => $event) {
-            $organizer = clicketStaffOrganizerForVenue((string) ($event['venue'] ?? ''));
+            $organizer = clicketStaffOrganizerForVenue((string) ($event['venue'] ?? ''), $category);
+            $posterCategory = $category === 'concerts' ? 'concert' : $category;
+            $performer = (string) ($event['artist'] ?? $event['company'] ?? $event['league'] ?? 'ClicKet Presents');
+            $description = match ($category) {
+                'concerts' => $performer . ' takes the stage for a live experience with a full-scale production and special moments for fans.',
+                'theater' => $performer . ' presents a live production shaped by music, storytelling, and an accomplished ensemble.',
+                default => $performer . ' brings a high-stakes live event to ClicKet audiences.',
+            };
             $events[] = [
                 'key' => $category . '-' . ($index + 1),
                 'organizer_id' => (string) ($event['organizer_id'] ?? $organizer['id'] ?? ''),
@@ -268,6 +304,10 @@ function clicketStaffAllEvents(): array {
                 'type' => (string) ($event['type'] ?? $catalog['label']),
                 'price' => (string) ($event['price'] ?? 'PHP 750'),
                 'owner' => (string) ($event['artist'] ?? $event['company'] ?? $event['league'] ?? ''),
+                'performer' => $performer,
+                'description' => $description,
+                'poster' => posterUrl($posterCategory, $index + 1),
+                'banner' => landscapeUrl($posterCategory, $index + 10),
                 'status' => ($index % 7 === 0) ? 'Draft' : (($index % 5 === 0) ? 'Sold Out' : 'Published'),
             ];
         }
@@ -282,8 +322,15 @@ function clicketStaffEventAllowed(array $staff, array $event, array $scopedVenue
 
     $sessionUserId = (string) ($staff['session_user_id'] ?? $staff['id'] ?? '');
 
-    return (string) ($event['organizer_id'] ?? '') !== ''
-        && (string) ($event['organizer_id'] ?? '') === $sessionUserId;
+    if ((string) ($event['organizer_id'] ?? '') === $sessionUserId) return true;
+
+    foreach ($scopedVenues as $venue) {
+        if (strtolower((string) ($event['category'] ?? '')) !== strtolower((string) ($venue['category'] ?? ''))) continue;
+        foreach ((array) ($venue['aliases'] ?? []) as $alias) {
+            if (clicketStaffVenueNamesMatch((string) ($event['venue'] ?? ''), (string) $alias)) return true;
+        }
+    }
+    return false;
 }
 
 function clicketStaffScopedEvents(array $staff, array $scopedVenues): array {
@@ -312,6 +359,9 @@ function clicketStaffVenuesForEvents(array $events): array {
         clicketStaffVenueDefinitions(),
         static function (array $venue) use ($events): bool {
             foreach ($events as $event) {
+                if (strtolower((string) ($event['category'] ?? '')) !== strtolower((string) ($venue['category'] ?? ''))) {
+                    continue;
+                }
                 foreach ($venue['aliases'] as $alias) {
                     if (clicketStaffVenueNamesMatch((string) ($event['venue'] ?? ''), (string) $alias)) {
                         return true;
@@ -363,6 +413,16 @@ function clicketStaffReadJsonFile(string $path): array {
     }
     $data = json_decode(file_get_contents($path) ?: '[]', true);
     return is_array($data) ? $data : [];
+}
+
+function clicketStaffOrderProofUrl(array $order): string {
+    $proof = basename((string) ($order['proof_of_payment'] ?? ''));
+    if ($proof === '') {
+        return '';
+    }
+
+    $path = __DIR__ . '/../storage/payment-proofs/' . $proof;
+    return is_file($path) ? 'storage/payment-proofs/' . rawurlencode($proof) : '';
 }
 
 function clicketStaffEventLookup(array $events): array {
@@ -626,27 +686,13 @@ function clicketStaffBuildFavoriteRows(array $favorites, array $events, array $o
     return array_slice($rows, 0, 8);
 }
 
-function clicketStaffNewsRows(array $events): array {
-    $rows = [];
-    $statuses = ['Draft', 'Published', 'Draft', 'Archived'];
-    foreach (array_slice($events, 0, 8) as $index => $event) {
-        $status = $statuses[$index % count($statuses)];
-        $rows[] = [
-            'event_key' => (string) ($event['key'] ?? ''),
-            'organizer_id' => (string) ($event['organizer_id'] ?? ''),
-            'title' => (string) ($event['title'] ?? 'Event') . ' update',
-            'event_title' => (string) ($event['title'] ?? ''),
-            'author' => (string) ($event['organizer_name'] ?? 'Organizer'),
-            'status' => $status,
-            'featured' => $status === 'Published' && $index % 3 === 0 ? 'Yes' : 'No',
-            'updated' => $index === 0 ? 'Today' : 'Jun ' . (18 - min(10, $index)),
-        ];
-    }
-
+function clicketStaffNewsRows(array $events = []): array {
+    $rows = clicketReadNews();
+    usort($rows, static fn (array $a, array $b): int => strcmp((string) ($b['updated_at'] ?? $b['created_at'] ?? ''), (string) ($a['updated_at'] ?? $a['created_at'] ?? '')));
     return $rows;
 }
 
-function clicketStaffArchiveRows(array $orders, array $events): array {
+function clicketStaffArchiveRows(array $orders, array $events, array $users = []): array {
     $rows = [];
     foreach (array_slice(array_reverse($events), 0, 4) as $event) {
         $rows[] = [
@@ -665,6 +711,19 @@ function clicketStaffArchiveRows(array $orders, array $events): array {
             'scope' => (string) ($order['event_title'] ?? 'Event'),
             'status' => (string) ($order['order_status'] ?? 'Confirmed'),
             'archived_at' => (string) ($order['booked_at'] ?? 'Order history'),
+        ];
+    }
+
+    foreach ($users as $user) {
+        if (empty($user['disabled']) && strtolower((string) ($user['status'] ?? 'Active')) !== 'archived') {
+            continue;
+        }
+        $rows[] = [
+            'type' => 'Archived ' . ucfirst((string) ($user['role'] ?? 'user')),
+            'title' => (string) ($user['name'] ?? $user['email'] ?? 'User account'),
+            'scope' => (string) ($user['email'] ?? ''),
+            'status' => 'Archived',
+            'archived_at' => (string) ($user['archived_at'] ?? 'Account archive'),
         ];
     }
 
@@ -788,8 +847,8 @@ function clicketStaffPanelPayload(array $staff): array {
         'paymentMethods' => $isAdmin ? $paymentMethods : [],
         'sectionInventory' => $isAdmin ? $sectionInventory : [],
         'tierInventory' => $isAdmin ? $tierInventory : [],
-        'news' => clicketStaffNewsRows($events),
-        'archives' => $isAdmin ? clicketStaffArchiveRows($orders, $events) : [],
+        'news' => $isAdmin ? clicketStaffNewsRows() : [],
+        'archives' => $isAdmin ? clicketStaffArchiveRows($orders, $events, $users) : [],
         'audit' => $isAdmin ? $audit : [],
         'metrics' => [
             'sales' => $isAdmin ? $sales : 0,

@@ -45,12 +45,12 @@
     },
     {
         "id": "org-tanghalang",
-        "name": "Tanghalang Pilipino Organizer",
+        "name": "Tanghalang Ignacio Jimenez Organizer",
         "email": "tanghalang.organizer@clicket.test",
         "password": "$2y$12$tqQiuVsDWm0E6TlMAjiKuOlXYr9PBhOSvizAhHLOwTU7IZTjgiRm2",
         "role": "organizer",
         "venues": [
-            "Tanghalang Pilipino"
+            "Tanghalang Ignacio Jimenez"
         ],
         "created_at": "2026-06-18T11:44:57+00:00"
     },

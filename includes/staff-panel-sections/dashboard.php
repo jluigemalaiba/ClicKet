@@ -3,308 +3,312 @@ $revenueValues = array_column($payload['revenueTrend'], 'value');
 $ticketValues = array_column($payload['ticketTrend'], 'value');
 $revenueMax = max(1, $revenueValues ? max($revenueValues) : 0);
 $ticketMax = max(1, $ticketValues ? max($ticketValues) : 0);
-$recentOrders = array_slice(array_reverse($payload['orders']), 0, 6);
-$recentPayments = array_slice(array_reverse($payload['payments']), 0, 6);
-$dashboardKpis = $isAdmin ? [
-    ['Total Sales', sp_money($metrics['sales']), 'Paid order revenue', 'up'],
-    ['Tickets Sold', sp_count($metrics['ticketsSold']), 'Paid ticket count', 'up'],
-    ['Active Events', sp_count($metrics['activeEvents']), 'Published and draft events', 'flat'],
-    ['Pending Payments', sp_count($metrics['pendingPayments']), 'Needs finance review', 'warn'],
-    ['Active Reservations', sp_count($metrics['activeReservations']), 'Seat holds still running', 'warn'],
-    ['Low Inventory Alerts', sp_count($metrics['lowInventory']), 'Venues above threshold', 'alert'],
+$recentOrders = array_slice(array_reverse($payload['orders']), 0, 5);
+$recentPayments = array_slice(array_reverse($payload['payments']), 0, 5);
+$draftNewsCount = count(array_filter($payload['news'], static fn (array $article): bool => ($article['status'] ?? '') === 'Draft'));
+$publishedEvents = count(array_filter($payload['events'], static fn (array $event): bool => ($event['status'] ?? '') === 'Published'));
+$paidOrdersCount = count(array_filter($payload['orders'], static fn (array $order): bool => strtolower((string) ($order['payment_status'] ?? '')) === 'paid'));
+$paymentClearance = sp_percent($paidOrdersCount, max(1, $metrics['orders']));
+$eventPublishRate = sp_percent($publishedEvents, max(1, $metrics['activeEvents']));
+$ticketFillRate = sp_percent($metrics['ticketsSold'], max(1, $metrics['ticketsSold'] + $metrics['activeReservations'] + 25));
+$reservationLoad = sp_percent($metrics['activeReservations'], max(1, $metrics['activeReservations'] + 12));
+$chartWidth = 680;
+$chartHeight = 270;
+$chartPadLeft = 58;
+$chartPadRight = 24;
+$chartPadTop = 22;
+$chartPadBottom = 44;
+$chartPlotWidth = $chartWidth - $chartPadLeft - $chartPadRight;
+$chartPlotHeight = $chartHeight - $chartPadTop - $chartPadBottom;
+$linePointCount = count($payload['revenueTrend']);
+$linePoints = [];
+foreach ($payload['revenueTrend'] as $index => $point) {
+    $x = $chartPadLeft + ($linePointCount > 1 ? ($index / ($linePointCount - 1)) * $chartPlotWidth : 0);
+    $y = $chartPadTop + ($chartPlotHeight * (1 - min(1, ((int) $point['value']) / $revenueMax)));
+    $linePoints[] = ['x' => round($x, 2), 'y' => round($y, 2), 'point' => $point];
+}
+$linePathValue = '';
+$lineAreaValue = '';
+if ($linePoints) {
+    $firstPoint = $linePoints[0];
+    $linePathValue = 'M ' . $firstPoint['x'] . ' ' . $firstPoint['y'];
+    $lineAreaValue = 'M ' . $chartPadLeft . ' ' . ($chartHeight - $chartPadBottom) . ' L ' . $firstPoint['x'] . ' ' . $firstPoint['y'];
+    for ($index = 1; $index < count($linePoints); $index++) {
+        $previousPoint = $linePoints[$index - 1];
+        $currentPoint = $linePoints[$index];
+        $midX = round(($previousPoint['x'] + $currentPoint['x']) / 2, 2);
+        $curve = ' C ' . $midX . ' ' . $previousPoint['y'] . ', ' . $midX . ' ' . $currentPoint['y'] . ', ' . $currentPoint['x'] . ' ' . $currentPoint['y'];
+        $linePathValue .= $curve;
+        $lineAreaValue .= $curve;
+    }
+    $lineAreaValue .= ' L ' . ($chartWidth - $chartPadRight) . ' ' . ($chartHeight - $chartPadBottom) . ' Z';
+}
+$lastLinePoint = $linePoints ? $linePoints[array_key_last($linePoints)] : null;
+$lastRevenueValue = $revenueValues ? (int) $revenueValues[array_key_last($revenueValues)] : 0;
+$previousRevenueValue = count($revenueValues) > 1 ? (int) $revenueValues[count($revenueValues) - 2] : 0;
+$revenueDelta = $lastRevenueValue - $previousRevenueValue;
+$revenueDeltaPercent = $previousRevenueValue > 0 ? (int) round(($revenueDelta / $previousRevenueValue) * 100) : 0;
+$chartTicks = [];
+foreach ([1, .66, .33, 0] as $tick) {
+    $chartTicks[] = [
+        'y' => round($chartPadTop + ($chartPlotHeight * (1 - $tick)), 2),
+        'label' => sp_money((int) round($revenueMax * $tick)),
+    ];
+}
+$circleStats = $isAdmin ? [
+    ['Payment Clearance', $paymentClearance, sp_count($paidOrdersCount) . ' paid orders'],
+    ['Event Publish Rate', $eventPublishRate, sp_count($publishedEvents) . ' published events'],
+    ['Ticket Fill Pace', $ticketFillRate, sp_count($metrics['ticketsSold']) . ' tickets sold'],
+    ['Reservation Load', $reservationLoad, sp_count($metrics['activeReservations']) . ' active holds'],
 ] : [
-    ['Owned Events', sp_count($metrics['activeEvents']), 'Events created by your organizer account', 'up'],
-    ['Active Reservations', sp_count($metrics['activeReservations']), 'Seat holds to monitor', 'warn'],
-    ['News Drafts', sp_count(count(array_filter($payload['news'], static fn (array $article): bool => ($article['status'] ?? '') === 'Draft'))), 'Posts waiting for review', 'flat'],
-    ['Published Events', sp_count(count(array_filter($payload['events'], static fn (array $event): bool => ($event['status'] ?? '') === 'Published'))), 'Visible owned events', 'up'],
+    ['Event Publish Rate', $eventPublishRate, sp_count($publishedEvents) . ' published events'],
+    ['Reservation Load', $reservationLoad, sp_count($metrics['activeReservations']) . ' active holds'],
+    ['News Progress', sp_percent($draftNewsCount, max(1, count($payload['news']))), sp_count($draftNewsCount) . ' drafts'],
+];
+
+$dashboardCards = $isAdmin ? [
+    ['Total Sales', sp_money($metrics['sales']), 'Paid revenue', 'sales'],
+    ['Tickets Sold', sp_count($metrics['ticketsSold']), 'Issued from paid orders', 'tickets'],
+    ['Pending Payments', sp_count($metrics['pendingPayments']), 'Needs review', 'payments'],
+    ['Active Events', sp_count($metrics['activeEvents']), 'Published and draft', 'events'],
+    ['Reservations', sp_count($metrics['activeReservations']), 'Active seat holds', 'reservations'],
+    ['Revenue Fees', sp_money($metrics['serviceFees']), 'Service fee capture', 'revenue'],
+] : [
+    ['Owned Events', sp_count($metrics['activeEvents']), 'Assigned to your account', 'events'],
+    ['Reservations', sp_count($metrics['activeReservations']), 'Active seat holds', 'reservations'],
+    ['Published', sp_count($publishedEvents), 'Visible owned events', 'tickets'],
+    ['News Drafts', sp_count($draftNewsCount), 'Posts in progress', 'payments'],
+];
+
+$dashboardUpdates = $isAdmin ? [
+    ['Payment queue', sp_count($metrics['pendingPayments']) . ' orders still need approval', 'payments'],
+    ['Ticket volume', sp_count($metrics['ticketsSold']) . ' tickets sold from paid orders', 'tickets'],
+    ['Reservation monitor', sp_count($metrics['activeReservations']) . ' active holds are currently running', 'reservations'],
+    ['Inventory watch', sp_count($metrics['lowInventory']) . ' venues are near low inventory threshold', 'events'],
+] : [
+    ['Event worklist', sp_count($metrics['activeEvents']) . ' owned events in your current scope', 'events'],
+    ['Reservation monitor', sp_count($metrics['activeReservations']) . ' active holds are currently running', 'reservations'],
+    ['Publishing queue', sp_count($draftNewsCount) . ' news drafts need completion or review', 'payments'],
 ];
 ?>
 
-<section class="staff-hero staff-hero--dashboard" data-subsection="overview">
-  <div class="staff-hero-copy">
-    <p><?= $isAdmin ? 'Enterprise Operations' : 'Organizer Operations' ?></p>
-    <h2><?= $isAdmin ? 'Revenue, inventory, payments, and venue health in one command view' : 'A focused dashboard for owned event management, reservations, and news posting' ?></h2>
-    <span><?= sp_h($panelScope) ?></span>
-    <div class="staff-hero-actions">
+<section class="staff-dashboard-shell" data-subsection="overview">
+  <div class="staff-dashboard-head">
+    <div>
+      <p><?= $isAdmin ? 'Admin Overview' : 'Organizer Overview' ?></p>
+      <h2>Good day, <?= sp_h($staff['name'] ?? 'CLICKET Admin') ?></h2>
+    </div>
+    <div class="staff-dashboard-actions">
       <?php if ($isAdmin): ?>
-        <button class="staff-action-btn" type="button" data-open-modal data-modal-title="Create Event" data-modal-type="event-form">Create Event</button>
-        <button class="staff-secondary-btn" type="button" data-panel-shortcut="payments">Review Payments</button>
-        <button class="staff-secondary-btn" type="button" data-panel-shortcut="reports">Export Reports</button>
+        <button class="staff-action-btn" type="button" data-panel-shortcut="payments">Review Payments</button>
+        <button class="staff-secondary-btn" type="button" data-panel-shortcut="events">Manage Events</button>
       <?php else: ?>
         <button class="staff-action-btn" type="button" data-panel-shortcut="events">Manage Events</button>
-        <button class="staff-secondary-btn" type="button" data-panel-shortcut="reservations">View Reservations</button>
         <button class="staff-secondary-btn" type="button" data-panel-shortcut="news">Post News</button>
       <?php endif; ?>
     </div>
   </div>
-  <div class="staff-hero-panel">
-    <span><?= $isAdmin ? 'Today' : 'Owned Scope' ?></span>
-    <strong><?= $isAdmin ? sp_money($metrics['sales']) : sp_count($metrics['activeEvents']) ?></strong>
-    <small><?= $isAdmin ? sp_count($metrics['ticketsSold']) . ' paid tickets - ' . sp_count($metrics['pendingPayments']) . ' pending payments' : sp_count($metrics['activeReservations']) . ' active reservations - news posting enabled' ?></small>
+
+  <div class="staff-dashboard-kpis" aria-label="Dashboard summary">
+    <?php foreach ($dashboardCards as $cardIndex => $card): ?>
+      <article class="staff-dashboard-kpi is-<?= sp_h($card[3]) ?>" style="--dashboard-index: <?= (int) $cardIndex ?>" data-search-row>
+        <span><?= sp_panel_icon((string) $card[3]) ?></span>
+        <small><?= sp_h($card[0]) ?></small>
+        <strong><?= sp_h($card[1]) ?></strong>
+        <em><?= sp_h($card[2]) ?></em>
+      </article>
+    <?php endforeach; ?>
   </div>
 </section>
 
-<section class="staff-kpi-grid" aria-label="Dashboard summary" data-subsection="analytics">
-  <?php foreach ($dashboardKpis as $card): ?>
-    <article class="staff-kpi-card">
-      <span><?= sp_h($card[0]) ?></span>
-      <strong><?= sp_h($card[1]) ?></strong>
-      <small><?= sp_h($card[2]) ?></small>
-      <em class="staff-kpi-spark is-<?= sp_h($card[3]) ?>"></em>
-    </article>
-  <?php endforeach; ?>
-</section>
-
 <?php if ($isAdmin): ?>
-<section class="staff-grid-two staff-grid-two--analytics" data-subsection="analytics">
-  <article class="staff-card staff-chart-card">
+<section class="staff-dashboard-grid" data-subsection="analytics">
+  <article class="staff-dashboard-panel staff-dashboard-panel--wide">
     <div class="staff-card-heading">
       <div>
-        <p>Revenue Trend Chart</p>
-        <h2>Sales momentum</h2>
+        <p>Revenue</p>
+        <h2>Revenue line</h2>
       </div>
-      <span>Last <?= sp_count(count($payload['revenueTrend'])) ?> periods</span>
+      <span><?= sp_count(count($payload['revenueTrend'])) ?> periods</span>
     </div>
-    <div class="staff-chart-bars" aria-label="Revenue trend">
-      <?php foreach ($payload['revenueTrend'] as $point): ?>
-        <div class="staff-chart-column" style="--bar-height: <?= sp_percent((int) $point['value'], $revenueMax) ?>%">
-          <span></span>
-          <small><?= sp_h($point['label']) ?></small>
-          <strong><?= sp_money((int) $point['value']) ?></strong>
-        </div>
-      <?php endforeach; ?>
+    <div class="staff-line-chart-summary">
+      <div>
+        <span>Total paid revenue</span>
+        <strong><?= sp_money($metrics['sales']) ?></strong>
+      </div>
+      <em class="<?= $revenueDelta >= 0 ? 'is-up' : 'is-down' ?>"><?= $revenueDelta >= 0 ? '+' : '' ?><?= sp_count($revenueDeltaPercent) ?>%</em>
+    </div>
+    <div class="staff-line-chart" data-revenue-chart aria-label="Revenue line graph">
+      <svg viewBox="0 0 <?= $chartWidth ?> <?= $chartHeight ?>" role="img">
+        <title>Revenue trend</title>
+        <desc>Paid revenue trend across <?= sp_count(count($payload['revenueTrend'])) ?> reporting periods.</desc>
+        <defs>
+          <linearGradient id="staffRevenueFill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="#e8162b" stop-opacity=".24"></stop>
+            <stop offset="72%" stop-color="#e8162b" stop-opacity=".06"></stop>
+            <stop offset="100%" stop-color="#e8162b" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+        <?php foreach ($chartTicks as $tick): ?>
+          <line class="staff-line-chart-grid" x1="<?= $chartPadLeft ?>" x2="<?= $chartWidth - $chartPadRight ?>" y1="<?= sp_h($tick['y']) ?>" y2="<?= sp_h($tick['y']) ?>"></line>
+          <text class="staff-line-chart-y" x="0" y="<?= sp_h($tick['y'] + 4) ?>"><?= sp_h($tick['label']) ?></text>
+        <?php endforeach; ?>
+        <path class="staff-line-chart-area" d="<?= sp_h($lineAreaValue) ?>" pathLength="1"></path>
+        <?php if ($lastLinePoint): ?>
+          <line class="staff-line-chart-guide" x1="<?= sp_h($lastLinePoint['x']) ?>" x2="<?= sp_h($lastLinePoint['x']) ?>" y1="<?= $chartPadTop ?>" y2="<?= $chartHeight - $chartPadBottom ?>"></line>
+        <?php endif; ?>
+        <path class="staff-line-chart-path" d="<?= sp_h($linePathValue) ?>" pathLength="1"></path>
+        <?php foreach ($linePoints as $lineIndex => $linePoint): ?>
+          <circle class="staff-line-chart-dot <?= $lineIndex === array_key_last($linePoints) ? 'is-active' : '' ?>" data-revenue-dot="<?= (int) $lineIndex ?>" cx="<?= sp_h($linePoint['x']) ?>" cy="<?= sp_h($linePoint['y']) ?>" r="4.5" style="--point-index: <?= (int) $lineIndex ?>"></circle>
+        <?php endforeach; ?>
+        <?php if ($lastLinePoint): ?>
+          <g class="staff-line-chart-callout">
+            <rect x="<?= sp_h(max($chartPadLeft, $lastLinePoint['x'] - 92)) ?>" y="<?= sp_h(max(12, $lastLinePoint['y'] - 42)) ?>" width="88" height="30" rx="8"></rect>
+            <text x="<?= sp_h(max($chartPadLeft, $lastLinePoint['x'] - 82)) ?>" y="<?= sp_h(max(31, $lastLinePoint['y'] - 22)) ?>"><?= sp_h(sp_money($lastRevenueValue)) ?></text>
+          </g>
+        <?php endif; ?>
+      </svg>
+      <div class="staff-line-chart-labels">
+        <?php foreach ($linePoints as $lineIndex => $linePoint): ?>
+          <button class="staff-line-chart-period <?= $lineIndex === array_key_last($linePoints) ? 'is-active' : '' ?>" type="button" data-revenue-period="<?= (int) $lineIndex ?>" data-revenue-label="<?= sp_h($linePoint['point']['label']) ?>" data-revenue-value="<?= sp_h(sp_money((int) $linePoint['point']['value'])) ?>">
+            <span><?= sp_h($linePoint['point']['label']) ?></span><strong><?= sp_money((int) $linePoint['point']['value']) ?></strong>
+          </button>
+        <?php endforeach; ?>
+      </div>
+      <p class="staff-line-chart-selection" data-revenue-selection aria-live="polite">Selected period: <?= sp_h($lastLinePoint['point']['label'] ?? 'Latest') ?>, <?= sp_money($lastRevenueValue) ?></p>
     </div>
   </article>
 
-  <article class="staff-card staff-chart-card">
+  <article class="staff-dashboard-panel">
     <div class="staff-card-heading">
       <div>
-        <p>Ticket Sales Chart</p>
-        <h2>Volume by period</h2>
+        <p>Percentages</p>
+        <h2>Health rings</h2>
       </div>
-      <span>Tickets issued</span>
     </div>
-    <div class="staff-chart-bars staff-chart-bars--tickets" aria-label="Ticket sales chart">
-      <?php foreach ($payload['ticketTrend'] as $point): ?>
-        <div class="staff-chart-column" style="--bar-height: <?= sp_percent((int) $point['value'], $ticketMax) ?>%">
-          <span></span>
-          <small><?= sp_h($point['label']) ?></small>
-          <strong><?= sp_count($point['value']) ?></strong>
+    <div class="staff-ring-grid">
+      <?php foreach ($circleStats as $circle): ?>
+        <div class="staff-ring-card" style="--percent: <?= (int) $circle[1] ?>;">
+          <span class="staff-ring"><strong><?= sp_count($circle[1]) ?>%</strong></span>
+          <div>
+            <strong><?= sp_h($circle[0]) ?></strong>
+            <small><?= sp_h($circle[2]) ?></small>
+          </div>
         </div>
       <?php endforeach; ?>
     </div>
   </article>
 </section>
 
-<section class="staff-grid-three" data-subsection="analytics">
-  <article class="staff-card">
+<section class="staff-dashboard-grid" data-subsection="updates">
+  <article class="staff-dashboard-panel">
     <div class="staff-card-heading">
       <div>
-        <p>Top Selling Events</p>
-        <h2>Revenue ranked</h2>
+        <p>Notifications</p>
+        <h2>Updates</h2>
       </div>
     </div>
-    <div class="staff-list">
-      <?php foreach ($payload['topEvents'] ?: [['title' => 'No paid orders yet', 'sales' => 0, 'tickets' => 0]] as $event): ?>
-        <button class="staff-list-row staff-list-row--button" type="button" data-search-row data-open-modal data-modal-title="<?= sp_h($event['title']) ?>" data-modal-type="event-performance">
-          <span><?= sp_h($event['title']) ?></span>
-          <strong><?= sp_money((int) $event['sales']) ?></strong>
-          <small><?= sp_count($event['tickets']) ?> tickets sold</small>
+    <div class="staff-update-list">
+      <?php foreach ($dashboardUpdates as $update): ?>
+        <button class="staff-update-row" type="button" data-panel-shortcut="<?= sp_h($update[2]) ?>" data-search-row>
+          <span><?= sp_panel_icon((string) $update[2]) ?></span>
+          <strong><?= sp_h($update[0]) ?></strong>
+          <small><?= sp_h($update[1]) ?></small>
         </button>
       <?php endforeach; ?>
     </div>
   </article>
 
-  <article class="staff-card">
+  <article class="staff-dashboard-panel">
     <div class="staff-card-heading">
       <div>
-        <p>Top Venues</p>
-        <h2>Sales by venue</h2>
+        <p>Recent Orders</p>
+        <h2>Latest buyers</h2>
       </div>
+      <button class="staff-secondary-btn" type="button" data-panel-shortcut="orders">Open</button>
     </div>
-    <div class="staff-list">
-      <?php foreach ($payload['topVenues'] ?: [['venue' => 'No venue sales yet', 'sales' => 0, 'orders' => 0]] as $venue): ?>
-        <button class="staff-list-row staff-list-row--button" type="button" data-search-row data-open-modal data-modal-title="<?= sp_h($venue['venue']) ?>" data-modal-type="venue-detail">
-          <span><?= sp_h($venue['venue']) ?></span>
-          <strong><?= sp_money((int) $venue['sales']) ?></strong>
-          <small><?= sp_count($venue['orders']) ?> orders</small>
-        </button>
-      <?php endforeach; ?>
-    </div>
-  </article>
-
-  <article class="staff-card">
-    <div class="staff-card-heading">
-      <div>
-        <p>Low Inventory Alerts</p>
-        <h2>Capacity risk</h2>
-      </div>
-    </div>
-    <div class="staff-list">
-      <?php foreach ($payload['lowInventory'] ?: array_slice($payload['venues'], 0, 4) as $venue): ?>
-        <div class="staff-list-row" data-search-row>
-          <span><?= sp_h($venue['venue']) ?> &middot; <?= sp_h($venue['variant']) ?></span>
-          <strong><?= sp_count($venue['occupancy']) ?>%</strong>
-          <small><?= sp_count($venue['available']) ?> available seats</small>
+    <div class="staff-compact-list">
+      <?php foreach ($recentOrders as $order): ?>
+        <div class="staff-compact-row" data-search-row>
+          <span>
+            <strong><?= sp_h($order['order_id'] ?? 'Order') ?></strong>
+            <small><?= sp_h($order['buyer_name'] ?? '') ?></small>
+          </span>
+          <em><?= sp_money((int) ($order['total'] ?? 0)) ?></em>
         </div>
       <?php endforeach; ?>
-    </div>
-  </article>
-</section>
-
-<section class="staff-grid-two" data-subsection="orders">
-  <article class="staff-card staff-card--flush">
-    <div class="staff-card-heading staff-card-heading--padded">
-      <div>
-        <p>Recent Orders Table</p>
-        <h2>Latest buyer activity</h2>
-      </div>
-      <button class="staff-secondary-btn" type="button" data-panel-shortcut="orders">Open Orders</button>
-    </div>
-    <div class="staff-table-wrap staff-table-wrap--embedded">
-      <table class="staff-table">
-        <thead>
-          <tr>
-            <th>Order</th>
-            <th>Buyer</th>
-            <th>Event</th>
-            <th>Total</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($recentOrders as $order): ?>
-            <tr data-search-row>
-              <td><strong><?= sp_h($order['order_id'] ?? 'Order') ?></strong><small><?= sp_h($order['venue'] ?? '') ?></small></td>
-              <td><?= sp_h($order['buyer_name'] ?? '') ?><small><?= sp_h($order['buyer_email'] ?? '') ?></small></td>
-              <td><?= sp_h($order['event_title'] ?? $order['event'] ?? '') ?><small><?= sp_count(clicketStaffTicketCount($order)) ?> seats</small></td>
-              <td><?= sp_money((int) ($order['total'] ?? 0)) ?></td>
-              <td><span class="staff-status <?= sp_status_class($order['payment_status'] ?? 'Pending') ?>"><?= sp_h($order['payment_status'] ?? 'Pending') ?></span></td>
-            </tr>
-          <?php endforeach; ?>
-          <?php if (!$recentOrders): ?>
-            <tr><td colspan="5">No recent orders are available in this role scope.</td></tr>
-          <?php endif; ?>
-        </tbody>
-      </table>
-    </div>
-  </article>
-
-  <article class="staff-card staff-card--flush">
-    <div class="staff-card-heading staff-card-heading--padded">
-      <div>
-        <p>Recent Payment Activity</p>
-        <h2>Finance queue</h2>
-      </div>
-      <button class="staff-secondary-btn" type="button" data-panel-shortcut="payments">Open Payments</button>
-    </div>
-    <div class="staff-table-wrap staff-table-wrap--embedded">
-      <table class="staff-table">
-        <thead>
-          <tr>
-            <th>Reference</th>
-            <th>Method</th>
-            <th>Amount</th>
-            <th>Proof</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($recentPayments as $order): ?>
-            <tr data-search-row>
-              <td><strong><?= sp_h($order['payment_reference'] ?? $order['reference'] ?? '') ?></strong><small><?= sp_h($order['order_id'] ?? '') ?></small></td>
-              <td><?= sp_h($order['payment_method_label'] ?? $order['payment_method'] ?? 'Manual') ?></td>
-              <td><?= sp_money((int) ($order['total'] ?? 0)) ?></td>
-              <td><?= sp_h(($order['proof_of_payment'] ?? '') !== '' ? 'Uploaded' : 'Not required') ?></td>
-              <td><span class="staff-status <?= sp_status_class($order['payment_status'] ?? 'Pending') ?>"><?= sp_h($order['payment_status'] ?? 'Pending') ?></span></td>
-            </tr>
-          <?php endforeach; ?>
-          <?php if (!$recentPayments): ?>
-            <tr><td colspan="5">No payment activity is available in this role scope.</td></tr>
-          <?php endif; ?>
-        </tbody>
-      </table>
-    </div>
-  </article>
-</section>
-<?php else: ?>
-<section class="staff-grid-two" data-subsection="analytics">
-  <article class="staff-card">
-    <div class="staff-card-heading">
-      <div>
-        <p>Owned Event Management</p>
-        <h2>Upcoming event worklist</h2>
-      </div>
-      <button class="staff-secondary-btn" type="button" data-panel-shortcut="events">Open Events</button>
-    </div>
-    <div class="staff-list">
-      <?php foreach (array_slice($payload['events'], 0, 6) as $event): ?>
-        <div class="staff-list-row" data-search-row>
-          <span><?= sp_h($event['title']) ?></span>
-          <strong><?= sp_h($event['status']) ?></strong>
-          <small><?= sp_h($event['date']) ?> - <?= sp_h($event['venue']) ?></small>
-        </div>
-      <?php endforeach; ?>
-      <?php if (!$payload['events']): ?>
-        <div class="staff-list-row"><span>No owned events yet</span><strong>Empty</strong><small>Ask an admin to create or transfer event ownership to your account.</small></div>
+      <?php if (!$recentOrders): ?>
+        <div class="staff-compact-row"><span><strong>No recent orders</strong><small>Order activity appears here.</small></span></div>
       <?php endif; ?>
     </div>
   </article>
 
-  <article class="staff-card">
+  <article class="staff-dashboard-panel">
     <div class="staff-card-heading">
       <div>
-        <p>Reservation Overview</p>
-        <h2>Active and expired holds</h2>
+        <p>Payments</p>
+        <h2>Finance queue</h2>
       </div>
-      <button class="staff-secondary-btn" type="button" data-panel-shortcut="reservations">Open Reservations</button>
+      <button class="staff-secondary-btn" type="button" data-panel-shortcut="payments">Open</button>
     </div>
-    <div class="staff-list">
-      <?php foreach (array_slice($payload['reservationRows'], 0, 5) as $hold): ?>
-        <div class="staff-list-row" data-search-row>
-          <span><?= sp_h($hold['id']) ?> - <?= sp_h($hold['event']) ?></span>
-          <strong><?= sp_h($hold['status']) ?></strong>
-          <small><?= sp_h($hold['venue']) ?> - <?= sp_count($hold['seats']) ?> seats</small>
+    <div class="staff-compact-list">
+      <?php foreach ($recentPayments as $order): ?>
+        <div class="staff-compact-row" data-search-row>
+          <span>
+            <strong><?= sp_h($order['payment_reference'] ?? $order['reference'] ?? 'Payment') ?></strong>
+            <small><?= sp_h($order['payment_method_label'] ?? $order['payment_method'] ?? 'Manual') ?></small>
+          </span>
+          <em class="<?= sp_status_class($order['payment_status'] ?? 'Pending') ?>"><?= sp_h($order['payment_status'] ?? 'Pending') ?></em>
         </div>
+      <?php endforeach; ?>
+      <?php if (!$recentPayments): ?>
+        <div class="staff-compact-row"><span><strong>No payment activity</strong><small>Payment records appear here.</small></span></div>
+      <?php endif; ?>
+    </div>
+  </article>
+</section>
+<?php else: ?>
+<section class="staff-dashboard-grid" data-subsection="analytics">
+  <article class="staff-dashboard-panel staff-dashboard-panel--wide">
+    <div class="staff-card-heading">
+      <div>
+        <p>Owned Events</p>
+        <h2>Event worklist</h2>
+      </div>
+      <button class="staff-secondary-btn" type="button" data-panel-shortcut="events">Open Events</button>
+    </div>
+    <div class="staff-compact-list">
+      <?php foreach (array_slice($payload['events'], 0, 6) as $event): ?>
+        <div class="staff-compact-row" data-search-row>
+          <span>
+            <strong><?= sp_h($event['title']) ?></strong>
+            <small><?= sp_h($event['date']) ?> - <?= sp_h($event['venue']) ?></small>
+          </span>
+          <em><?= sp_h($event['status']) ?></em>
+        </div>
+      <?php endforeach; ?>
+      <?php if (!$payload['events']): ?>
+        <div class="staff-compact-row"><span><strong>No owned events yet</strong><small>Ask an admin to assign an event.</small></span></div>
+      <?php endif; ?>
+    </div>
+  </article>
+
+  <article class="staff-dashboard-panel">
+    <div class="staff-card-heading">
+      <div>
+        <p>Notifications</p>
+        <h2>Updates</h2>
+      </div>
+    </div>
+    <div class="staff-update-list">
+      <?php foreach ($dashboardUpdates as $update): ?>
+        <button class="staff-update-row" type="button" data-panel-shortcut="<?= sp_h($update[2]) ?>" data-search-row>
+          <span><?= sp_panel_icon((string) $update[2]) ?></span>
+          <strong><?= sp_h($update[0]) ?></strong>
+          <small><?= sp_h($update[1]) ?></small>
+        </button>
       <?php endforeach; ?>
     </div>
   </article>
 </section>
-
-<section class="staff-section" data-subsection="overview">
-  <div class="staff-section-heading">
-    <div>
-      <p>News Posting</p>
-      <h2>Drafts and publishing requests</h2>
-    </div>
-    <button class="staff-action-btn" type="button" data-panel-shortcut="news">Create News Post</button>
-  </div>
-  <div class="staff-report-grid">
-    <?php foreach ($payload['news'] as $article): ?>
-      <article class="staff-module-card" data-search-row>
-        <span class="staff-module-icon"><?= sp_h(sp_initials($article['status'])) ?></span>
-        <strong><?= sp_h($article['title']) ?></strong>
-        <small><?= sp_h($article['status']) ?> - <?= sp_h($article['updated']) ?></small>
-      </article>
-    <?php endforeach; ?>
-  </div>
-</section>
 <?php endif; ?>
-
-<section class="staff-section" data-subsection="overview">
-  <div class="staff-section-heading">
-    <div>
-      <p>Role Coverage</p>
-      <h2><?= $isAdmin ? 'Admin Panel module map' : 'Organizer Dashboard module map' ?></h2>
-    </div>
-  </div>
-  <div class="staff-module-grid">
-    <?php foreach ($moduleCards as $module): ?>
-      <article class="staff-module-card" data-search-row>
-        <span class="staff-module-icon"><?= sp_h(sp_initials($module[0])) ?></span>
-        <strong><?= sp_h($module[0]) ?></strong>
-        <small><?= sp_h($module[1]) ?></small>
-      </article>
-    <?php endforeach; ?>
-  </div>
-</section>

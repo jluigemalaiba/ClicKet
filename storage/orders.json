@@ -55,7 +55,9 @@
                 "category": "Gold",
                 "price": 5450
             }
-        ]
+        ],
+        "approved_by": "admin@clicket.local",
+        "approved_at": "2026-06-19T16:20:01+02:00"
     },
     {
         "order_id": "CKO-3CF044D04A",
@@ -113,7 +115,9 @@
                 "category": "VIP",
                 "price": 12000
             }
-        ]
+        ],
+        "approved_by": "admin@clicket.local",
+        "approved_at": "2026-06-19T16:20:02+02:00"
     },
     {
         "order_id": "CKO-F4872BD2E0",
@@ -550,8 +554,8 @@
                 "price": 1800
             }
         ],
-        "approved_by": "newport.organizer@clicket.test",
-        "approved_at": "2026-06-18T17:07:21+02:00"
+        "approved_by": "admin@clicket.local",
+        "approved_at": "2026-06-19T16:20:04+02:00"
     },
     {
         "order_id": "CKO-BE7562DB2B",

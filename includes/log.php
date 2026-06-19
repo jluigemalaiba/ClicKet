@@ -242,11 +242,11 @@ function defaultStaffAccounts(): array {
         ],
         [
             'id' => 'org-tanghalang',
-            'name' => 'Tanghalang Pilipino Organizer',
+            'name' => 'Tanghalang Ignacio Jimenez Organizer',
             'email' => 'tanghalang.organizer@clicket.test',
             'password' => password_hash('Organizer@123', PASSWORD_DEFAULT),
             'role' => 'organizer',
-            'venues' => ['Tanghalang Pilipino'],
+            'venues' => ['Tanghalang Ignacio Jimenez'],
             'created_at' => date('c'),
         ],
         [
@@ -349,6 +349,8 @@ function loginStaffWithEmail(string $email, string $password, string $role): arr
         !$staff
         || !in_array((string) ($staff['role'] ?? ''), ['admin', 'organizer'], true)
         || ($staff['role'] ?? '') !== $role
+        || !empty($staff['disabled'])
+        || strtolower((string) ($staff['status'] ?? 'active')) !== 'active'
         || !password_verify($password, $staff['password'] ?? '')
     ) {
         return ['success' => false, 'errors' => ['Invalid email, password, or portal role.']];
@@ -461,7 +463,7 @@ function registerUser(string $name, string $email, string $password, string $con
 function loginWithEmail(string $email, string $password): array {
     $user = findUserByEmail($email);
 
-    if (!$user || !password_verify($password, $user['password'] ?? '')) {
+    if (!$user || !empty($user['disabled']) || strtolower((string) ($user['status'] ?? 'active')) !== 'active' || !password_verify($password, $user['password'] ?? '')) {
         return ['success' => false, 'errors' => ['Invalid email or password.']];
     }
 
