@@ -48,6 +48,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = loginWithEmail($_POST['email'] ?? '', $_POST['password'] ?? '');
     }
 
+    if (!empty($result['needs_verification'])) {
+        $verifyEmail = strtolower(trim((string) ($result['email'] ?? ($_POST['email'] ?? ''))));
+        $notice = !empty($result['mail_sent'])
+            ? 'We sent a verification code to your email.'
+            : 'Enter your verification code. If you did not receive it, use resend after the cooldown.';
+        setFlashMessage(!empty($result['mail_sent']) ? 'success' : 'error', $notice);
+        header('Location: verify-otp.php?email=' . rawurlencode($verifyEmail));
+        exit;
+    }
+
     if ($result['success']) {
         if ($isStaffMode) {
             $staff = currentStaff();

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/otp.php';
 
 function startSessionIfNeeded(): void {
     if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
@@ -101,6 +102,7 @@ function clicketUserRowToApp(array $row): array {
         'password' => (string) $row['password_hash'],
         'role' => 'customer',
         'status' => (string) ($row['status'] ?? 'active'),
+        'email_verified_at' => (string) ($row['email_verified_at'] ?? ''),
         'created_at' => clicketDbDisplayDateTime((string) ($row['created_at'] ?? '')),
     ];
 }
@@ -547,6 +549,8 @@ function logoutStaff(): void {
 }
 
 function findUserByEmail(string $email): ?array {
+    clicketOtpEnsureSchema();
+
     $row = clicketDbFetch(
         'SELECT * FROM users WHERE LOWER(email) = LOWER(:email) LIMIT 1',
         ['email' => trim($email)]
@@ -605,6 +609,8 @@ function loginUser(array $user): void {
 }
 
 function registerUser(string $name, string $email, string $password, string $confirm): array {
+    clicketOtpEnsureSchema();
+
     $name = trim($name);
     $email = strtolower(trim($email));
     $errors = [];
@@ -645,8 +651,8 @@ function registerUser(string $name, string $email, string $password, string $con
 
     try {
         clicketDbExecute(
-            'INSERT INTO users (name, email, password_hash, status)
-             VALUES (:name, :email, :password_hash, "active")',
+            'INSERT INTO users (name, email, password_hash, status, email_verified_at)
+             VALUES (:name, :email, :password_hash, "inactive", NULL)',
             [
                 'name' => $name,
                 'email' => $email,
@@ -659,17 +665,43 @@ function registerUser(string $name, string $email, string $password, string $con
 
     $user = findUserByEmail($email);
     if ($user) {
-        loginUser($user);
+        $otp = clicketOtpSendForUser($user);
+        startSessionIfNeeded();
+        $_SESSION['clicket_pending_verification_email'] = $email;
+
+        return [
+            'success' => true,
+            'needs_verification' => true,
+            'email' => $email,
+            'mail_sent' => (bool) ($otp['success'] ?? false),
+            'mail_error' => (string) ($otp['error'] ?? ''),
+        ];
     }
 
-    return ['success' => true];
+    return ['success' => false, 'errors' => ['Unable to prepare email verification.']];
 }
 
 function loginWithEmail(string $email, string $password): array {
+    clicketOtpEnsureSchema();
+
     $user = findUserByEmail($email);
 
     if (!$user || !password_verify($password, $user['password'] ?? '')) {
         return ['success' => false, 'errors' => ['Invalid email or password.']];
+    }
+
+    if (!clicketOtpIsVerified($user)) {
+        $otp = clicketOtpSendForUser($user);
+        startSessionIfNeeded();
+        $_SESSION['clicket_pending_verification_email'] = strtolower(trim($email));
+
+        return [
+            'success' => false,
+            'needs_verification' => true,
+            'email' => strtolower(trim($email)),
+            'mail_sent' => (bool) ($otp['success'] ?? false),
+            'errors' => [($otp['cooldown'] ?? false) ? 'Please enter the verification code already sent to your email.' : 'Please verify your email before signing in.'],
+        ];
     }
 
     loginUser($user);

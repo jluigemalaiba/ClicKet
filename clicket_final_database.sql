@@ -43,6 +43,7 @@ DROP TABLE IF EXISTS `venue_layouts`;
 DROP TABLE IF EXISTS `venue_aliases`;
 DROP TABLE IF EXISTS `venues`;
 DROP TABLE IF EXISTS `staff_accounts`;
+DROP TABLE IF EXISTS `email_otps`;
 DROP TABLE IF EXISTS `users`;
 
 CREATE TABLE `users` (
@@ -51,11 +52,30 @@ CREATE TABLE `users` (
   `email` VARCHAR(190) NOT NULL,
   `password_hash` VARCHAR(255) NOT NULL,
   `status` ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
+  `email_verified_at` DATETIME DEFAULT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_users_email` (`email`),
   KEY `idx_users_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `email_otps` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED DEFAULT NULL,
+  `email` VARCHAR(190) NOT NULL,
+  `otp_code` VARCHAR(10) NOT NULL,
+  `expires_at` DATETIME NOT NULL,
+  `is_used` TINYINT(1) NOT NULL DEFAULT 0,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_email_otps_email` (`email`),
+  KEY `idx_email_otps_user_id` (`user_id`),
+  KEY `idx_email_otps_expires_at` (`expires_at`),
+  CONSTRAINT `fk_email_otps_user`
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+    ON UPDATE CASCADE
+    ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `staff_accounts` (
