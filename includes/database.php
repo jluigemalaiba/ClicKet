@@ -153,9 +153,9 @@ function clicketDbNormalizePaymentStatus(string $status): string {
     $normalized = strtolower(trim($status));
 
     return match ($normalized) {
-        'paid', 'confirmed', 'complete', 'completed', 'approved', 'payment verified' => 'approved',
+        'paid', 'confirmed', 'complete', 'completed', 'approved' => 'approved',
         'failed', 'rejected', 'payment rejected' => 'rejected',
-        'processing', 'review', 'for verification', 'payment submitted', 'under review', 'under_review' => 'under_review',
+        'processing', 'review', 'under review', 'under_review' => 'under_review',
         default => 'pending',
     };
 }
@@ -164,7 +164,7 @@ function clicketDbNormalizeOrderStatus(string $status): string {
     $normalized = strtolower(trim($status));
 
     return match ($normalized) {
-        'confirmed', 'complete', 'completed', 'payment verified' => 'completed',
+        'confirmed', 'complete', 'completed' => 'completed',
         'approved', 'paid' => 'approved',
         'failed', 'payment rejected', 'rejected' => 'rejected',
         'archived' => 'archived',
@@ -174,20 +174,20 @@ function clicketDbNormalizeOrderStatus(string $status): string {
 
 function clicketDbDisplayPaymentStatus(string $status): string {
     return match ($status) {
-        'approved' => 'Payment Verified',
-        'under_review' => 'For Verification',
-        'rejected' => 'Rejected',
-        default => 'Pending Payment',
+        'approved' => 'Paid',
+        'under_review' => 'Pending',
+        'rejected' => 'Failed',
+        default => 'Pending',
     };
 }
 
 function clicketDbDisplayOrderStatus(string $status): string {
     return match ($status) {
-        'completed' => 'Payment Verified',
-        'approved' => 'Payment Verified',
-        'rejected' => 'Rejected',
+        'completed' => 'Confirmed',
+        'approved' => 'Confirmed',
+        'rejected' => 'Payment Rejected',
         'archived' => 'Archived',
-        default => 'Pending Payment',
+        default => 'Pending',
     };
 }
 

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/log.php';
 require_once __DIR__ . '/database.php';
-require_once __DIR__ . '/payment-qr-config.php';
 
 function clicketEnsureOrderStore(): void {
     clicketDb();
@@ -78,28 +77,6 @@ function clicketOrderRowToApp(array $row): array {
         $voucherId = 'VCH-' . strtoupper(substr(hash('sha256', (string) $row['order_id']), 0, 12));
     }
 
-    $paymentMethod = (string) ($row['payment_method'] ?? '');
-    $venueName = (string) $row['venue_name'];
-    $qr = clicketPaymentQrForVenue($venueName, $paymentMethod);
-    $proofName = (string) ($row['proof_file_name'] ?? '');
-    $proofExists = false;
-    if ($proofName !== '') {
-        $proofBaseName = basename($proofName);
-        $proofLocations = [
-            dirname(__DIR__) . '/uploads/payment_proofs/' . $proofBaseName,
-            dirname(__DIR__) . '/storage/payment-proofs/' . $proofBaseName,
-        ];
-        foreach ($proofLocations as $location) {
-            if (is_file($location)) {
-                $proofExists = true;
-                break;
-            }
-        }
-    }
-    $proofUrl = $proofExists
-        ? 'payment-proof-view.php?order=' . rawurlencode((string) $row['order_id'])
-        : '';
-
     return [
         'db_id' => (int) $row['id'],
         'order_id' => (string) $row['order_id'],
@@ -114,19 +91,16 @@ function clicketOrderRowToApp(array $row): array {
         'event_banner' => (string) ($row['banner_url'] ?? $row['poster_url'] ?? ''),
         'event_date' => clicketDbDisplayDate((string) $row['performance_date']),
         'event_time' => clicketDbDisplayTime((string) $row['performance_time']),
-        'venue' => $venueName,
+        'venue' => (string) $row['venue_name'],
         'seats' => $seatRows,
         'subtotal' => (int) round((float) $row['subtotal']),
         'service_fee' => (int) round((float) $row['service_fee']),
         'total' => (int) round((float) $row['total']),
-        'payment_method' => $paymentMethod,
+        'payment_method' => (string) ($row['payment_method'] ?? ''),
         'payment_method_label' => (string) ($row['method_label'] ?? clicketOrderPaymentMethodLabel((string) ($row['payment_method'] ?? ''))),
         'payment_account' => (string) ($row['payment_account'] ?? ''),
-        'proof_of_payment' => $proofName,
-        'proof_url' => $proofUrl,
-        'proof_uploaded_at' => clicketDbDisplayDateTime((string) ($row['proof_uploaded_at'] ?? '')),
-        'rejection_reason' => (string) ($row['proof_review_note'] ?? ''),
-        'payment_qr' => $qr,
+        'proof_of_payment' => (string) ($row['proof_file_name'] ?? ''),
+        'proof_file_path' => (string) ($row['proof_file_path'] ?? ''),
         'non_transferable' => (bool) $row['non_transferable'],
         'payment_status' => clicketDbDisplayPaymentStatus((string) $row['payment_status']),
         'order_status' => clicketDbDisplayOrderStatus((string) $row['order_status']),
@@ -154,7 +128,6 @@ function clicketReadOrders(): array {
                 p.payment_reference AS payment_row_reference, p.method AS payment_method,
                 p.method_label, p.payment_account,
                 pp.file_name AS proof_file_name, pp.file_path AS proof_file_path,
-                pp.uploaded_at AS proof_uploaded_at, pp.review_note AS proof_review_note,
                 approved.email AS approved_by_email,
                 rejected.email AS rejected_by_email
          FROM orders o
@@ -248,8 +221,8 @@ function clicketTicketStatusForOrder(array $order): string {
         return 'void';
     }
 
-    return in_array($paymentStatus, ['paid', 'approved', 'payment verified'], true)
-        && in_array($orderStatus, ['confirmed', 'completed', 'approved', 'payment verified'], true)
+    return in_array($paymentStatus, ['paid', 'approved'], true)
+        && in_array($orderStatus, ['confirmed', 'completed', 'approved'], true)
             ? 'active'
             : 'issued';
 }
@@ -367,7 +340,7 @@ function clicketSaveOrder(array $order, bool $allowDuplicateSeats = false): bool
                     'payment_id' => $paymentPk,
                     'order_id' => $orderPk,
                     'file_name' => $proofName,
-                    'file_path' => (string) ($order['proof_file_path'] ?? 'uploads/payment_proofs/' . $proofName),
+                    'file_path' => (string) ($order['proof_file_path'] ?? 'storage/payment-proofs/' . $proofName),
                     'mime_type' => null,
                     'uploaded_at' => clicketDbDateTime((string) ($order['booked_at'] ?? 'now')),
                     'review_status' => $paymentStatus,
@@ -527,26 +500,6 @@ function clicketWriteOrders(array $orders): bool {
             );
 
             clicketDbExecute(
-                'UPDATE payment_proofs
-                 SET review_status = :status,
-                     review_note = CASE WHEN :review_note <> "" THEN :review_note ELSE review_note END
-                 WHERE id = (
-                     SELECT proof_id FROM (
-                         SELECT id AS proof_id
-                         FROM payment_proofs
-                         WHERE order_id = :order_id_for_proof
-                         ORDER BY id DESC
-                         LIMIT 1
-                     ) latest_proof
-                 )',
-                [
-                    'status' => $paymentStatus,
-                    'review_note' => (string) ($order['rejection_reason'] ?? ''),
-                    'order_id_for_proof' => (int) $existing['id'],
-                ]
-            );
-
-            clicketDbExecute(
                 'UPDATE tickets
                  SET status = :status
                  WHERE order_id = :order_id',
@@ -621,7 +574,7 @@ function clicketOrderDate(string $date, string $format = 'M j, Y, g:i A'): strin
 function clicketOrderStatusClass(string $status): string {
     $normalized = strtolower(trim($status));
 
-    return in_array($normalized, ['paid', 'payment verified', 'confirmed', 'completed', 'approved'], true)
+    return in_array($normalized, ['paid', 'confirmed', 'completed', 'approved'], true)
         ? 'is-success'
-        : (in_array($normalized, ['pending', 'pending payment', 'processing', 'under review', 'for verification', 'payment submitted'], true) ? 'is-pending' : 'is-neutral');
+        : (in_array($normalized, ['pending', 'processing', 'under review'], true) ? 'is-pending' : 'is-neutral');
 }

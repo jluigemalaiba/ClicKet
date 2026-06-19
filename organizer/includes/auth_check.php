@@ -41,9 +41,9 @@ if (!function_exists('sp_h')) {
     }
     function sp_status_class(mixed $status): string {
         return match (strtolower(trim((string) $status))) {
-            'paid', 'payment verified', 'published', 'confirmed', 'enabled', 'active', 'valid', 'open', 'approved', 'success' => 'is-success',
-            'pending', 'pending payment', 'for verification', 'payment submitted', 'draft', 'review', 'held', 'processing', 'warning' => 'is-warning',
-            'failed', 'rejected', 'cancelled', 'canceled', 'void', 'blocked', 'expired', 'suspended' => 'is-danger',
+            'paid', 'published', 'confirmed', 'enabled', 'active', 'valid', 'open', 'approved', 'success' => 'is-success',
+            'pending', 'draft', 'review', 'held', 'processing', 'warning' => 'is-warning',
+            'failed', 'cancelled', 'canceled', 'void', 'blocked', 'expired', 'suspended' => 'is-danger',
             'refunded', 'archived', 'used', 'disabled' => 'is-muted',
             default => 'is-info',
         };

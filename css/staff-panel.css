@@ -341,42 +341,6 @@ body.staff-shell {
   border-radius: 9px;
 }
 
-.staff-role-organizer .organizer-order-action {
-  display: grid;
-  gap: 7px;
-  min-width: 180px;
-}
-
-.staff-role-organizer .organizer-order-action + .organizer-order-action {
-  margin-top: 8px;
-}
-
-.staff-role-organizer .organizer-order-action textarea {
-  width: 100%;
-  min-height: 54px;
-  resize: vertical;
-  border: 1px solid var(--panel-line);
-  border-radius: 8px;
-  padding: 8px;
-  background: var(--panel-card);
-  color: var(--panel-ink);
-  font: inherit;
-  font-size: 12px;
-}
-
-.staff-proof-link {
-  display: inline-flex;
-  min-height: 32px;
-  align-items: center;
-  padding: 0 10px;
-  border-radius: 8px;
-  background: rgba(232, 22, 43, .08);
-  color: var(--panel-red);
-  font-size: 12px;
-  font-weight: 900;
-  text-decoration: none;
-}
-
 .staff-nav-label {
   min-width: 0;
   max-width: 160px;

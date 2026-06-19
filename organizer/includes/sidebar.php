@@ -5,7 +5,6 @@ $organizerLinks = [
     'venues' => ['label' => 'Venues', 'icon' => 'venues'],
     'tickets' => ['label' => 'Tickets', 'icon' => 'tickets'],
     'attendees' => ['label' => 'Attendees', 'icon' => 'attendees'],
-    'orders' => ['label' => 'Orders', 'icon' => 'orders'],
     'reports' => ['label' => 'Reports', 'icon' => 'reports'],
     'archives' => ['label' => 'Archives', 'icon' => 'archives'],
 ];
@@ -17,7 +16,6 @@ function organizer_sidebar_icon(string $key): string {
         'venues' => '<path d="M4 21V9l8-5 8 5v12"></path><path d="M9 21v-8h6v8"></path><path d="M4 9h16"></path>',
         'tickets' => '<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4V7z"></path><path d="M13 5v14"></path>',
         'attendees' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
-        'orders' => '<path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z"></path><path d="M9 7h6"></path><path d="M9 11h6"></path><path d="M9 15h4"></path>',
         'reports' => '<path d="M4 19V5"></path><path d="M4 19h16"></path><rect x="7" y="11" width="3" height="5"></rect><rect x="12" y="7" width="3" height="9"></rect><rect x="17" y="9" width="3" height="7"></rect>',
         'archives' => '<rect x="3" y="4" width="18" height="5" rx="1"></rect><path d="M5 9v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"></path><path d="M10 13h4"></path>',
         'signout' => '<path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M21 3v18h-7"></path>',
