@@ -7,6 +7,7 @@ require_once __DIR__ . '/includes/ticket-data.php';
 
 header('Content-Type: application/json');
 
+clicketRequireRoleJson('admin', 'Admin access required.');
 $staff = currentStaff();
 if (!$staff) {
     http_response_code(401);
@@ -44,10 +45,13 @@ $updatedOrder = null;
 $actor = (string) ($staff['email'] ?? $staff['name'] ?? 'admin');
 
 foreach ($orders as $index => $order) {
-    if ((string) ($order['order_id'] ?? '') !== $orderId) continue;
+    if ((string) ($order['order_id'] ?? '') !== $orderId) {
+        continue;
+    }
+
     if (!clicketStaffCanAccessOrder($staff, $order)) {
         http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Order is outside your access scope.']);
+        echo json_encode(['success' => false, 'message' => 'Order is outside admin scope.']);
         exit;
     }
 

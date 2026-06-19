@@ -3,8 +3,10 @@
 require_once __DIR__ . '/includes/log.php';
 require_once __DIR__ . '/includes/staff-panel-data.php';
 
+clicketRequireStaff();
 $staff = currentStaff();
 if (!$staff) {
+    logoutStaff();
     setFlashMessage('error', 'Please sign in with an admin or organizer account.');
     header('Location: auth.php?mode=admin');
     exit;

@@ -100,3 +100,6 @@ $sports_events = [
   ['title'=>'UAAP Season 88 Finals','league'=>'UAAP','venue'=>'Smart Araneta Coliseum','date'=>'Nov 22, 2025','rating'=>5,'type'=>'Basketball'],
   ['title'=>'PVL AFC Final','league'=>'PVL','venue'=>'PhilSports Arena','date'=>'May 18, 2026','rating'=>5,'type'=>'Volleyball'],
 ];
+
+require_once __DIR__ . '/catalog-db.php';
+clicketLoadCatalogFromDatabase($concert_events, $theater_events, $sports_events, $featured_events);

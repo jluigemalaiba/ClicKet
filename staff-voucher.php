@@ -5,14 +5,11 @@ require_once __DIR__ . '/includes/staff-panel-data.php';
 require_once __DIR__ . '/includes/ticket-data.php';
 require_once __DIR__ . '/includes/voucher-generator.php';
 
+clicketRequireAdmin();
 $staff = currentStaff();
 if (!$staff) {
     header('Location: auth.php?mode=admin');
     exit;
-}
-if (($staff['role'] ?? '') !== 'admin') {
-    http_response_code(403);
-    exit('Admin access required.');
 }
 
 $orderId = trim((string) ($_GET['order'] ?? ''));

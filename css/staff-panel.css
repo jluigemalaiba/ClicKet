@@ -1985,6 +1985,11 @@ body.staff-shell {
   margin: 2px;
 }
 
+.staff-inline-form {
+  display: inline-flex;
+  margin: 0;
+}
+
 .staff-status {
   display: inline-flex;
   align-items: center;

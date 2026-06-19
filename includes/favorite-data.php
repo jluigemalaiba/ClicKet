@@ -1,119 +1,184 @@
 <?php
 
+declare(strict_types=1);
+
 require_once __DIR__ . '/log.php';
-require_once __DIR__ . '/ticketing.php';
-
-if (!defined('CLICKET_FAVORITES_FILE')) {
-    define('CLICKET_FAVORITES_FILE', __DIR__ . '/../storage/favorites.json');
-}
-
-function clicketEnsureFavoriteStore(): void {
-    $directory = dirname(CLICKET_FAVORITES_FILE);
-
-    if (!is_dir($directory)) {
-        mkdir($directory, 0775, true);
-    }
-
-    if (!file_exists(CLICKET_FAVORITES_FILE)) {
-        file_put_contents(CLICKET_FAVORITES_FILE, json_encode([], JSON_PRETTY_PRINT));
-    }
-}
-
-function clicketReadFavorites(): array {
-    clicketEnsureFavoriteStore();
-    $favorites = json_decode(file_get_contents(CLICKET_FAVORITES_FILE) ?: '[]', true);
-
-    return is_array($favorites) ? $favorites : [];
-}
-
-function clicketWriteFavorites(array $favorites): bool {
-    clicketEnsureFavoriteStore();
-
-    return file_put_contents(
-        CLICKET_FAVORITES_FILE,
-        json_encode(array_values($favorites), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
-        LOCK_EX
-    ) !== false;
-}
+require_once __DIR__ . '/database.php';
 
 function clicketFavoriteSnapshot(string $eventId): ?array {
-    $resolved = clicketResolveEvent($eventId);
-    if (!$resolved) {
+    $row = clicketDbFetch(
+        'SELECT e.event_key, e.title, e.type, e.category, e.poster_url,
+                v.name AS venue_name, ep.performance_date, ep.performance_time
+         FROM events e
+         INNER JOIN venues v ON v.id = e.venue_id
+         LEFT JOIN event_performances ep
+           ON ep.id = (
+             SELECT ep2.id
+             FROM event_performances ep2
+             WHERE ep2.event_id = e.id
+             ORDER BY ep2.performance_date, ep2.performance_time, ep2.id
+             LIMIT 1
+           )
+         WHERE e.event_key = :event_key
+         LIMIT 1',
+        ['event_key' => $eventId]
+    );
+    if (!$row) {
         return null;
     }
 
-    $event = $resolved['event'];
+    $category = match ((string) $row['category']) {
+        'concert' => 'Concert',
+        'theater' => 'Theater',
+        'sports' => 'Sports',
+        default => ucfirst((string) $row['category']),
+    };
 
     return [
-        'event_id' => $eventId,
-        'title' => (string) ($event['title'] ?? 'ClicKet Event'),
-        'date' => $resolved['date']->format('M j, Y'),
-        'time' => (string) $resolved['time'],
-        'venue' => (string) ($event['venue'] ?? ''),
-        'category' => (string) $resolved['categoryLabel'],
-        'type' => (string) ($event['type'] ?? $resolved['categoryLabel']),
-        'poster' => (string) $resolved['poster'],
-        'url' => 'show.php?event=' . rawurlencode($eventId),
+        'event_id' => (string) $row['event_key'],
+        'event' => (string) $row['event_key'],
+        'event_title' => (string) $row['title'],
+        'title' => (string) $row['title'],
+        'date' => clicketDbDisplayDate((string) ($row['performance_date'] ?? '')),
+        'time' => clicketDbDisplayTime((string) ($row['performance_time'] ?? '')),
+        'venue' => (string) $row['venue_name'],
+        'category' => $category,
+        'type' => (string) ($row['type'] ?? $category),
+        'poster' => (string) ($row['poster_url'] ?? ''),
+        'url' => 'show.php?event=' . rawurlencode((string) $row['event_key']),
     ];
 }
 
+function clicketReadFavorites(): array {
+    $rows = clicketDbFetchAll(
+        'SELECT f.*, u.name AS user_name, u.email AS user_email,
+                e.event_key, e.title, e.type, e.category, e.poster_url,
+                v.name AS venue_name, ep.performance_date, ep.performance_time
+         FROM favorites f
+         INNER JOIN users u ON u.id = f.user_id
+         INNER JOIN events e ON e.id = f.event_id
+         INNER JOIN venues v ON v.id = e.venue_id
+         LEFT JOIN event_performances ep
+           ON ep.id = (
+             SELECT ep2.id
+             FROM event_performances ep2
+             WHERE ep2.event_id = e.id
+             ORDER BY ep2.performance_date, ep2.performance_time, ep2.id
+             LIMIT 1
+           )
+         ORDER BY f.created_at DESC, f.id DESC'
+    );
+
+    return array_map(static function (array $row): array {
+        $category = match ((string) $row['category']) {
+            'concert' => 'Concert',
+            'theater' => 'Theater',
+            'sports' => 'Sports',
+            default => ucfirst((string) $row['category']),
+        };
+
+        return [
+            'id' => (string) $row['id'],
+            'user_id' => (string) $row['user_id'],
+            'user_name' => (string) $row['user_name'],
+            'user_email' => (string) $row['user_email'],
+            'event_id' => (string) $row['event_key'],
+            'event' => (string) $row['event_key'],
+            'event_title' => (string) $row['title'],
+            'title' => (string) $row['title'],
+            'date' => clicketDbDisplayDate((string) ($row['performance_date'] ?? '')),
+            'time' => clicketDbDisplayTime((string) ($row['performance_time'] ?? '')),
+            'venue' => (string) $row['venue_name'],
+            'category' => $category,
+            'type' => (string) ($row['type'] ?? $category),
+            'poster' => (string) ($row['poster_url'] ?? ''),
+            'url' => 'show.php?event=' . rawurlencode((string) $row['event_key']),
+            'created_at' => clicketDbDisplayDateTime((string) $row['created_at']),
+        ];
+    }, $rows);
+}
+
+function clicketWriteFavorites(array $favorites): bool {
+    $pdo = clicketDb();
+    $pdo->beginTransaction();
+
+    try {
+        foreach ($favorites as $favorite) {
+            $userId = clicketDbUserIdFromSession((string) ($favorite['user_id'] ?? ''));
+            $event = clicketDbEventByKey((string) ($favorite['event_id'] ?? $favorite['event'] ?? ''));
+            if (!$userId || !$event) {
+                continue;
+            }
+
+            clicketDbExecute(
+                'INSERT IGNORE INTO favorites (user_id, event_id, created_at)
+                 VALUES (:user_id, :event_id, :created_at)',
+                [
+                    'user_id' => $userId,
+                    'event_id' => (int) $event['id'],
+                    'created_at' => clicketDbDateTime((string) ($favorite['created_at'] ?? 'now')),
+                ]
+            );
+        }
+
+        $pdo->commit();
+        return true;
+    } catch (Throwable) {
+        $pdo->rollBack();
+        return false;
+    }
+}
+
 function clicketFavoritesForUser(string $userId): array {
-    $favorites = array_values(array_filter(
+    $dbUserId = clicketDbUserIdFromSession($userId);
+    if (!$dbUserId) {
+        $current = currentUser();
+        $dbUserId = !empty($current['email']) ? clicketDbUserIdByEmail((string) $current['email']) : null;
+    }
+    if (!$dbUserId) {
+        return [];
+    }
+
+    return array_values(array_filter(
         clicketReadFavorites(),
-        fn(array $favorite): bool => hash_equals((string) ($favorite['user_id'] ?? ''), $userId)
+        static fn (array $favorite): bool => (string) ($favorite['user_id'] ?? '') === (string) $dbUserId
     ));
-
-    usort($favorites, fn(array $left, array $right): int => strcmp(
-        (string) ($right['created_at'] ?? ''),
-        (string) ($left['created_at'] ?? '')
-    ));
-
-    return $favorites;
 }
 
 function clicketFavoriteIdsForUser(string $userId): array {
     return array_values(array_map(
-        fn(array $favorite): string => (string) ($favorite['event_id'] ?? ''),
+        static fn (array $favorite): string => (string) ($favorite['event_id'] ?? ''),
         clicketFavoritesForUser($userId)
     ));
 }
 
 function clicketSetFavorite(string $userId, string $eventId, bool $favorite): array {
-    $favorites = clicketReadFavorites();
-    $existingIndex = null;
-
-    foreach ($favorites as $index => $item) {
-        if (
-            hash_equals((string) ($item['user_id'] ?? ''), $userId)
-            && hash_equals((string) ($item['event_id'] ?? ''), $eventId)
-        ) {
-            $existingIndex = $index;
-            break;
-        }
+    $dbUserId = clicketDbUserIdFromSession($userId);
+    if (!$dbUserId) {
+        $current = currentUser();
+        $dbUserId = !empty($current['email']) ? clicketDbUserIdByEmail((string) $current['email']) : null;
     }
 
-    if ($favorite && $existingIndex === null) {
-        $snapshot = clicketFavoriteSnapshot($eventId);
-        if (!$snapshot) {
-            return ['success' => false, 'message' => 'Event not found.'];
-        }
-
-        $favorites[] = $snapshot + [
-            'user_id' => $userId,
-            'created_at' => (new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('c'),
-        ];
-    } elseif (!$favorite && $existingIndex !== null) {
-        array_splice($favorites, $existingIndex, 1);
+    $event = clicketDbEventByKey($eventId);
+    if (!$dbUserId || !$event) {
+        return ['success' => false, 'message' => 'Event not found.'];
     }
 
-    if (!clicketWriteFavorites($favorites)) {
-        return ['success' => false, 'message' => 'Unable to update favorites right now.'];
+    if ($favorite) {
+        clicketDbExecute(
+            'INSERT IGNORE INTO favorites (user_id, event_id) VALUES (:user_id, :event_id)',
+            ['user_id' => $dbUserId, 'event_id' => (int) $event['id']]
+        );
+    } else {
+        clicketDbExecute(
+            'DELETE FROM favorites WHERE user_id = :user_id AND event_id = :event_id',
+            ['user_id' => $dbUserId, 'event_id' => (int) $event['id']]
+        );
     }
 
     return [
         'success' => true,
         'favorite' => $favorite,
-        'favorites' => clicketFavoritesForUser($userId),
+        'favorites' => clicketFavoritesForUser((string) $dbUserId),
     ];
 }
-
