@@ -4,8 +4,9 @@ require_once __DIR__ . '/includes/log.php';
 require_once __DIR__ . '/includes/news-data.php';
 
 header('Content-Type: application/json');
+clicketRequireRoleJson(['admin', 'organizer'], 'Admin or organizer access required.');
 $staff = currentStaff();
-if (!$staff || ($staff['role'] ?? '') !== 'admin') { http_response_code(403); echo json_encode(['success' => false, 'message' => 'Admin access required.']); exit; }
+if (!$staff) { http_response_code(401); echo json_encode(['success' => false, 'message' => 'Staff sign-in required.']); exit; }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); echo json_encode(['success' => false, 'message' => 'POST required.']); exit; }
 
 $title = trim((string) ($_POST['title'] ?? ''));
@@ -45,7 +46,7 @@ foreach ($sectionHeaders as $index => $header) {
 if (!$sections) { http_response_code(422); echo json_encode(['success' => false, 'message' => 'Add at least one content section.']); exit; }
 
 $now = date('c');
-$article = ['id' => 'NWS-' . strtoupper(substr(hash('sha256', microtime(true) . $title), 0, 10)), 'title' => $title, 'category' => $category, 'description' => $description, 'banner' => $bannerFilename, 'sections' => $sections, 'status' => $status, 'author' => (string) ($staff['name'] ?? 'ClicKet Admin'), 'created_at' => $now, 'updated_at' => $now, 'published_at' => $status === 'Published' ? $now : null];
+$article = ['id' => 'NWS-' . strtoupper(substr(hash('sha256', microtime(true) . $title), 0, 10)), 'title' => $title, 'category' => $category, 'description' => $description, 'banner' => $bannerFilename, 'sections' => $sections, 'status' => $status, 'author' => (string) ($staff['name'] ?? 'Authorized Staff'), 'created_at' => $now, 'updated_at' => $now, 'published_at' => $status === 'Published' ? $now : null];
 $items = clicketReadNews(); $items[] = $article;
 if (!clicketWriteNews($items)) { http_response_code(500); echo json_encode(['success' => false, 'message' => 'Could not save the news article.']); exit; }
 echo json_encode(['success' => true, 'message' => $status === 'Published' ? 'Published to the public News page.' : 'News article saved outside the public News page.', 'article' => $article]);

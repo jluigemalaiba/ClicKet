@@ -15,7 +15,9 @@ if (!$staff) {
 }
 
 function clicketStaffEventsRedirect(array $staff): string {
-    return clicketAuthRedirectForRole((string) ($staff['role'] ?? 'organizer')) . '#events:listing';
+    return ($staff['role'] ?? '') === 'organizer'
+        ? 'organizer/events.php'
+        : 'admin-panel.php#events:listing';
 }
 
 function clicketStaffEventsFail(array $staff, string $message): never {

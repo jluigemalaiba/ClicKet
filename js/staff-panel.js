@@ -79,21 +79,25 @@
   }
 
   function showPanel(panelKey, subtarget = '', shouldHash = true) {
-    const nextPanel = panelViews.find(panel => panel.dataset.panelView === panelKey);
+    const panelFallbacks = { payments: 'orders', reservations: 'dashboard', settings: 'dashboard' };
+    const nextPanelKey = panelViews.some(panel => panel.dataset.panelView === panelKey)
+      ? panelKey
+      : (panelFallbacks[panelKey] || 'dashboard');
+    const nextPanel = panelViews.find(panel => panel.dataset.panelView === nextPanelKey) || panelViews[0];
     if (!nextPanel) return;
 
     panelViews.forEach(panel => {
       panel.classList.toggle('is-active', panel === nextPanel);
     });
-    openGroup(panelKey);
-    setActiveNav(panelKey, subtarget);
+    openGroup(nextPanelKey);
+    setActiveNav(nextPanelKey, subtarget);
     updateContext(nextPanel, subtarget);
     applySearch();
     body.classList.remove('sidebar-open');
 
     if (shouldHash) {
       const suffix = subtarget ? `:${subtarget}` : '';
-      history.replaceState(null, '', `#${panelKey}${suffix}`);
+      history.replaceState(null, '', `#${nextPanelKey}${suffix}`);
     }
   }
 
@@ -450,7 +454,11 @@
   }
 
   function eventStatusOptions(selected) {
-    return ['draft', 'published', 'paused', 'archived'].map(status => {
+    const statuses = body.classList.contains('staff-role-organizer')
+      ? ['draft', 'published', 'paused']
+      : ['draft', 'published', 'paused', 'archived'];
+
+    return statuses.map(status => {
       const label = status.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
       return `<option value="${status}" ${status === selected ? 'selected' : ''}>${label}</option>`;
     }).join('');
@@ -473,13 +481,14 @@
 
   function openEventEditModal(eventData) {
     if (!modal || !modalBody || !modalTitle) return;
-    const title = eventData.title || 'Edit Event';
+    const isCreate = !(eventData.event_key || eventData.key);
+    const title = eventData.title || (isCreate ? 'Add Event' : 'Edit Event');
     modalTitle.textContent = title;
-    if (modalEyebrow) modalEyebrow.textContent = 'event edit';
+    if (modalEyebrow) modalEyebrow.textContent = isCreate ? 'event create' : 'event edit';
 
     modalBody.innerHTML = `
       <form class="staff-form-grid" action="staff-events-api.php" method="post">
-        <input type="hidden" name="action" value="update">
+        <input type="hidden" name="action" value="${isCreate ? 'create' : 'update'}">
         <input type="hidden" name="event_key" value="${escapeHtml(eventData.event_key || eventData.key || '')}">
         <label>
           <span>Event Title</span>
@@ -527,7 +536,7 @@
         </label>
         <div class="staff-form-actions">
           <button class="staff-secondary-btn" type="button" data-modal-close>Cancel</button>
-          <button class="staff-action-btn" type="submit">Save Changes</button>
+          <button class="staff-action-btn" type="submit">${isCreate ? 'Create Event' : 'Save Changes'}</button>
         </div>
       </form>
     `;
@@ -558,6 +567,13 @@
       } catch {
         openEventEditModal({});
       }
+    });
+  });
+
+  document.querySelectorAll('[data-event-create]').forEach(button => {
+    button.addEventListener('click', () => {
+      if (button.disabled) return;
+      openEventEditModal({});
     });
   });
 

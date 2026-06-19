@@ -1,20 +1,24 @@
-<?php $eventRows = $payload['events']; ?>
+<?php
+$eventRows = $payload['events'];
+$eventReviewRows = $eventRows;
+?>
 
 <section class="staff-section" data-subsection="listing">
   <div class="staff-section-heading">
     <div>
-      <p>Organizer Event Review</p>
-      <h2>Published event submissions across every venue</h2>
+      <p><?= $isAdmin ? 'Organizer Event Review' : 'Organizer Event Management' ?></p>
+      <h2><?= $isAdmin ? 'Published event submissions across every venue' : 'Add, edit, and manage your events' ?></h2>
     </div>
+    <button class="staff-action-btn" type="button" data-event-create>+ Add Event</button>
   </div>
 
   <div class="staff-event-review-filter">
     <label>
       <span>Venue</span>
-      <select>
-        <option>All venues in scope</option>
+      <select data-event-venue-filter>
+        <option value="">All venues in scope</option>
         <?php foreach ($payload['venues'] as $venue): ?>
-          <option><?= sp_h($venue['venue']) ?> - <?= sp_h($venue['variant']) ?></option>
+          <option value="<?= sp_h($venue['venue']) ?>"><?= sp_h($venue['venue']) ?> - <?= sp_h($venue['variant']) ?></option>
         <?php endforeach; ?>
       </select>
     </label>
@@ -37,7 +41,8 @@
       </thead>
       <tbody>
         <?php foreach ($eventRows as $event): ?>
-          <tr data-search-row>
+          <?php $eventJson = json_encode($event, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>
+          <tr data-search-row data-event-review-card>
             <td><strong><?= sp_h($event['title']) ?></strong><small><?= sp_h($event['owner']) ?></small></td>
             <td><?= sp_h($event['venue']) ?></td>
             <td><?= sp_h($event['category_label']) ?></td>
@@ -49,9 +54,15 @@
               <small>projected gross</small>
             </td>
             <td>
-              <button type="button" data-open-modal data-modal-title="<?= sp_h($event['title']) ?>" data-modal-type="event-performance">Details</button>
-              <button type="button">Status</button>
-              <button type="button" <?= $isAdmin ? '' : 'disabled' ?>>Archive</button>
+              <button type="button" data-event-card="<?= sp_h($event['key']) ?>" data-event-venue="<?= sp_h($event['venue']) ?>">Details</button>
+              <button type="button" data-event-edit="<?= sp_h($event['key']) ?>" data-event="<?= sp_h($eventJson ?: '{}') ?>">Edit</button>
+              <?php if ($isAdmin): ?>
+                <form action="staff-events-api.php" method="post" style="display:inline">
+                  <input type="hidden" name="action" value="archive">
+                  <input type="hidden" name="event_key" value="<?= sp_h($event['key']) ?>">
+                  <button type="submit">Archive</button>
+                </form>
+              <?php endif; ?>
             </td>
           </tr>
         <?php endforeach; ?>
@@ -67,59 +78,28 @@
     <section class="staff-event-review-modal-panel" role="dialog" aria-modal="true" aria-label="Event submission details">
       <button class="staff-event-review-modal-close" type="button" data-event-modal-close aria-label="Close event details">x</button>
       <?php foreach ($eventReviewRows as $eventIndex => $event): ?>
+        <?php
+        $eventBanner = (string) ($event['banner'] ?? $event['banner_url'] ?? $event['poster_url'] ?? '');
+        $eventSales = (int) ($event['sales'] ?? 0);
+        $eventSold = (int) ($event['sold'] ?? 0);
+        $eventAvailable = (int) ($event['available'] ?? 0);
+        $eventVenueCapacity = (int) ($event['venue_capacity'] ?? 0);
+        $eventTiers = is_array($event['tiers'] ?? null) ? $event['tiers'] : [];
+        ?>
         <article class="staff-event-review-detail" data-event-panel="<?= sp_h($event['key']) ?>">
       <div class="staff-event-review-banner">
-        <img src="<?= sp_h($event['banner']) ?>" alt="<?= sp_h($event['title']) ?> banner">
+        <?php if ($eventBanner !== ''): ?><img src="<?= sp_h($eventBanner) ?>" alt="<?= sp_h($event['title']) ?> banner"><?php endif; ?>
         <div class="staff-event-review-banner-copy">
           <p><?= sp_h($event['category_label']) ?> submission</p>
           <h2><?= sp_h($event['title']) ?></h2>
           <span><?= sp_h($event['date']) ?> &middot; <?= sp_h($event['venue']) ?></span>
         </div>
       </div>
-      <span><?= $isAdmin ? 'All venues' : 'Owned-event venues only' ?></span>
-    </div>
-    <form class="staff-form-grid" action="#" method="post">
-      <label>
-        <span>Event Title</span>
-        <input type="text" placeholder="Event name">
-      </label>
-      <label>
-        <span>Venue</span>
-        <select>
-          <?php foreach ($payload['venues'] as $venue): ?>
-            <option><?= sp_h($venue['venue']) ?> - <?= sp_h($venue['variant']) ?></option>
-          <?php endforeach; ?>
-        </select>
-      </label>
-      <label>
-        <span>Category</span>
-        <select>
-          <option>Concert</option>
-          <option>Sports</option>
-          <option>Theater</option>
-        </select>
-      </label>
-      <label>
-        <span>Base Price</span>
-        <input type="number" placeholder="2500">
-      </label>
-      <label>
-        <span>Poster Upload</span>
-        <input type="file" accept="image/*">
-      </label>
-      <label>
-        <span>Banner Upload</span>
-        <input type="file" accept="image/*">
-      </label>
-      <div class="staff-form-actions">
-        <button class="staff-secondary-btn" type="button">Save Draft</button>
-        <button class="staff-action-btn" type="button">Publish Event</button>
-      </div>
 
       <div class="staff-event-review-stats">
-        <div><span>Paid sales</span><strong><?= sp_money((int) $event['sales']) ?></strong></div>
-        <div><span>Tickets sold</span><strong><?= sp_count($event['sold']) ?></strong></div>
-        <div><span>Available seats</span><strong><?= sp_count($event['available']) ?></strong></div>
+        <div><span>Paid sales</span><strong><?= sp_money($eventSales) ?></strong></div>
+        <div><span>Tickets sold</span><strong><?= sp_count($eventSold) ?></strong></div>
+        <div><span>Available seats</span><strong><?= sp_count($eventAvailable) ?></strong></div>
       </div>
 
       <section class="staff-event-review-tiers">
@@ -128,10 +108,10 @@
             <p>Availability</p>
             <h3>Seats remaining per tier</h3>
           </div>
-          <span><?= sp_count($event['venue_capacity']) ?> venue capacity</span>
+          <span><?= sp_count($eventVenueCapacity) ?> venue capacity</span>
         </div>
         <div class="staff-event-tier-list">
-          <?php foreach ($event['tiers'] as $tier): ?>
+          <?php foreach ($eventTiers as $tier): ?>
             <div class="staff-event-tier-row">
               <span class="staff-event-tier-swatch" style="--tier-color: <?= sp_h($tier['color']) ?>"></span>
               <span><strong><?= sp_h($tier['name']) ?></strong><small><?= sp_count($tier['sold']) ?> sold of <?= sp_count($tier['capacity']) ?></small></span>
@@ -139,7 +119,7 @@
               <i><b style="width: <?= sp_percent((int) $tier['available'], max(1, (int) $tier['capacity'])) ?>%"></b></i>
             </div>
           <?php endforeach; ?>
-          <?php if (!$event['tiers']): ?><p class="staff-empty-state">Seat-tier availability will appear after a venue layout is connected.</p><?php endif; ?>
+          <?php if (!$eventTiers): ?><p class="staff-empty-state">Seat-tier availability will appear after a venue layout is connected.</p><?php endif; ?>
         </div>
       </section>
         </article>

@@ -75,9 +75,9 @@ $dashboardCards = $isAdmin ? [
     ['Revenue Fees', sp_money($metrics['serviceFees']), 'Service fee capture', 'revenue'],
 ] : [
     ['Owned Events', sp_count($metrics['activeEvents']), 'Assigned to your account', 'events'],
-    ['Reservations', sp_count($metrics['activeReservations']), 'Active seat holds', 'reservations'],
-    ['Published', sp_count($publishedEvents), 'Visible owned events', 'tickets'],
-    ['News Drafts', sp_count($draftNewsCount), 'Posts in progress', 'payments'],
+    ['Tickets Sold', sp_count($metrics['ticketsSold']), 'Issued from paid orders', 'tickets'],
+    ['Published', sp_count($publishedEvents), 'Visible owned events', 'events'],
+    ['Sales', sp_money($metrics['sales']), 'Paid revenue in scope', 'reports'],
 ];
 
 $dashboardUpdates = $isAdmin ? [
@@ -87,8 +87,8 @@ $dashboardUpdates = $isAdmin ? [
     ['Inventory watch', sp_count($metrics['lowInventory']) . ' venues are near low inventory threshold', 'events'],
 ] : [
     ['Event worklist', sp_count($metrics['activeEvents']) . ' owned events in your current scope', 'events'],
-    ['Reservation monitor', sp_count($metrics['activeReservations']) . ' active holds are currently running', 'reservations'],
-    ['Publishing queue', sp_count($draftNewsCount) . ' news drafts need completion or review', 'payments'],
+    ['Ticket registry', sp_count($metrics['tickets']) . ' issued tickets in your current scope', 'tickets'],
+    ['Reports', sp_money($metrics['sales']) . ' paid revenue in your current scope', 'reports'],
 ];
 ?>
 
@@ -104,7 +104,7 @@ $dashboardUpdates = $isAdmin ? [
         <button class="staff-secondary-btn" type="button" data-panel-shortcut="events">Manage Events</button>
       <?php else: ?>
         <button class="staff-action-btn" type="button" data-panel-shortcut="events">Manage Events</button>
-        <button class="staff-secondary-btn" type="button" data-panel-shortcut="news">Post News</button>
+        <button class="staff-secondary-btn" type="button" data-panel-shortcut="reports">View Reports</button>
       <?php endif; ?>
     </div>
   </div>
