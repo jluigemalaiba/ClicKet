@@ -228,7 +228,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <div class="news-slide-body">
               <span>April 2026</span>
               <h3>Mobile ticket wallet improvements</h3>
-              <p>Fans can prepare tickets earlier and move through venue entry with fewer check-in steps.</p>
+              <p>Fans can prepare tickets earlier and move through venue entry with fewer steps.</p>
             </div>
           </article>
 

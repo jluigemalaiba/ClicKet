@@ -13,7 +13,7 @@ if ($isStaffMode || ($returnTo !== '' && !preg_match('/^(checkout|ticket|show|ev
 
 if (isset($_GET['staff_logout'])) {
     logoutStaff();
-    setFlashMessage('success', 'Staff account signed out successfully.');
+    setFlashMessage('success', 'Admin/organizer account signed out successfully.');
     header('Location: auth.php?mode=admin');
     exit;
 }
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $staffName = userDisplayName($staff);
             $message = 'Welcome to the ' . ucfirst($mode) . ' portal' . ($staffName !== '' ? ', ' . $staffName : '') . '!';
             setFlashMessage('success', $message);
-            header('Location: staff-panel.php');
+            header('Location: ' . ($mode === 'admin' ? 'admin-panel.php' : 'organizer-panel.php'));
             exit;
         }
 
@@ -95,14 +95,14 @@ $authTitle = match ($mode) {
 };
 $authEyebrow = match ($mode) {
     'signup' => 'Create Account',
-    'admin' => 'ClicKet Staff',
+    'admin' => 'Admin Access',
     'organizer' => 'Venue Access',
     default => 'Welcome Back',
 };
 $authCopy = match ($mode) {
     'signup' => 'Set up your account to book events faster and keep all your tickets in one place.',
     'admin' => 'Sign in with an admin account to manage events, orders, users, payments, seats, and reports.',
-    'organizer' => 'Sign in with an organizer account to manage assigned venue events, tiers, seats, orders, and check-ins.',
+    'organizer' => 'Sign in with an organizer account to manage assigned events, reservations, and news posts.',
     default => 'Access your tickets, event history, and booking details.',
 };
 $submitLabel = match ($mode) {
@@ -532,13 +532,13 @@ $submitLabel = match ($mode) {
               <path d="M4.8 8.2 7 10.3l4.2-4.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <div>
-              <strong><?= htmlspecialchars($staff['name'] ?? 'Staff') ?></strong>
-              <span><?= htmlspecialchars(ucfirst((string) ($staff['role'] ?? 'staff'))) ?> account signed in.</span>
+              <strong><?= htmlspecialchars($staff['name'] ?? 'Authorized User') ?></strong>
+              <span><?= htmlspecialchars(ucfirst((string) ($staff['role'] ?? 'user'))) ?> account signed in.</span>
               <?php if (($staff['role'] ?? '') === 'organizer' && !empty($staff['venues'])): ?>
                 <small>Assigned venues: <?= htmlspecialchars(implode(', ', $staff['venues'])) ?></small>
               <?php endif; ?>
-              <a href="staff-panel.php">Open <?= htmlspecialchars(ucfirst((string) ($staff['role'] ?? 'staff'))) ?> panel</a>
-              <a href="auth.php?staff_logout=1">Sign out staff account</a>
+              <a href="<?= htmlspecialchars(($staff['role'] ?? '') === 'admin' ? 'admin-panel.php' : 'organizer-panel.php') ?>">Open <?= htmlspecialchars(($staff['role'] ?? '') === 'admin' ? 'Admin Panel' : 'Organizer Dashboard') ?></a>
+              <a href="auth.php?staff_logout=1">Sign out account</a>
             </div>
           </div>
         <?php endif; ?>
@@ -587,7 +587,7 @@ $submitLabel = match ($mode) {
               id="emailField"
               name="email"
               value="<?= oldInput('email') ?>"
-              placeholder="<?= $isStaffMode ? 'staff@clicket.test' : 'you@email.com' ?>"
+              placeholder="<?= $isStaffMode ? ($mode === 'admin' ? 'admin@clicket.local' : 'organizer@clicket.local') : 'you@email.com' ?>"
               autocomplete="email"
               required
             >
@@ -601,7 +601,7 @@ $submitLabel = match ($mode) {
                 type="password"
                 name="password"
                 id="pwField"
-                placeholder="<?= $mode === 'signup' ? '8+ chars, uppercase, number, symbol' : ($isStaffMode ? 'Enter staff password' : 'Enter your password') ?>"
+                placeholder="<?= $mode === 'signup' ? '8+ chars, uppercase, number, symbol' : ($isStaffMode ? 'Enter your password' : 'Enter your password') ?>"
                 autocomplete="<?= $mode === 'signup' ? 'new-password' : 'current-password' ?>"
                 required
               >
@@ -652,7 +652,7 @@ $submitLabel = match ($mode) {
 
         <p class="gc-footer-note">
           <?= $isStaffMode
-            ? 'Staff access is restricted to authorized ClicKet admins and venue organizers.'
+            ? 'Admin and organizer access is restricted to authorized CLICKET accounts.'
             : "By continuing, you agree to ClicKet's" ?>
           <?php if (!$isStaffMode): ?><a href="terms.php">Terms</a> and <a href="#">Privacy Policy</a>.<?php endif; ?>
         </p>

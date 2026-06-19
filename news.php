@@ -163,7 +163,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
       <h3>Beta program results</h3>
       <p>During the beta period, ClicKet processed over 38,000 tickets across 120 events — covering concerts at mid-size Manila venues, theater runs in BGC and Makati, university events in Quezon City and Cebu, and regional sports tournaments. Gate scan success rate across all events was 99.4%.</p>
       <h3>What's available at launch</h3>
-      <p>The public launch includes the full fan experience — browse, seat selection, secure checkout, mobile tickets, and gate entry — alongside the organizer dashboard with sales tracking, inventory management, and attendance reporting. The API for venue integration is available to partners under a separate application.</p>
+      <p>The public launch includes the full fan experience - browse, seat selection, secure checkout, mobile tickets, and venue entry - alongside the organizer dashboard with sales tracking, inventory management, and attendance reporting. The API for venue integration is available to partners under a separate application.</p>
       <h3>What comes next</h3>
       <p>Q1 2026 priorities include expanded regional coverage outside Metro Manila, installment payment options for higher-priced events, and a dedicated student verification tier for campus events. We'll share updates here as features ship.</p>
     </div>
@@ -276,7 +276,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <div>
               <span>For Fans</span>
               <h3>Mobile ticket wallet improvements</h3>
-              <p>Fans can prepare tickets earlier and move through venue entry with fewer check-in steps.</p>
+              <p>Fans can prepare tickets earlier and move through venue entry with fewer steps.</p>
               <div class="news-meta"><time>April 2026</time></div>
             </div>
           </button>
