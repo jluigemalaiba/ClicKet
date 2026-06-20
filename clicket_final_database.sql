@@ -1,8 +1,15 @@
--- CLICKET Final Production Database Schema
+-- CLICKET Consolidated Production Database Schema
+-- Single source of truth for a fresh ClicKet database installation.
+-- Includes identity, venues, events, reservations, orders/payments,
+-- tickets/check-in, operations/audit, email OTP, and active-seat protection.
 -- Compatible with MySQL / MariaDB in XAMPP and phpMyAdmin import.
 -- Database: clicket
 -- Character set: utf8mb4
 -- Collation: utf8mb4_unicode_ci
+--
+-- WARNING: This is a clean-install script. It drops the ClicKet tables below
+-- before recreating them, so do not run it against a database whose data you
+-- need to keep without taking a backup first.
 
 CREATE DATABASE IF NOT EXISTS `clicket`
   CHARACTER SET utf8mb4

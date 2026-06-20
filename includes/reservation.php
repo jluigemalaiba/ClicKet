@@ -253,11 +253,12 @@ function clicketHeldSeatIds(string $eventKey, int $performance): array {
            AND h.performance_id = :performance_id
            AND h.status = "active"
            AND h.expires_at > UTC_TIMESTAMP()
-           AND (:own_token = "" OR h.token <> :own_token)
+           AND (:own_token_is_empty = "" OR h.token <> :own_token)
          ORDER BY s.seat_code',
         [
             'event_id' => (int) $event['id'],
             'performance_id' => (int) $performanceRow['id'],
+            'own_token_is_empty' => $ownToken,
             'own_token' => $ownToken,
         ]
     );
