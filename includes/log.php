@@ -430,7 +430,7 @@ function clicketAuthRedirectForRole(?string $role = null): string {
 
     return match ($role) {
         'admin' => 'admin-panel.php',
-        'organizer' => 'organizer-panel.php',
+        'organizer' => 'organizer/dashboard.php',
         default => 'index.php',
     };
 }
@@ -494,7 +494,25 @@ function clicketRequireOrganizer(): array {
 function currentStaff(): ?array {
     startSessionIfNeeded();
 
-    if (is_array($_SESSION['clicket_staff'] ?? null)) {
+    $sessionStaff = $_SESSION['clicket_staff'] ?? null;
+    if (is_array($sessionStaff)) {
+        $staff = findStaffByEmail((string) ($sessionStaff['email'] ?? ''));
+        if (!$staff || strtolower((string) ($staff['status'] ?? 'inactive')) !== 'active') {
+            unset($_SESSION['clicket_staff']);
+            return null;
+        }
+
+        $_SESSION['clicket_staff'] = [
+            'id' => (string) $staff['id'],
+            'user_id' => (string) $staff['id'],
+            'session_user_id' => (string) ($staff['session_user_id'] ?? $staff['id']),
+            'name' => (string) $staff['name'],
+            'display_name' => (string) $staff['name'],
+            'email' => (string) $staff['email'],
+            'role' => (string) $staff['role'],
+            'venues' => is_array($staff['venues'] ?? null) ? $staff['venues'] : [],
+        ];
+
         return $_SESSION['clicket_staff'];
     }
 
@@ -644,6 +662,35 @@ function loginUser(array $user): void {
     ];
 }
 
+function clicketIsValidEmailAddress(string $email): bool {
+    $email = strtolower(trim($email));
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match('/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/D', $email)) {
+        return false;
+    }
+
+    $domain = substr(strrchr($email, '@') ?: '', 1);
+    return $domain !== '' && (
+        checkdnsrr($domain, 'MX')
+        || checkdnsrr($domain, 'A')
+        || checkdnsrr($domain, 'AAAA')
+    );
+}
+
+function clicketIsSupportedPublicEmail(string $email): bool {
+    if (!clicketIsValidEmailAddress($email)) {
+        return false;
+    }
+
+    $domain = strtolower(substr(strrchr(trim($email), '@') ?: '', 1));
+    $supportedDomains = [
+        'gmail.com', 'yahoo.com', 'yahoo.com.ph', 'ymail.com',
+        'outlook.com', 'hotmail.com', 'live.com', 'icloud.com',
+        'proton.me', 'protonmail.com', 'gmx.com', 'mail.com', 'aol.com',
+    ];
+
+    return in_array($domain, $supportedDomains, true);
+}
+
 function registerUser(string $name, string $email, string $password, string $confirm): array {
     clicketOtpEnsureSchema();
 
@@ -659,8 +706,8 @@ function registerUser(string $name, string $email, string $password, string $con
         $errors[] = 'Username cannot contain spaces.';
     }
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Please enter a valid email address.';
+    if (!clicketIsSupportedPublicEmail($email)) {
+        $errors[] = 'Use a valid email from a supported provider, such as Gmail, Yahoo, Outlook, Hotmail, iCloud, or Proton Mail.';
     }
 
     if (strlen($password) < 8) {
@@ -685,36 +732,27 @@ function registerUser(string $name, string $email, string $password, string $con
         return ['success' => false, 'errors' => $errors];
     }
 
-    try {
-        clicketDbExecute(
-            'INSERT INTO users (name, email, password_hash, status, email_verified_at)
-             VALUES (:name, :email, :password_hash, "inactive", NULL)',
-            [
-                'name' => $name,
-                'email' => $email,
-                'password_hash' => password_hash($password, PASSWORD_DEFAULT),
-            ]
-        );
-    } catch (Throwable) {
-        return ['success' => false, 'errors' => ['Unable to create your account right now.']];
+    $pendingSignup = [
+        'name' => $name,
+        'email' => $email,
+        'password_hash' => password_hash($password, PASSWORD_DEFAULT),
+        'expires_at' => time() + 600,
+    ];
+    $otp = clicketOtpSendForUser($pendingSignup);
+    if (empty($otp['success'])) {
+        return ['success' => false, 'errors' => [(string) ($otp['error'] ?? 'Unable to send the verification code.')]];
     }
 
-    $user = findUserByEmail($email);
-    if ($user) {
-        $otp = clicketOtpSendForUser($user);
-        startSessionIfNeeded();
-        $_SESSION['clicket_pending_verification_email'] = $email;
+    startSessionIfNeeded();
+    $_SESSION['clicket_pending_signup'] = $pendingSignup;
+    $_SESSION['clicket_pending_verification_email'] = $email;
 
-        return [
-            'success' => true,
-            'needs_verification' => true,
-            'email' => $email,
-            'mail_sent' => (bool) ($otp['success'] ?? false),
-            'mail_error' => (string) ($otp['error'] ?? ''),
-        ];
-    }
-
-    return ['success' => false, 'errors' => ['Unable to prepare email verification.']];
+    return [
+        'success' => true,
+        'needs_verification' => true,
+        'email' => $email,
+        'mail_sent' => true,
+    ];
 }
 
 function loginWithEmail(string $email, string $password): array {

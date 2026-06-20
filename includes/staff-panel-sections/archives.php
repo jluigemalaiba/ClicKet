@@ -143,13 +143,13 @@ $archiveTotal = count($archiveRows);
           </span>
         </button>
       <?php endforeach; ?>
-      <button type="button" class="staff-archive-quick-btn" data-archive-action="export">
+      <a class="staff-archive-quick-btn" href="staff-archive-api.php?action=export">
         <span class="staff-archive-quick-icon" style="background:var(--panel-blue);">EX</span>
         <span>
           <strong>Export Archive Data</strong>
           <small>Download a CSV/JSON snapshot</small>
         </span>
-      </button>
+      </a>
     </div>
   </article>
 
@@ -216,7 +216,7 @@ $archiveTotal = count($archiveRows);
       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px;"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>
       Filters
     </button>
-    <button type="button" class="staff-action-btn" data-archive-action="export">Export Archive Data</button>
+    <a class="staff-action-btn" href="staff-archive-api.php?action=export">Export Archive Data</a>
   </div>
 
   <div class="staff-table-wrap">
@@ -258,7 +258,7 @@ $archiveTotal = count($archiveRows);
             </td>
             <td>
               <div class="staff-archive-row-actions">
-                <button type="button" <?= $isAdmin ? '' : 'disabled' ?>>Restore</button>
+                <?php if ($isAdmin && !empty($archive['archive_id'])): ?><form method="post" action="staff-archive-api.php"><input type="hidden" name="action" value="restore"><input type="hidden" name="archive_id" value="<?= (int) $archive['archive_id'] ?>"><button type="submit">Restore</button></form><?php endif; ?>
                 <button type="button" class="staff-archive-kebab" aria-label="More actions">⋮</button>
               </div>
             </td>

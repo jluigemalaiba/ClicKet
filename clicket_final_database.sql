@@ -23,6 +23,9 @@ SET NAMES utf8mb4;
 
 DROP TABLE IF EXISTS `archive_records`;
 DROP TABLE IF EXISTS `audit_logs`;
+DROP TABLE IF EXISTS `virtual_queue_configs`;
+DROP TABLE IF EXISTS `news_article_sections`;
+DROP TABLE IF EXISTS `news_articles`;
 DROP TABLE IF EXISTS `favorites`;
 DROP TABLE IF EXISTS `tier_blocks`;
 DROP TABLE IF EXISTS `seat_blocks`;
@@ -294,6 +297,9 @@ CREATE TABLE `events` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `event_key` VARCHAR(190) NOT NULL,
   `title` VARCHAR(190) NOT NULL,
+  `description` TEXT DEFAULT NULL,
+  `cast_performers` TEXT DEFAULT NULL,
+  `cast_logo_url` VARCHAR(500) DEFAULT NULL,
   `category` VARCHAR(80) NOT NULL,
   `type` VARCHAR(80) DEFAULT NULL,
   `artist` VARCHAR(160) DEFAULT NULL,
@@ -304,6 +310,9 @@ CREATE TABLE `events` (
   `poster_url` VARCHAR(500) DEFAULT NULL,
   `banner_url` VARCHAR(500) DEFAULT NULL,
   `base_price` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  `running_minutes` SMALLINT UNSIGNED DEFAULT NULL,
+  `age_range` VARCHAR(80) DEFAULT NULL,
+  `doors_open_minutes` SMALLINT UNSIGNED DEFAULT NULL,
   `rating` DECIMAL(3,2) DEFAULT NULL,
   `status` ENUM('draft', 'published', 'paused', 'archived') NOT NULL DEFAULT 'draft',
   `created_by_staff_id` BIGINT UNSIGNED NOT NULL,
@@ -810,6 +819,58 @@ CREATE TABLE `audit_logs` (
     FOREIGN KEY (`actor_staff_id`) REFERENCES `staff_accounts` (`id`)
     ON UPDATE CASCADE
     ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `virtual_queue_configs` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `event_id` BIGINT UNSIGNED NOT NULL,
+  `enabled` TINYINT(1) NOT NULL DEFAULT 0,
+  `max_active` INT UNSIGNED NOT NULL DEFAULT 25,
+  `timeout_seconds` INT UNSIGNED NOT NULL DEFAULT 300,
+  `throughput_per_minute` INT UNSIGNED NOT NULL DEFAULT 12,
+  `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_virtual_queue_configs_event_id` (`event_id`),
+  CONSTRAINT `fk_virtual_queue_configs_event`
+    FOREIGN KEY (`event_id`) REFERENCES `events` (`id`)
+    ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `news_articles` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `article_key` VARCHAR(40) NOT NULL,
+  `title` VARCHAR(130) NOT NULL,
+  `category` ENUM('For Fans', 'For Organizers', 'Platform Updates') NOT NULL,
+  `description` VARCHAR(360) NOT NULL,
+  `banner_filename` VARCHAR(255) DEFAULT NULL,
+  `status` ENUM('draft', 'published', 'archived') NOT NULL DEFAULT 'draft',
+  `author_staff_id` BIGINT UNSIGNED DEFAULT NULL,
+  `published_at` DATETIME DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_news_articles_article_key` (`article_key`),
+  KEY `idx_news_articles_status_published_at` (`status`, `published_at`),
+  KEY `idx_news_articles_author_staff_id` (`author_staff_id`),
+  CONSTRAINT `fk_news_articles_author_staff`
+    FOREIGN KEY (`author_staff_id`) REFERENCES `staff_accounts` (`id`)
+    ON UPDATE CASCADE
+    ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `news_article_sections` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `article_id` BIGINT UNSIGNED NOT NULL,
+  `section_order` SMALLINT UNSIGNED NOT NULL,
+  `header` VARCHAR(180) NOT NULL,
+  `content` TEXT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_news_article_sections_article_order` (`article_id`, `section_order`),
+  KEY `idx_news_article_sections_article_id` (`article_id`),
+  CONSTRAINT `fk_news_article_sections_article`
+    FOREIGN KEY (`article_id`) REFERENCES `news_articles` (`id`)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `archive_records` (

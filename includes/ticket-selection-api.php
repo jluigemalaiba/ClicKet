@@ -48,8 +48,9 @@ if (count($seats) < 1 || count($seats) > 4) {
 
 $normalized = [];
 $seen = [];
-$venueProfile = clicketVenueProfile($resolved['event']['venue'], $resolved['categoryKey']);
-$categoryDefinitions = clicketTicketCategories();
+$pricingContext = clicketTicketPricingContext($eventKey, $resolved);
+$venueProfile = $pricingContext['profile'];
+$categoryDefinitions = $pricingContext['categories'];
 foreach ($seats as $seat) {
     $seatId = trim((string) ($seat['id'] ?? ''));
     if ($seatId === '' || isset($seen[$seatId])) {
@@ -67,17 +68,20 @@ foreach ($seats as $seat) {
             break;
         }
     }
-    if (!$matchedSection || !isset($categoryDefinitions[$matchedSection['category']])) {
+    $categoryKey = (string) ($matchedSection['category'] ?? '');
+    if (!$matchedSection || !isset($categoryDefinitions[$categoryKey])) {
         continue;
     }
 
+    $category = $categoryDefinitions[$categoryKey];
     $seen[$seatId] = true;
     $normalized[] = [
         'id' => $seatId,
         'section' => $matchedSection['label'],
         'row' => $row,
         'number' => $number,
-        'category' => $categoryDefinitions[$matchedSection['category']]['label'],
+        'category' => (string) ($category['label'] ?? 'Admission'),
+        'price' => clicketTicketPriceForSeat($eventKey, ['id' => $seatId, 'category' => (string) ($category['label'] ?? '')], $pricingContext),
     ];
 }
 

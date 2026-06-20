@@ -15,18 +15,20 @@ function buildEventPageRows(array $events, string $categoryKey, string $category
 
     foreach ($events as $idx => $event) {
         $sub = $event['artist'] ?? $event['company'] ?? $event['league'] ?? '';
+        $eventId = (string) ($event['event_key'] ?? $event['id'] ?? ($categoryKey . '-' . ($idx + 1)));
         $rows[] = [
-            'id' => $categoryKey . '-' . ($idx + 1),
+            'id' => $eventId,
             'title' => $event['title'],
             'date' => $event['date'],
             'dateValue' => strtotime($event['date']) ?: 0,
-            'time' => $times[($idx + $timeOffset) % count($times)],
+            'time' => (string) ($event['time'] ?? '') !== '' ? (string) $event['time'] : $times[($idx + $timeOffset) % count($times)],
             'venue' => $event['venue'],
             'type' => $event['type'] ?? $categoryLabel,
             'sub' => $sub,
             'categoryKey' => $categoryKey,
             'categoryLabel' => $categoryLabel,
-            'poster' => posterUrl($posterCategory, $idx + 10),
+            'poster' => (string) ($event['poster'] ?? '') !== '' ? (string) $event['poster'] : posterUrl($posterCategory, $idx + 10),
+            'detailUrl' => clicketEventDetailUrl($event, $categoryKey, $idx),
         ];
     }
 
@@ -1040,7 +1042,7 @@ $heroTickets = [
             >
               <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
             </button>
-            <a class="events-card-poster" href="show.php?event=<?= urlencode($event['id']) ?>" aria-label="View <?= htmlspecialchars($event['title']) ?>">
+            <a class="events-card-poster" href="<?= htmlspecialchars($event['detailUrl']) ?>" aria-label="View <?= htmlspecialchars($event['title']) ?>">
               <img src="<?= htmlspecialchars($event['poster']) ?>" alt="<?= htmlspecialchars($event['title']) ?> poster" loading="lazy">
               <div class="events-card-badges">
                 <span class="events-category-badge"><?= htmlspecialchars($event['categoryLabel']) ?></span>
@@ -1052,7 +1054,7 @@ $heroTickets = [
             </a>
 
             <div class="events-card-body">
-              <h3 class="events-card-title"><a href="show.php?event=<?= urlencode($event['id']) ?>"><?= htmlspecialchars($event['title']) ?></a></h3>
+              <h3 class="events-card-title"><a href="<?= htmlspecialchars($event['detailUrl']) ?>"><?= htmlspecialchars($event['title']) ?></a></h3>
 
               <div class="events-meta">
                 <div class="events-meta-row">
@@ -1072,7 +1074,7 @@ $heroTickets = [
               </div>
 
               <div class="events-card-bottom">
-                <a href="show.php?event=<?= urlencode($event['id']) ?>" class="events-book-btn">View Event</a>
+                <a href="<?= htmlspecialchars($event['detailUrl']) ?>" class="events-book-btn">View Event</a>
               </div>
             </div>
           </article>

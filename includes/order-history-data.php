@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/log.php';
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/inventory-sync.php';
+require_once __DIR__ . '/ticketing.php';
 
 function clicketEnsureOrderStore(): void {
     clicketDb();
@@ -460,6 +461,14 @@ function clicketSaveOrder(array $order, bool $allowDuplicateSeats = false): bool
     if ($orderId === '' || !$event || !$performance || !$userId || !$seats) {
         return false;
     }
+
+    $seats = clicketTicketPricedSeatRows($eventKey, $seats);
+    $subtotal = array_sum(array_map(static fn (array $seat): int => (int) ($seat['price'] ?? 0), $seats));
+    $serviceFee = (int) max(0, clicketDbMoneyValue($order['service_fee'] ?? (count($seats) * 75)));
+    $order['seats'] = $seats;
+    $order['subtotal'] = $subtotal;
+    $order['service_fee'] = $serviceFee;
+    $order['total'] = $subtotal + $serviceFee;
 
     if (clicketDbFetch('SELECT id FROM orders WHERE order_id = :order_id LIMIT 1', ['order_id' => $orderId])) {
         return true;

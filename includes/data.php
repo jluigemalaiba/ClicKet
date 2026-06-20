@@ -26,13 +26,34 @@ function landscapeUrl(string $category, int $seed): string {
 }
 
 function eventDetailUrl(string $category, int $index): string {
+    global $concert_events, $theater_events, $sports_events;
+
     $categoryKey = match ($category) {
         'concert' => 'concerts',
         'sports' => 'sports',
         default => $category,
     };
+    $catalogs = [
+        'concerts' => $concert_events ?? [],
+        'theater' => $theater_events ?? [],
+        'sports' => $sports_events ?? [],
+    ];
+    $event = $catalogs[$categoryKey][$index] ?? null;
+    $eventKey = is_array($event) ? (string) ($event['event_key'] ?? $event['id'] ?? '') : '';
+    if ($eventKey !== '') {
+        return 'show.php?event=' . rawurlencode($eventKey);
+    }
 
     return 'show.php?event=' . rawurlencode($categoryKey . '-' . ($index + 1));
+}
+
+function clicketEventDetailUrl(array $event, string $fallbackCategory = 'events', int $fallbackIndex = 0): string {
+    $eventKey = trim((string) ($event['event_key'] ?? $event['id'] ?? ''));
+    if ($eventKey !== '') {
+        return 'show.php?event=' . rawurlencode($eventKey);
+    }
+
+    return eventDetailUrl($fallbackCategory, $fallbackIndex);
 }
 
 function eventDetailUrlByTitle(string $title): string {
@@ -47,7 +68,7 @@ function eventDetailUrlByTitle(string $title): string {
     foreach ($catalogs as $category => $events) {
         foreach ($events as $index => $event) {
             if (strcasecmp((string) ($event['title'] ?? ''), $title) === 0) {
-                return eventDetailUrl($category, $index);
+                return clicketEventDetailUrl($event, $category, $index);
             }
         }
     }
@@ -62,7 +83,7 @@ $featured_events = [
   ['title'=>'PBA Finals','sub'=>'Game 7 - The Decider','category'=>'Sports','venue'=>'Smart Araneta Coliseum','date'=>'Dec 5, 2025','price'=>'PHP 600','poster'=>posterUrl('featured',3)],
   ['title'=>'BLACKPINK Born Pink Encore','sub'=>'Arena tour','category'=>'Concert','venue'=>'Mall of Asia Arena','date'=>'Jan 10, 2026','price'=>'PHP 9,500','poster'=>posterUrl('featured',4)],
   ['title'=>'Hamilton','sub'=>'The Musical','category'=>'Theater','venue'=>'Newport Performing Arts Theater','date'=>'Feb 14, 2026','price'=>'PHP 2,500','poster'=>posterUrl('featured',5)],
-  ['title'=>'FIBA Asia Cup','sub'=>'Philippines vs. Lebanon','category'=>'Sports','venue'=>'Philippine Arena','date'=>'Mar 2, 2026','price'=>'PHP 1,200','poster'=>posterUrl('featured',6)],
+  ['title'=>'FIBA Asia Cup','sub'=>'Philippines vs. Lebanon','category'=>'Sports','venue'=>'Smart Araneta Coliseum','date'=>'Mar 2, 2026','price'=>'PHP 1,200','poster'=>posterUrl('featured',6)],
   ['title'=>'Taylor Swift The Eras Tour Manila','sub'=>'International','category'=>'Concert','venue'=>'Philippine Arena','date'=>'Apr 19, 2026','price'=>'PHP 14,500','poster'=>posterUrl('featured',7)],
 ];
 
@@ -78,7 +99,7 @@ $concert_events = [
   ['title'=>'Billie Eilish Hit Me Hard and Soft','artist'=>'Billie Eilish','venue'=>'Philippine Arena','date'=>'Jun 20, 2026','price'=>'PHP 8,800','rating'=>5,'type'=>'International'],
   ['title'=>'Ben&Ben Grand Concert','artist'=>'Ben&Ben','venue'=>'Smart Araneta Coliseum','date'=>'Dec 20, 2025','price'=>'PHP 1,200','rating'=>5,'type'=>'Local'],
   ['title'=>'The Eraserheads Reunion','artist'=>'Eraserheads','venue'=>'Smart Araneta Coliseum','date'=>'Feb 7, 2026','price'=>'PHP 2,000','rating'=>5,'type'=>'Local'],
-  ['title'=>'SB19 PAGTATAG! Tour','artist'=>'SB19','venue'=>'PhilSports Arena','date'=>'Nov 30, 2025','price'=>'PHP 1,500','rating'=>5,'type'=>'Local'],
+  ['title'=>'SB19 PAGTATAG! Tour','artist'=>'SB19','venue'=>'Mall of Asia Arena','date'=>'Nov 30, 2025','price'=>'PHP 1,500','rating'=>5,'type'=>'Local'],
 ];
 
 // Theater events
@@ -96,7 +117,7 @@ $theater_events = [
 // Sports events
 $sports_events = [
   ['title'=>'PBA Finals Game 7','league'=>'PBA','venue'=>'Smart Araneta Coliseum','date'=>'Dec 5, 2025','rating'=>5,'type'=>'Basketball'],
-  ['title'=>'FIBA Asia Cup QF','league'=>'FIBA','venue'=>'Philippine Arena','date'=>'Mar 2, 2026','rating'=>5,'type'=>'Basketball'],
+  ['title'=>'FIBA Asia Cup QF','league'=>'FIBA','venue'=>'Smart Araneta Coliseum','date'=>'Mar 2, 2026','rating'=>5,'type'=>'Basketball'],
   ['title'=>'UAAP Season 88 Finals','league'=>'UAAP','venue'=>'Smart Araneta Coliseum','date'=>'Nov 22, 2025','rating'=>5,'type'=>'Basketball'],
   ['title'=>'PVL AFC Final','league'=>'PVL','venue'=>'PhilSports Arena','date'=>'May 18, 2026','rating'=>5,'type'=>'Volleyball'],
 ];

@@ -166,29 +166,6 @@ $venueAccents = ['#e8162b', '#2563eb', '#0f766e', '#b45309', '#7c3aed', '#be185d
       </div>
 
       <div class="staff-venue-detail-grid">
-        <section class="staff-venue-tier-editor">
-          <div class="staff-venue-subheading">
-            <div>
-              <p>Tier setup</p>
-              <h3>Ticket tiers</h3>
-            </div>
-            <span><?= sp_count(count($tiers)) ?> tiers</span>
-          </div>
-          <div class="staff-venue-tier-list">
-            <?php foreach ($tiers as $tierIndex => $tier): ?>
-              <label class="staff-venue-tier-editor-row" data-tier-editor data-tier-key="<?= sp_h($venue['id'] . '-' . $tierIndex) ?>">
-                <input class="staff-tier-color-input" type="color" value="<?= sp_h($tier['color']) ?>" aria-label="<?= sp_h($tier['name']) ?> color">
-                <input class="staff-tier-name-input" type="text" value="<?= sp_h($tier['name']) ?>" aria-label="Tier name">
-                <span><?= sp_count($tierCapacity) ?> seats</span>
-              </label>
-            <?php endforeach; ?>
-          </div>
-          <div class="staff-tier-save-row">
-            <button class="staff-action-btn" type="button" data-tier-save>Save tier changes</button>
-            <span data-tier-save-status aria-live="polite"></span>
-          </div>
-        </section>
-
         <section class="staff-venue-organizers">
           <div class="staff-venue-subheading">
             <div>

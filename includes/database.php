@@ -153,7 +153,7 @@ function clicketDbNormalizePaymentStatus(string $status): string {
     $normalized = strtolower(trim($status));
 
     return match ($normalized) {
-        'paid', 'confirmed', 'complete', 'completed', 'approved' => 'approved',
+        'paid', 'payment verified', 'confirmed', 'complete', 'completed', 'approved' => 'approved',
         'failed', 'rejected', 'payment rejected', 'refunded', 'refund', 'cancelled', 'canceled' => 'rejected',
         'processing', 'review', 'under review', 'under_review' => 'under_review',
         default => 'pending',
@@ -165,7 +165,7 @@ function clicketDbNormalizeOrderStatus(string $status): string {
 
     return match ($normalized) {
         'confirmed', 'complete', 'completed' => 'completed',
-        'approved', 'paid' => 'approved',
+        'payment verified', 'approved', 'paid' => 'approved',
         'failed', 'payment rejected', 'rejected', 'cancelled', 'canceled', 'refunded', 'void' => 'rejected',
         'archived' => 'archived',
         default => 'pending',

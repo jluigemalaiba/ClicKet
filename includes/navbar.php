@@ -36,8 +36,8 @@ foreach ([
             'category' => $navSearchCatalog['label'],
             'type' => (string) ($navSearchEventItem['type'] ?? ''),
             'performer' => (string) ($navSearchEventItem['artist'] ?? $navSearchEventItem['company'] ?? $navSearchEventItem['league'] ?? ''),
-            'poster' => posterUrl($navSearchCatalog['poster'], $navSearchEventIndex + 10),
-            'url' => eventDetailUrl($navSearchCategoryKey, $navSearchEventIndex),
+            'poster' => (string) ($navSearchEventItem['poster'] ?? '') !== '' ? (string) $navSearchEventItem['poster'] : posterUrl($navSearchCatalog['poster'], $navSearchEventIndex + 10),
+            'url' => clicketEventDetailUrl($navSearchEventItem, $navSearchCategoryKey, $navSearchEventIndex),
         ];
     }
 }

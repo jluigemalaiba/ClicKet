@@ -165,7 +165,10 @@ function clicketInventorySyncAll(?int $eventId = null, ?int $performanceId = nul
          WHERE 1 = 1' . $tierEventScope . '
          GROUP BY e.id, vt.id, e.base_price
          ON DUPLICATE KEY UPDATE
-           price = VALUES(price),
+           price = CASE
+             WHEN event_tier_settings.price > 0 THEN event_tier_settings.price
+             ELSE VALUES(price)
+           END,
            capacity = VALUES(capacity),
            sold_count = VALUES(sold_count),
            held_count = VALUES(held_count),

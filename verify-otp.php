@@ -2,10 +2,19 @@
 require_once __DIR__ . '/includes/log.php';
 
 clicketOtpEnsureSchema();
+startSessionIfNeeded();
 
 $errors = [];
 $notif = pullFlashMessage();
 $email = strtolower(trim((string) ($_GET['email'] ?? $_POST['email'] ?? ($_SESSION['clicket_pending_verification_email'] ?? ''))));
+$pendingSignup = $_SESSION['clicket_pending_signup'] ?? null;
+if (
+    !is_array($pendingSignup)
+    || strtolower(trim((string) ($pendingSignup['email'] ?? ''))) !== $email
+    || (int) ($pendingSignup['expires_at'] ?? 0) < time()
+) {
+    $pendingSignup = null;
+}
 
 if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     setFlashMessage('error', 'Please sign in or register before verifying your email.');
@@ -14,13 +23,13 @@ if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
 }
 
 $user = findUserByEmail($email);
-if (!$user) {
+if (!$user && !$pendingSignup) {
     setFlashMessage('error', 'We could not find an account for that email.');
     header('Location: auth.php?mode=login');
     exit;
 }
 
-if (clicketOtpIsVerified($user)) {
+if ($user && clicketOtpIsVerified($user)) {
     loginUser($user);
     setFlashMessage('success', 'Your email is already verified.');
     header('Location: index.php');
@@ -31,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? 'verify');
 
     if ($action === 'resend') {
-        $sent = clicketOtpSendForUser($user);
+        $sent = clicketOtpSendForUser($pendingSignup ?: $user);
         if ($sent['success']) {
             setFlashMessage('success', 'A new verification code was sent.');
             header('Location: verify-otp.php?email=' . rawurlencode($email));
@@ -39,9 +48,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $errors[] = (string) ($sent['error'] ?? 'Unable to resend verification code.');
     } else {
-        $result = clicketOtpVerify($email, (string) ($_POST['otp_code'] ?? ''));
+        $result = clicketOtpVerify($email, (string) ($_POST['otp_code'] ?? ''), $pendingSignup);
         if ($result['success']) {
             unset($_SESSION['clicket_pending_verification_email']);
+            unset($_SESSION['clicket_pending_signup']);
             $verifiedUser = findUserByEmail($email);
             if ($verifiedUser) {
                 loginUser($verifiedUser);

@@ -1,6 +1,7 @@
 <?php
 $inventoryVenue = $payload['venues'][0] ?? null;
 $inventorySummary = $payload['inventorySummary'] ?? [];
+$inventorySeats = $payload['inventorySeats'] ?? [];
 $seatStatuses = [
     ['Available', 'is-available', max(0, (int) ($inventorySummary['available'] ?? 0))],
     ['Sold', 'is-sold', max(0, (int) ($inventorySummary['sold'] ?? 0))],
@@ -42,16 +43,16 @@ $seatStatuses = [
       <svg class="staff-seat-map" viewBox="0 0 620 360" role="img" aria-label="Interactive seat status map">
         <rect x="230" y="22" width="160" height="44" rx="8" class="seat-stage"></rect>
         <text x="310" y="50" text-anchor="middle" class="seat-stage-text">STAGE / COURT</text>
-        <?php for ($row = 0; $row < 8; $row++): ?>
-          <?php for ($col = 0; $col < 18; $col++):
-              $index = ($row * 18) + $col;
-              $status = ['is-available', 'is-sold', 'is-held', 'is-blocked', 'is-accessible', 'is-comp'][$index % 6];
-              $x = 36 + ($col * 31);
-              $y = 94 + ($row * 27);
-          ?>
-            <circle cx="<?= $x ?>" cy="<?= $y ?>" r="8" class="seat-dot <?= sp_h($status) ?>" data-seat="<?= sp_h('S' . ($row + 1) . '-' . ($col + 1)) ?>"></circle>
-          <?php endfor; ?>
-        <?php endfor; ?>
+        <?php foreach ($inventorySeats as $index => $seat):
+            $status = match (strtolower((string) ($seat['status'] ?? 'available'))) {
+                'sold' => 'is-sold', 'held' => 'is-held', 'blocked' => 'is-blocked',
+                'accessible' => 'is-accessible', 'complimentary' => 'is-comp', default => 'is-available',
+            };
+            $x = 36 + (($index % 18) * 31);
+            $y = 94 + (intdiv($index, 18) * 27);
+        ?>
+          <circle cx="<?= $x ?>" cy="<?= $y ?>" r="8" class="seat-dot <?= sp_h($status) ?>" data-seat="<?= sp_h($seat['seat_code'] ?? '') ?>"></circle>
+        <?php endforeach; ?>
         <path d="M70 324 C190 282 430 282 550 324" class="seat-bowl"></path>
       </svg>
     </div>

@@ -207,20 +207,8 @@ if (!$resolved || !isLoggedIn() || !is_array($selection) || ($selection['event']
 }
 
 $event = $resolved['event'];
-$basePrice = (int) preg_replace('/\D/', '', (string) ($event['price'] ?? '2500'));
-if ($basePrice < 500) {
-    $basePrice = 2500;
-}
-$priceFactors = ['VIP' => 1, 'Platinum' => .82, 'Gold' => .64, 'Silver' => .46, 'Bronze' => .3, 'General Admission' => .24];
-$seatRows = [];
-$subtotal = 0;
-
-foreach ($selection['seats'] as $seat) {
-    $factor = $priceFactors[$seat['category']] ?? .5;
-    $price = (int) (round(($basePrice * $factor) / 50) * 50);
-    $subtotal += $price;
-    $seatRows[] = $seat + ['price' => $price];
-}
+$seatRows = clicketTicketPricedSeatRows($eventKey, $selection['seats'], $resolved);
+$subtotal = array_sum(array_map(static fn (array $seat): int => (int) ($seat['price'] ?? 0), $seatRows));
 
 $serviceFee = count($seatRows) * 75;
 $total = $subtotal + $serviceFee;

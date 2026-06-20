@@ -28,15 +28,28 @@ function clicketTicketCatalogs(): array {
 }
 
 function clicketResolveEvent(string $eventKey): ?array {
-    if (!preg_match('/^(concerts|theater|sports)-(\d+)$/', $eventKey, $matches)) {
+    if (!preg_match('/^(concerts|theater|sports)-(.+)$/', $eventKey, $matches)) {
         return null;
     }
 
     $catalogs = clicketTicketCatalogs();
     $categoryKey = $matches[1];
-    $eventIndex = (int) $matches[2] - 1;
     $catalog = $catalogs[$categoryKey];
-    $event = $catalog['events'][$eventIndex] ?? null;
+    $event = null;
+    $eventIndex = 0;
+
+    foreach ($catalog['events'] as $index => $candidate) {
+        if ((string) ($candidate['event_key'] ?? $candidate['id'] ?? '') === $eventKey) {
+            $event = $candidate;
+            $eventIndex = (int) $index;
+            break;
+        }
+    }
+
+    if (!$event && ctype_digit($matches[2])) {
+        $eventIndex = (int) $matches[2] - 1;
+        $event = $catalog['events'][$eventIndex] ?? null;
+    }
 
     if (!$event) {
         return null;
@@ -68,6 +81,320 @@ function clicketTicketCategories(): array {
         'bronze' => ['label' => 'Bronze', 'color' => '#a87316', 'rank' => 5],
         'general' => ['label' => 'General Admission', 'color' => '#30a46c', 'rank' => 6],
     ];
+}
+
+function clicketTicketDbTierPayload(string $eventKey, array $profile): ?array {
+    if (!function_exists('clicketDbFetch')) {
+        return null;
+    }
+
+    $event = clicketDbFetch(
+        'SELECT id, venue_layout_id, base_price
+         FROM events
+         WHERE event_key = :event_key
+         LIMIT 1',
+        ['event_key' => $eventKey]
+    );
+    if (!$event) {
+        return null;
+    }
+    clicketTicketSyncVenueLayoutProfile((int) $event['venue_layout_id'], $profile);
+
+    $rows = clicketDbFetchAll(
+        'SELECT vs.svg_polygon_id,
+                vs.capacity AS section_capacity,
+                vt.id AS tier_id,
+                vt.name AS tier_name,
+                vt.color AS tier_color,
+                vt.sort_order,
+                COALESCE(ets.price, e.base_price, 0) AS tier_price
+         FROM venue_sections vs
+         INNER JOIN venue_tiers vt ON vt.id = vs.tier_id
+         INNER JOIN events e ON e.id = :event_id
+         LEFT JOIN event_tier_settings ets ON ets.event_id = e.id AND ets.tier_id = vt.id
+         WHERE vs.venue_layout_id = :venue_layout_id
+           AND vt.default_status = "active"
+         ORDER BY vt.sort_order, vt.name, vs.label',
+        [
+            'event_id' => (int) $event['id'],
+            'venue_layout_id' => (int) $event['venue_layout_id'],
+        ]
+    );
+    if (!$rows) {
+        return null;
+    }
+
+    $bySection = [];
+    $categories = [];
+    foreach ($rows as $row) {
+        $tierId = (int) $row['tier_id'];
+        $key = 'tier_' . $tierId;
+        $bySection[(string) $row['svg_polygon_id']] = [
+            'category' => $key,
+            'tier_id' => $tierId,
+            'tier' => $key,
+            'tierName' => (string) $row['tier_name'],
+            'mapColor' => (string) $row['tier_color'],
+            'capacity' => (int) ($row['section_capacity'] ?? 0),
+        ];
+        if (!isset($categories[$key])) {
+            $categories[$key] = [
+                'label' => (string) $row['tier_name'],
+                'color' => (string) $row['tier_color'],
+                'rank' => max(1, (int) ($row['sort_order'] ?? 0) + 1),
+                'price' => max(0, (int) round((float) ($row['tier_price'] ?? 0))),
+            ];
+        }
+    }
+
+    $profile['sections'] = array_values(array_map(static function (array $section) use ($bySection): array {
+        $sectionId = (string) ($section['id'] ?? '');
+        if (!isset($bySection[$sectionId])) {
+            return $section;
+        }
+
+        return array_merge($section, array_filter(
+            $bySection[$sectionId],
+            static fn ($value): bool => $value !== null && $value !== ''
+        ));
+    }, $profile['sections'] ?? []));
+
+    $missingCategory = false;
+    foreach ($profile['sections'] ?? [] as $section) {
+        if (!isset($categories[(string) ($section['category'] ?? '')])) {
+            $missingCategory = true;
+            break;
+        }
+    }
+    if ($missingCategory) {
+        $categories += clicketTicketCategories();
+    }
+
+    return ['profile' => $profile, 'categories' => $categories];
+}
+
+function clicketTicketFallbackPrice(array $event, string $categoryLabel): int {
+    $basePrice = (int) preg_replace('/\D/', '', (string) ($event['price'] ?? '2500'));
+    if ($basePrice < 500) {
+        $basePrice = 2500;
+    }
+
+    $factors = [
+        'vip' => 1,
+        'platinum' => .82,
+        'gold' => .64,
+        'silver' => .46,
+        'bronze' => .3,
+        'general admission' => .24,
+        'general' => .24,
+    ];
+    $key = strtolower(trim($categoryLabel));
+    $factor = $factors[$key] ?? .5;
+
+    return (int) (round(($basePrice * $factor) / 50) * 50);
+}
+
+function clicketTicketPricingContext(string $eventKey, ?array $resolved = null): array {
+    $resolved ??= clicketResolveEvent($eventKey);
+    if (!$resolved) {
+        return ['profile' => ['sections' => []], 'categories' => [], 'event' => []];
+    }
+
+    $profile = clicketVenueProfile((string) ($resolved['event']['venue'] ?? ''), (string) ($resolved['categoryKey'] ?? ''));
+    $categories = clicketTicketCategories();
+    $dbTierPayload = clicketTicketDbTierPayload($eventKey, $profile);
+    if ($dbTierPayload) {
+        $profile = $dbTierPayload['profile'];
+        $categories = $dbTierPayload['categories'] ?: $categories;
+    }
+
+    return [
+        'profile' => $profile,
+        'categories' => $categories,
+        'event' => $resolved['event'],
+    ];
+}
+
+function clicketTicketSectionForSeatId(string $seatId, array $profile): ?array {
+    foreach (($profile['sections'] ?? []) as $section) {
+        $sectionId = (string) ($section['id'] ?? '');
+        if ($sectionId !== '' && preg_match('/^' . preg_quote($sectionId, '/') . '-([A-Z]{1,2})-(\d{1,3})$/', $seatId)) {
+            return $section;
+        }
+    }
+
+    return null;
+}
+
+function clicketTicketCategoryByLabel(array $categories, string $label): ?array {
+    $normalized = strtolower(trim($label));
+    foreach ($categories as $category) {
+        if (strtolower(trim((string) ($category['label'] ?? ''))) === $normalized) {
+            return $category;
+        }
+    }
+
+    return null;
+}
+
+function clicketTicketPriceForSeat(string $eventKey, array $seat, ?array $context = null): int {
+    $context ??= clicketTicketPricingContext($eventKey);
+    $seatId = (string) ($seat['id'] ?? $seat['seat_code'] ?? '');
+    $section = $seatId !== '' ? clicketTicketSectionForSeatId($seatId, $context['profile'] ?? []) : null;
+    $categoryKey = (string) ($section['category'] ?? '');
+    $category = $categoryKey !== '' ? (($context['categories'][$categoryKey] ?? null)) : null;
+    if (!$category) {
+        $category = clicketTicketCategoryByLabel($context['categories'] ?? [], (string) ($seat['category'] ?? ''));
+    }
+
+    if ($category && isset($category['price']) && (int) round((float) $category['price']) > 0) {
+        return (int) round((float) $category['price']);
+    }
+
+    return clicketTicketFallbackPrice($context['event'] ?? [], (string) ($seat['category'] ?? ($category['label'] ?? 'General Admission')));
+}
+
+function clicketTicketPricedSeatRows(string $eventKey, array $seats, ?array $resolved = null): array {
+    $context = clicketTicketPricingContext($eventKey, $resolved);
+
+    return array_values(array_map(static function (array $seat) use ($eventKey, $context): array {
+        $price = clicketTicketPriceForSeat($eventKey, $seat, $context);
+        return $seat + ['price' => $price];
+    }, $seats));
+}
+
+function clicketTicketBaseTierName(array $section): string {
+    $name = trim((string) ($section['tierName'] ?? ''));
+    if ($name !== '') {
+        return $name;
+    }
+
+    $label = trim((string) ($section['label'] ?? 'General Admission'));
+    $label = preg_replace('/\s+\d+$/', '', $label) ?? $label;
+    return trim($label) !== '' ? trim($label) : 'General Admission';
+}
+
+function clicketTicketSyncVenueLayoutProfile(int $venueLayoutId, array $profile): void {
+    if ($venueLayoutId <= 0 || empty($profile['sections']) || !function_exists('clicketDbExecute')) {
+        return;
+    }
+
+    static $synced = [];
+    if (isset($synced[$venueLayoutId])) {
+        return;
+    }
+    $synced[$venueLayoutId] = true;
+
+    $tierIds = [];
+    $tierSlugs = [];
+    $sort = 0;
+
+    foreach ($profile['sections'] as $section) {
+        $tierKey = trim((string) ($section['tier'] ?? $section['category'] ?? 'general'));
+        $tierName = clicketTicketBaseTierName($section);
+        $tierSlug = clicketDbSlug($tierKey !== '' ? $tierKey : $tierName);
+        if (isset($tierIds[$tierSlug])) {
+            continue;
+        }
+
+        clicketDbExecute(
+            'INSERT INTO venue_tiers (venue_layout_id, name, slug, color, sort_order, default_status)
+             VALUES (:layout_id, :name, :slug, :color, :sort_order, "active")
+             ON DUPLICATE KEY UPDATE
+               sort_order = VALUES(sort_order),
+               default_status = "active"',
+            [
+                'layout_id' => $venueLayoutId,
+                'name' => $tierName,
+                'slug' => $tierSlug,
+                'color' => (string) ($section['mapColor'] ?? '#d8b7ff'),
+                'sort_order' => $sort++,
+            ]
+        );
+        $row = clicketDbFetch(
+            'SELECT id FROM venue_tiers WHERE venue_layout_id = :layout_id AND slug = :slug LIMIT 1',
+            ['layout_id' => $venueLayoutId, 'slug' => $tierSlug]
+        );
+        if ($row) {
+            $tierIds[$tierSlug] = (int) $row['id'];
+            $tierSlugs[] = $tierSlug;
+        }
+    }
+
+    if (!$tierIds) {
+        return;
+    }
+
+    $sectionIds = [];
+    foreach ($profile['sections'] as $section) {
+        $polygonId = trim((string) ($section['id'] ?? ''));
+        if ($polygonId === '') {
+            continue;
+        }
+
+        $tierKey = trim((string) ($section['tier'] ?? $section['category'] ?? 'general'));
+        $tierSlug = clicketDbSlug($tierKey !== '' ? $tierKey : clicketTicketBaseTierName($section));
+        $tierId = $tierIds[$tierSlug] ?? null;
+        if (!$tierId) {
+            continue;
+        }
+
+        $sectionIds[] = $polygonId;
+        clicketDbExecute(
+            'INSERT INTO venue_sections
+               (venue_layout_id, tier_id, svg_polygon_id, section_number, label, category_key, capacity, map_color, zone, is_seating_section)
+             VALUES
+               (:layout_id, :tier_id, :polygon_id, :section_number, :label, :category_key, :capacity, :map_color, :zone, 1)
+             ON DUPLICATE KEY UPDATE
+               tier_id = VALUES(tier_id),
+               section_number = VALUES(section_number),
+               label = VALUES(label),
+               category_key = VALUES(category_key),
+               capacity = VALUES(capacity),
+               zone = VALUES(zone),
+               is_seating_section = 1',
+            [
+                'layout_id' => $venueLayoutId,
+                'tier_id' => $tierId,
+                'polygon_id' => $polygonId,
+                'section_number' => (string) ($section['number'] ?? ''),
+                'label' => (string) ($section['label'] ?? $polygonId),
+                'category_key' => (string) ($section['category'] ?? $tierSlug),
+                'capacity' => max(0, (int) ($section['capacity'] ?? 0)),
+                'map_color' => (string) ($section['mapColor'] ?? ''),
+                'zone' => (string) ($section['zone'] ?? ''),
+            ]
+        );
+    }
+
+    $slugPlaceholders = implode(',', array_fill(0, count($tierSlugs), '?'));
+    clicketDbExecute(
+        'UPDATE venue_tiers SET default_status = "inactive"
+         WHERE venue_layout_id = ? AND slug NOT IN (' . $slugPlaceholders . ')',
+        array_merge([$venueLayoutId], $tierSlugs)
+    );
+}
+
+function clicketTicketSyncVenueLayoutFromDatabase(int $venueLayoutId): void {
+    $layout = clicketDbFetch(
+        'SELECT vl.id, vl.category, v.name AS venue_name
+         FROM venue_layouts vl
+         INNER JOIN venues v ON v.id = vl.venue_id
+         WHERE vl.id = :layout_id
+         LIMIT 1',
+        ['layout_id' => $venueLayoutId]
+    );
+    if (!$layout) {
+        return;
+    }
+
+    $categoryKey = match ((string) $layout['category']) {
+        'concert' => 'concerts',
+        'sports' => 'sports',
+        'theater' => 'theater',
+        default => (string) $layout['category'],
+    };
+    clicketTicketSyncVenueLayoutProfile($venueLayoutId, clicketVenueProfile((string) $layout['venue_name'], $categoryKey));
 }
 
 function clicketVenueProfiles(): array {

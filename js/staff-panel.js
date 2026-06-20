@@ -183,44 +183,6 @@
     });
   });
 
-  const tierStorageKey = 'clicket-venue-tier-overrides';
-  let tierOverrides = {};
-  try {
-    tierOverrides = JSON.parse(localStorage.getItem(tierStorageKey) || '{}');
-  } catch {
-    tierOverrides = {};
-  }
-
-  document.querySelectorAll('[data-tier-editor]').forEach(editor => {
-    const savedTier = tierOverrides[editor.dataset.tierKey || ''];
-    if (!savedTier) return;
-    const colorInput = editor.querySelector('.staff-tier-color-input');
-    const nameInput = editor.querySelector('.staff-tier-name-input');
-    if (colorInput && savedTier.color) colorInput.value = savedTier.color;
-    if (nameInput && savedTier.name) nameInput.value = savedTier.name;
-  });
-
-  document.querySelectorAll('[data-tier-save]').forEach(button => {
-    button.addEventListener('click', () => {
-      const panel = button.closest('[data-venue-panel]');
-      if (!panel) return;
-      panel.querySelectorAll('[data-tier-editor]').forEach(editor => {
-        const tierKey = editor.dataset.tierKey || '';
-        const color = editor.querySelector('.staff-tier-color-input')?.value || '';
-        const name = editor.querySelector('.staff-tier-name-input')?.value.trim() || '';
-        if (tierKey) tierOverrides[tierKey] = { color, name };
-      });
-      try {
-        localStorage.setItem(tierStorageKey, JSON.stringify(tierOverrides));
-        const status = panel.querySelector('[data-tier-save-status]');
-        if (status) status.textContent = 'Saved in this browser.';
-      } catch {
-        const status = panel.querySelector('[data-tier-save-status]');
-        if (status) status.textContent = 'Changes apply until this page is closed.';
-      }
-    });
-  });
-
   const dashboardShell = document.querySelector('.staff-dashboard-shell');
   if (dashboardShell) {
     requestAnimationFrame(() => {
@@ -480,61 +442,187 @@
     `).join('');
   }
 
+  function selectedLayoutOption(layoutId) {
+    return staffEventLayoutOptions().find(option => String(option.venue_layout_id) === String(layoutId))
+      || staffEventLayoutOptions()[0]
+      || {};
+  }
+
+  function eventTypeOptions(category, selected) {
+    const options = {
+      concert: ['Local', 'International'],
+      sports: ['Basketball', 'Volleyball'],
+      theater: ['Musical', 'Opera']
+    }[category] || ['General'];
+
+    return options.map(option => `
+      <option value="${escapeHtml(option)}" ${String(option).toLowerCase() === String(selected || '').toLowerCase() ? 'selected' : ''}>
+        ${escapeHtml(option)}
+      </option>
+    `).join('');
+  }
+
+  function eventScheduleRows(eventData) {
+    const schedules = Array.isArray(eventData.schedules) && eventData.schedules.length
+      ? eventData.schedules
+      : [{ date: eventData.performance_date || '', time: String(eventData.performance_time || '').slice(0, 5) }];
+
+    return schedules.map(schedule => `
+      <div class="staff-inline-row" data-schedule-row>
+        <input type="date" name="performance_date[]" value="${escapeHtml(schedule.date || '')}" required>
+        <input type="time" name="performance_time[]" value="${escapeHtml(String(schedule.time || '').slice(0, 5))}" required>
+        <button class="staff-secondary-btn" type="button" data-remove-schedule>Remove</button>
+      </div>
+    `).join('');
+  }
+
+  function eventTierRows(layoutId, eventData = {}) {
+    const layout = selectedLayoutOption(layoutId);
+    const layoutTiers = Array.isArray(layout.tiers) ? layout.tiers : [];
+    const eventTiers = Array.isArray(eventData.tiers) ? eventData.tiers : [];
+
+    if (!layoutTiers.length) {
+      return '<p class="staff-empty-state">No tiers found for this venue layout yet.</p>';
+    }
+
+    return layoutTiers.map(tier => {
+      const saved = eventTiers.find(item => String(item.tier_id || item.id) === String(tier.tier_id || tier.id)) || {};
+      const tierId = tier.tier_id || tier.id;
+      const tierName = saved.name || tier.name || 'Tier';
+      const tierColor = saved.color || tier.color || '#d8b7ff';
+      const tierPrice = saved.price ?? tier.price ?? '';
+      const capacity = saved.capacity || tier.capacity || 0;
+
+      return `
+        <div class="staff-event-tier-row staff-event-tier-row--editable">
+          <span class="staff-event-tier-swatch" style="--tier-color:${escapeHtml(tierColor)}"></span>
+          <input type="hidden" name="tier_id[]" value="${escapeHtml(tierId)}">
+          <label>
+            <span>Tier Title</span>
+            <input type="text" name="tier_name[]" value="${escapeHtml(tierName)}" required>
+          </label>
+          <label class="staff-tier-color-field">
+            <span>Map Color</span>
+            <input type="color" name="tier_color[]" value="${escapeHtml(tierColor)}">
+          </label>
+          <label>
+            <span>Price</span>
+            <span class="staff-price-field">
+              <b>PHP</b>
+              <input type="number" name="tier_price[]" min="1" step="1" value="${escapeHtml(Math.round(Number(tierPrice || 0)) || '')}" placeholder="0" inputmode="numeric" required>
+            </span>
+          </label>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function eventMediaControl(kind, label, urlName, fileName, value, hint) {
+    return `
+      <div class="staff-event-media-control" data-required-media="${escapeHtml(kind)}" data-media-label="${escapeHtml(label)}" data-has-current="${value ? '1' : '0'}">
+        <div>
+          <span>${escapeHtml(label)}</span>
+          <small>${escapeHtml(hint)}</small>
+        </div>
+        <label>
+          <span>Upload file</span>
+          <input type="file" name="${escapeHtml(fileName)}" accept="image/*">
+        </label>
+        <label>
+          <span>Or paste URL / path</span>
+          <input type="text" name="${escapeHtml(urlName)}" value="${escapeHtml(value || '')}" placeholder="Optional when file is selected">
+        </label>
+        <small class="staff-event-media-error">Upload a file or paste a URL.</small>
+        ${value ? `<a href="${escapeHtml(value)}" target="_blank" rel="noopener">Current ${escapeHtml(kind)}</a>` : ''}
+      </div>
+    `;
+  }
+
   function openEventEditModal(eventData) {
     if (!modal || !modalBody || !modalTitle) return;
     const isCreate = !(eventData.event_key || eventData.key);
     const title = eventData.title || (isCreate ? 'Add Event' : 'Edit Event');
+    const initialLayout = eventData.venue_layout_id || selectedLayoutOption('').venue_layout_id || '';
+    const initialCategory = eventData.category_db || selectedLayoutOption(initialLayout).category || 'concert';
     modalTitle.textContent = title;
     if (modalEyebrow) modalEyebrow.textContent = isCreate ? 'event create' : 'event edit';
+    modal.classList.add('is-event-form');
 
     modalBody.innerHTML = `
-      <form class="staff-form-grid" action="staff-events-api.php" method="post">
+      <form class="staff-form-grid staff-event-form" action="staff-events-api.php" method="post" enctype="multipart/form-data">
         <input type="hidden" name="action" value="${isCreate ? 'create' : 'update'}">
         <input type="hidden" name="event_key" value="${escapeHtml(eventData.event_key || eventData.key || '')}">
-        <label>
-          <span>Event Title</span>
-          <input type="text" name="title" value="${escapeHtml(eventData.title || '')}" required>
-        </label>
-        <label>
-          <span>Venue</span>
-          <select name="venue_layout_id" required>${eventLayoutOptions(eventData.venue_layout_id)}</select>
-        </label>
-        <label>
-          <span>Category</span>
-          <select name="category" required>${eventCategoryOptions(eventData.category_db || 'concert')}</select>
-        </label>
-        <label>
-          <span>Event Type</span>
-          <input type="text" name="type" value="${escapeHtml(eventData.type || '')}">
-        </label>
-        <label>
-          <span>Owner / Artist / Company / League</span>
-          <input type="text" name="owner_name" value="${escapeHtml(eventData.owner || '')}">
-        </label>
-        <label>
-          <span>Base Price</span>
-          <input type="number" name="base_price" min="0" step="0.01" value="${escapeHtml(eventData.base_price ?? 0)}" required>
-        </label>
-        <label>
-          <span>Performance Date</span>
-          <input type="date" name="performance_date" value="${escapeHtml(eventData.performance_date || '')}" required>
-        </label>
-        <label>
-          <span>Performance Time</span>
-          <input type="time" name="performance_time" value="${escapeHtml(String(eventData.performance_time || '').slice(0, 5))}" required>
-        </label>
-        <label>
-          <span>Status</span>
-          <select name="status" required>${eventStatusOptions(eventData.status_value || 'draft')}</select>
-        </label>
-        <label>
-          <span>Poster URL</span>
-          <input type="url" name="poster_url" value="${escapeHtml(eventData.poster_url || '')}">
-        </label>
-        <label>
-          <span>Banner URL</span>
-          <input type="url" name="banner_url" value="${escapeHtml(eventData.banner_url || '')}">
-        </label>
+        <section class="staff-event-form-section staff-form-grid__wide">
+          <header><span>01</span><div><p>Core details</p><h3>Event information</h3></div></header>
+          <div class="staff-event-form-grid">
+            <label class="staff-field-span">
+              <span>Event Title</span>
+              <input type="text" name="title" value="${escapeHtml(eventData.title || '')}" required>
+            </label>
+            <label class="staff-field-span">
+              <span>About / Description</span>
+              <textarea name="description" rows="4" required>${escapeHtml(eventData.description || '')}</textarea>
+            </label>
+            <label>
+              <span>Venue</span>
+              <select name="venue_layout_id" data-event-layout-select required>${eventLayoutOptions(initialLayout)}</select>
+            </label>
+            <label>
+              <span>Category</span>
+              <select name="category" data-event-category-select required>${eventCategoryOptions(initialCategory)}</select>
+            </label>
+            <label>
+              <span>Event Type</span>
+              <select name="type" data-event-type-select required>${eventTypeOptions(initialCategory, eventData.type || '')}</select>
+            </label>
+            <label>
+              <span>Organizer / Artist / Company / League</span>
+              <input type="text" name="owner_name" value="${escapeHtml(eventData.owner || '')}" required>
+            </label>
+          </div>
+        </section>
+
+        <section class="staff-event-form-section staff-form-grid__wide">
+          <header><span>02</span><div><p>Cast and media</p><h3>Performers, poster, and banner</h3></div></header>
+          <div class="staff-event-form-grid">
+            <label class="staff-field-span">
+              <span>Cast / Performers</span>
+              <input type="text" name="cast_performers" value="${escapeHtml(eventData.cast_performers || '')}" placeholder="Separate names with commas" required>
+            </label>
+            ${eventMediaControl('logo', 'Cast Logo', 'cast_logo_url', 'cast_logo_file', eventData.cast_logo_url, 'Square logo or performer mark. Upload takes priority over URL.')}
+            ${eventMediaControl('poster', 'Poster', 'poster_url', 'poster_file', eventData.poster_url, 'Vertical poster image. Upload takes priority over URL.')}
+            ${eventMediaControl('banner', 'Banner', 'banner_url', 'banner_file', eventData.banner_url, 'Wide horizontal banner. Upload takes priority over URL.')}
+          </div>
+        </section>
+
+        <section class="staff-event-form-section staff-form-grid__wide">
+          <header><span>03</span><div><p>Schedule and rules</p><h3>Dates, time, and audience info</h3></div></header>
+          <div class="staff-event-form-grid">
+            <div class="staff-field-span staff-event-schedule-editor">
+              <span>Dates and Times</span>
+              <div class="staff-inline-stack" data-schedule-list>${eventScheduleRows(eventData)}</div>
+              <button class="staff-secondary-btn" type="button" data-add-schedule>+ Add date/time</button>
+            </div>
+            <label>
+              <span>Running Time (minutes)</span>
+              <input type="number" name="running_minutes" min="1" value="${escapeHtml(eventData.running_minutes || '')}" required>
+            </label>
+            <label>
+              <span>Age Range</span>
+              <input type="text" name="age_range" value="${escapeHtml(eventData.age_range || '')}" placeholder="Example: 13+" required>
+            </label>
+            <label>
+              <span>Doors Open (minutes before)</span>
+              <input type="number" name="doors_open_minutes" min="1" value="${escapeHtml(eventData.doors_open_minutes || '')}" required>
+            </label>
+          </div>
+        </section>
+        <input type="hidden" name="base_price" value="0">
+
+        <section class="staff-event-form-section staff-form-grid__wide staff-event-tier-editor">
+          <header><span>04</span><div><p>Tier setup</p><h3>Title, color, and price fetched from DB</h3></div><em>Updates ticket map</em></header>
+          <div data-tier-editor>${eventTierRows(initialLayout, eventData)}</div>
+        </section>
         <div class="staff-form-actions">
           <button class="staff-secondary-btn" type="button" data-modal-close>Cancel</button>
           <button class="staff-action-btn" type="submit">${isCreate ? 'Create Event' : 'Save Changes'}</button>
@@ -545,12 +633,87 @@
     modalBody.querySelectorAll('[data-modal-close]').forEach(button => {
       button.addEventListener('click', closeModal);
     });
+    const layoutSelect = modalBody.querySelector('[data-event-layout-select]');
+    const categorySelect = modalBody.querySelector('[data-event-category-select]');
+    const typeSelect = modalBody.querySelector('[data-event-type-select]');
+    const tierEditor = modalBody.querySelector('[data-tier-editor]');
+    const scheduleList = modalBody.querySelector('[data-schedule-list]');
+    const eventForm = modalBody.querySelector('.staff-event-form');
+
+    const syncCategoryAndTiers = () => {
+      const layout = selectedLayoutOption(layoutSelect?.value || '');
+      if (layout?.category && categorySelect) {
+        categorySelect.value = layout.category;
+      }
+      if (typeSelect && categorySelect) {
+        typeSelect.innerHTML = eventTypeOptions(categorySelect.value, typeSelect.value);
+      }
+      if (tierEditor) {
+        tierEditor.innerHTML = eventTierRows(layoutSelect?.value || '', eventData);
+      }
+    };
+
+    layoutSelect?.addEventListener('change', syncCategoryAndTiers);
+    categorySelect?.addEventListener('change', () => {
+      if (typeSelect) typeSelect.innerHTML = eventTypeOptions(categorySelect.value, '');
+    });
+    tierEditor?.addEventListener('input', event => {
+      const colorInput = event.target.closest('input[name="tier_color[]"]');
+      if (!colorInput) return;
+      const swatch = colorInput.closest('.staff-event-tier-row')?.querySelector('.staff-event-tier-swatch');
+      swatch?.style.setProperty('--tier-color', colorInput.value || '#d8b7ff');
+    });
+    modalBody.querySelector('[data-add-schedule]')?.addEventListener('click', () => {
+      scheduleList?.insertAdjacentHTML('beforeend', `
+        <div class="staff-inline-row" data-schedule-row>
+          <input type="date" name="performance_date[]" required>
+          <input type="time" name="performance_time[]" required>
+          <button class="staff-secondary-btn" type="button" data-remove-schedule>Remove</button>
+        </div>
+      `);
+    });
+    scheduleList?.addEventListener('click', event => {
+      const button = event.target.closest('[data-remove-schedule]');
+      if (!button) return;
+      const rows = scheduleList.querySelectorAll('[data-schedule-row]');
+      if (rows.length > 1) button.closest('[data-schedule-row]')?.remove();
+    });
+    eventForm?.addEventListener('submit', event => {
+      if (!eventForm.reportValidity()) {
+        event.preventDefault();
+        return;
+      }
+
+      const invalidMedia = Array.from(eventForm.querySelectorAll('[data-required-media]')).find(control => {
+        const file = control.querySelector('input[type="file"]');
+        const url = control.querySelector(`input[name$="_url"]`);
+        const hasCurrent = control.dataset.hasCurrent === '1';
+        return !(hasCurrent || (file?.files?.length || 0) > 0 || String(url?.value || '').trim() !== '');
+      });
+
+      if (invalidMedia) {
+        event.preventDefault();
+        invalidMedia.classList.add('has-error');
+        const label = invalidMedia.dataset.mediaLabel || 'Media';
+        const urlInput = invalidMedia.querySelector(`input[name$="_url"]`);
+        urlInput?.focus();
+        window.alert(`${label} is required. Upload a file or paste a URL.`);
+        return;
+      }
+
+      const invalidPrice = Array.from(eventForm.querySelectorAll('input[name="tier_price[]"]')).find(input => Number(input.value) <= 0 || !Number.isInteger(Number(input.value)));
+      if (invalidPrice) {
+        event.preventDefault();
+        invalidPrice.focus();
+        window.alert('Every ticket tier needs a whole-number price greater than zero.');
+      }
+    });
   }
 
   function closeModal() {
     if (!modal) return;
     modal.hidden = true;
-    modal.classList.remove('is-order-record', 'is-ticket-record');
+    modal.classList.remove('is-order-record', 'is-ticket-record', 'is-event-form');
   }
 
   document.querySelectorAll('[data-open-modal]').forEach(button => {
@@ -985,7 +1148,7 @@
     modalTitle.textContent = `Add ${role}`;
     if (modalEyebrow) modalEyebrow.textContent = 'New account';
     const venueField = role === 'organizer' ? `<label>Assigned venue<select name="venue" required><option value="">Choose a venue</option>${venueOptions()}</select></label>` : '';
-    modalBody.innerHTML = `<form class="staff-person-form" data-person-form data-person-form-mode="create"><input type="hidden" name="role" value="${escapeHtml(role)}"><label>Username<input name="name" minlength="3" required placeholder="Username or display name"></label><label>Email address<input name="email" type="email" required placeholder="name@example.com"></label><label>Password<input name="password" type="password" minlength="8" required placeholder="Minimum 8 characters"></label>${venueField}<p class="staff-form-message" data-person-form-message></p><button type="submit" class="staff-action-btn">Create ${escapeHtml(role)} account</button></form>`;
+    modalBody.innerHTML = `<form class="staff-person-form" data-person-form data-person-form-mode="create"><input type="hidden" name="role" value="${escapeHtml(role)}"><label>Username<input name="name" minlength="3" required placeholder="Username or display name"></label><label>Email address<input name="email" type="email" pattern="^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$" title="Enter a valid email address, for example name@example.com." required placeholder="name@example.com"></label><label>Password<input name="password" type="password" minlength="8" required placeholder="Minimum 8 characters"></label>${venueField}<p class="staff-form-message" data-person-form-message></p><button type="submit" class="staff-action-btn">Create ${escapeHtml(role)} account</button></form>`;
     modal.hidden = false;
   }
 

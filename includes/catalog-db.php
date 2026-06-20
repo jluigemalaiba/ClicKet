@@ -243,6 +243,9 @@ function clicketCatalogSeed(array $concertEvents, array $theaterEvents, array $s
 function clicketCatalogRows(string $categoryKey): array {
     $rows = clicketDbFetchAll(
         'SELECT e.*, v.name AS venue_name,
+                (SELECT MIN(NULLIF(ets_price.price, 0))
+                 FROM event_tier_settings ets_price
+                 WHERE ets_price.event_id = e.id AND ets_price.status = "active") AS min_tier_price,
                 ep.performance_date, ep.performance_time,
                 assigned.staff_id AS organizer_id
          FROM events e
@@ -265,6 +268,7 @@ function clicketCatalogRows(string $categoryKey): array {
              LIMIT 1
            )
          WHERE e.category = :category
+           AND e.status = "published"
          ORDER BY CAST(SUBSTRING_INDEX(e.event_key, "-", -1) AS UNSIGNED), e.id',
         ['category' => clicketCatalogCategoryDbName($categoryKey)]
     );
@@ -277,13 +281,26 @@ function clicketCatalogRows(string $categoryKey): array {
             'db_id' => (int) $row['id'],
             'organizer_id' => (string) ($row['organizer_id'] ?? $row['created_by_staff_id'] ?? ''),
             'title' => (string) $row['title'],
+            'description' => (string) ($row['description'] ?? ''),
+            'cast_performers' => (string) ($row['cast_performers'] ?? ''),
+            'cast_logo_url' => (string) ($row['cast_logo_url'] ?? ''),
             'venue' => (string) $row['venue_name'],
             'date' => clicketDbDisplayDate((string) ($row['performance_date'] ?? '')),
-            'price' => clicketDbFormatPrice($row['base_price'] ?? 0),
+            'performance_date' => (string) ($row['performance_date'] ?? ''),
+            'performance_time' => (string) ($row['performance_time'] ?? ''),
+            'time' => clicketDbDisplayTime((string) ($row['performance_time'] ?? '')),
+            'price' => clicketDbFormatPrice($row['min_tier_price'] ?? $row['base_price'] ?? 0),
+            'base_price' => (float) ($row['base_price'] ?? 0),
+            'display_price' => (float) ($row['min_tier_price'] ?? $row['base_price'] ?? 0),
             'rating' => (float) ($row['rating'] ?? 5),
             'type' => (string) ($row['type'] ?? clicketCatalogCategoryLabel($categoryKey)),
             'poster' => (string) ($row['poster_url'] ?? ''),
             'banner' => (string) ($row['banner_url'] ?? ''),
+            'poster_url' => (string) ($row['poster_url'] ?? ''),
+            'banner_url' => (string) ($row['banner_url'] ?? ''),
+            'running_minutes' => (int) ($row['running_minutes'] ?? 0),
+            'age_range' => (string) ($row['age_range'] ?? ''),
+            'doors_open_minutes' => (int) ($row['doors_open_minutes'] ?? 0),
             'status' => (string) ($row['status'] ?? 'published'),
         ];
 
@@ -301,7 +318,10 @@ function clicketCatalogRows(string $categoryKey): array {
 
 function clicketCatalogFeaturedRows(): array {
     $rows = clicketDbFetchAll(
-        'SELECT e.*, v.name AS venue_name, ep.performance_date
+        'SELECT e.*, v.name AS venue_name, ep.performance_date,
+                (SELECT MIN(NULLIF(ets_price.price, 0))
+                 FROM event_tier_settings ets_price
+                 WHERE ets_price.event_id = e.id AND ets_price.status = "active") AS min_tier_price
          FROM events e
          INNER JOIN venues v ON v.id = e.venue_id
          LEFT JOIN event_performances ep
@@ -331,8 +351,10 @@ function clicketCatalogFeaturedRows(): array {
             'category' => $categoryLabel,
             'venue' => (string) $row['venue_name'],
             'date' => clicketDbDisplayDate((string) ($row['performance_date'] ?? '')),
-            'price' => clicketDbFormatPrice($row['base_price'] ?? 0),
+            'price' => clicketDbFormatPrice($row['min_tier_price'] ?? $row['base_price'] ?? 0),
             'poster' => (string) ($row['poster_url'] ?? ''),
+            'banner' => (string) ($row['banner_url'] ?? ''),
+            'description' => (string) ($row['description'] ?? ''),
             'event_key' => (string) $row['event_key'],
         ];
     }, $rows);

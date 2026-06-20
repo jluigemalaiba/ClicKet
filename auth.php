@@ -569,7 +569,7 @@ $submitLabel = match ($mode) {
         <?php endif; ?>
 
         <?php if (!$staff || !$isStaffMode): ?>
-        <form class="auth-form" method="post" action="auth.php?mode=<?= htmlspecialchars($mode) ?>" id="authForm" novalidate>
+        <form class="auth-form" method="post" action="auth.php?mode=<?= htmlspecialchars($mode) ?>" id="authForm">
           <input type="hidden" name="mode" id="authModeInput" value="<?= htmlspecialchars($mode) ?>">
           <input type="hidden" name="return" value="<?= htmlspecialchars($returnTo) ?>">
 
@@ -599,6 +599,9 @@ $submitLabel = match ($mode) {
               value="<?= oldInput('email') ?>"
               placeholder="<?= $isStaffMode ? ($mode === 'admin' ? 'admin@clicket.local' : 'organizer@clicket.local') : 'you@email.com' ?>"
               autocomplete="email"
+              inputmode="email"
+              pattern="^[^\s@]+@[^\s@]+\.[^\s@]{2,}$"
+              title="Enter a valid email address, for example name@example.com."
               required
             >
           </div>

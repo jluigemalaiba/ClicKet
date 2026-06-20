@@ -87,13 +87,17 @@ function clicketOtpSendForUser(array $user): array {
     );
 
     if (!$mail['success']) {
+        clicketDbExecute(
+            'UPDATE email_otps SET is_used = 1 WHERE email = :email AND otp_code = :otp_code AND is_used = 0',
+            ['email' => $email, 'otp_code' => $code]
+        );
         return ['success' => false, 'error' => $mail['error'] ?? 'Unable to send OTP email.'];
     }
 
     return ['success' => true, 'expires_at' => $expiresAt];
 }
 
-function clicketOtpVerify(string $email, string $code): array {
+function clicketOtpVerify(string $email, string $code, ?array $pendingSignup = null): array {
     clicketOtpEnsureSchema();
 
     $email = strtolower(trim($email));
@@ -102,29 +106,63 @@ function clicketOtpVerify(string $email, string $code): array {
         return ['success' => false, 'error' => 'Enter the 6-digit verification code.'];
     }
 
-    $otp = clicketDbFetch(
-        'SELECT * FROM email_otps
-         WHERE email = :email AND otp_code = :otp_code AND is_used = 0
-         ORDER BY created_at DESC
-         LIMIT 1',
-        ['email' => $email, 'otp_code' => $code]
-    );
+    $pdo = clicketDb();
+    $pdo->beginTransaction();
+    try {
+        $otp = clicketDbFetch(
+            'SELECT * FROM email_otps
+             WHERE email = :email AND otp_code = :otp_code AND is_used = 0
+             ORDER BY created_at DESC
+             LIMIT 1
+             FOR UPDATE',
+            ['email' => $email, 'otp_code' => $code]
+        );
 
-    if (!$otp) {
-        return ['success' => false, 'error' => 'Invalid verification code.'];
-    }
-    if (clicketOtpTimestamp((string) $otp['expires_at']) < time()) {
-        return ['success' => false, 'error' => 'That verification code has expired.'];
-    }
+        if (!$otp) {
+            $pdo->rollBack();
+            return ['success' => false, 'error' => 'Invalid verification code.'];
+        }
+        if (clicketOtpTimestamp((string) $otp['expires_at']) < time()) {
+            $pdo->rollBack();
+            return ['success' => false, 'error' => 'That verification code has expired.'];
+        }
 
-    clicketDbExecute(
-        'UPDATE email_otps SET is_used = 1 WHERE id = :id',
-        ['id' => (int) $otp['id']]
-    );
-    clicketDbExecute(
-        'UPDATE users SET email_verified_at = UTC_TIMESTAMP(), status = "active" WHERE LOWER(email) = LOWER(:email)',
-        ['email' => $email]
-    );
+        if ($pendingSignup !== null) {
+            $pendingEmail = strtolower(trim((string) ($pendingSignup['email'] ?? '')));
+            $pendingName = trim((string) ($pendingSignup['name'] ?? ''));
+            $passwordHash = (string) ($pendingSignup['password_hash'] ?? '');
+            $pendingExpiry = (int) ($pendingSignup['expires_at'] ?? 0);
+            if ($pendingEmail !== $email || $pendingName === '' || $passwordHash === '' || $pendingExpiry < time()) {
+                $pdo->rollBack();
+                return ['success' => false, 'error' => 'Your pending registration has expired. Please sign up again.'];
+            }
+
+            $existing = clicketDbFetch('SELECT id FROM users WHERE LOWER(email) = LOWER(:email) LIMIT 1 FOR UPDATE', ['email' => $email]);
+            if ($existing) {
+                $pdo->rollBack();
+                return ['success' => false, 'error' => 'An account with that email already exists.'];
+            }
+
+            clicketDbExecute(
+                'INSERT INTO users (name, email, password_hash, status, email_verified_at)
+                 VALUES (:name, :email, :password_hash, "active", UTC_TIMESTAMP())',
+                ['name' => $pendingName, 'email' => $email, 'password_hash' => $passwordHash]
+            );
+        } else {
+            clicketDbExecute(
+                'UPDATE users SET email_verified_at = UTC_TIMESTAMP(), status = "active" WHERE LOWER(email) = LOWER(:email)',
+                ['email' => $email]
+            );
+        }
+
+        clicketDbExecute('UPDATE email_otps SET is_used = 1 WHERE id = :id', ['id' => (int) $otp['id']]);
+        $pdo->commit();
+    } catch (Throwable) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        return ['success' => false, 'error' => 'Unable to verify your email right now.'];
+    }
 
     return ['success' => true];
 }

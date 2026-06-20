@@ -18,6 +18,7 @@ $featuredArticleId = $published[0]['id'] ?? '';
       <div class="staff-news-fields">
         <label class="staff-news-field--wide"><span>Headline</span><input name="title" type="text" maxlength="130" placeholder="Give the update a clear, useful title" required></label>
         <label><span>Category</span><select name="category" required><?php foreach ($newsCategories as $category): ?><option><?= sp_h($category) ?></option><?php endforeach; ?></select></label>
+        <label><span>Visibility</span><select name="status" required><option value="Published">Published</option><option value="Draft">Draft</option></select><small>Published articles appear on the public News and Featured News sections.</small></label>
         <label class="staff-news-field--full staff-news-banner-field"><span>Banner image <b>16:9 rectangle</b></span><input name="banner" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" data-news-banner-input><small>JPG or PNG, minimum 1200 × 675 px. A banner is required before publishing.</small><div class="staff-news-banner-preview" data-news-banner-preview hidden><img src="" alt="Banner preview"><span>16:9 banner preview</span></div></label>
         <label class="staff-news-field--full"><span>Main description</span><textarea name="description" rows="4" maxlength="360" placeholder="Write a concise introduction that gives readers the important context." required></textarea><small>This appears under the headline in the public News feed once published.</small></label>
       </div>

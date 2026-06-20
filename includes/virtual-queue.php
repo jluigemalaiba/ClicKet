@@ -92,15 +92,12 @@ function clicketVirtualQueueConfigStore(?callable $mutator = null): array {
 }
 
 function clicketVirtualQueueConfig(string $eventKey): array {
-    $store = clicketVirtualQueueConfigStore();
-    $key = clicketVirtualQueueSafeKey($eventKey);
-    $config = is_array($store[$key] ?? null) ? $store[$key] : [];
-
-    return array_merge(clicketVirtualQueueDefaults(), $config);
+    clicketDbExecute('CREATE TABLE IF NOT EXISTS virtual_queue_configs (id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, event_id BIGINT UNSIGNED NOT NULL, enabled TINYINT(1) NOT NULL DEFAULT 0, max_active INT UNSIGNED NOT NULL DEFAULT 25, timeout_seconds INT UNSIGNED NOT NULL DEFAULT 300, throughput_per_minute INT UNSIGNED NOT NULL DEFAULT 12, updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, PRIMARY KEY (id), UNIQUE KEY uq_virtual_queue_configs_event_id (event_id), CONSTRAINT fk_virtual_queue_configs_event FOREIGN KEY (event_id) REFERENCES events (id) ON UPDATE CASCADE ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+    $row = clicketDbFetch('SELECT vqc.* FROM virtual_queue_configs vqc INNER JOIN events e ON e.id = vqc.event_id WHERE e.event_key = :event_key LIMIT 1', ['event_key' => $eventKey]);
+    return array_merge(clicketVirtualQueueDefaults(), $row ?: []);
 }
 
 function clicketVirtualQueueSaveConfig(string $eventKey, array $input): array {
-    $key = clicketVirtualQueueSafeKey($eventKey);
     $nextConfig = [
         'enabled' => !empty($input['enabled']),
         'max_active' => max(1, min(500, (int) ($input['max_active'] ?? 25))),
@@ -109,12 +106,9 @@ function clicketVirtualQueueSaveConfig(string $eventKey, array $input): array {
         'updated_at' => gmdate('c'),
     ];
 
-    clicketVirtualQueueConfigStore(static function (array $store) use ($key, $nextConfig): array {
-        $store[$key] = $nextConfig;
-        ksort($store);
-
-        return $store;
-    });
+    $event = clicketDbEventByKey($eventKey);
+    if (!$event) return clicketVirtualQueueDefaults();
+    clicketDbExecute('INSERT INTO virtual_queue_configs (event_id, enabled, max_active, timeout_seconds, throughput_per_minute) VALUES (:event_id, :enabled, :max_active, :timeout_seconds, :throughput_per_minute) ON DUPLICATE KEY UPDATE enabled = VALUES(enabled), max_active = VALUES(max_active), timeout_seconds = VALUES(timeout_seconds), throughput_per_minute = VALUES(throughput_per_minute)', ['event_id' => (int) $event['id'], 'enabled' => $nextConfig['enabled'] ? 1 : 0, 'max_active' => $nextConfig['max_active'], 'timeout_seconds' => $nextConfig['timeout_seconds'], 'throughput_per_minute' => $nextConfig['throughput_per_minute']]);
 
     return array_merge(clicketVirtualQueueDefaults(), $nextConfig);
 }

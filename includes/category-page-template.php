@@ -32,19 +32,22 @@ foreach ($rawEvents as $idx => $event) {
     $type = $event['type'] ?? $categoryLabel;
     $sub = $event['artist'] ?? $event['company'] ?? $event['league'] ?? '';
     $price = (string) ($event['price'] ?? '');
+    $eventId = (string) ($event['event_key'] ?? $event['id'] ?? ($idPrefix . '-' . ($idx + 1)));
+    $detailUrl = clicketEventDetailUrl($event, $idPrefix, $idx);
 
     $types[$type] = true;
     $events[] = [
-        'id' => $idPrefix . '-' . ($idx + 1),
+        'id' => $eventId,
         'title' => $event['title'] ?? 'Untitled Event',
         'date' => $event['date'] ?? 'Coming soon',
-        'time' => $times[($idx + $timeOffset) % count($times)],
+        'time' => (string) ($event['time'] ?? '') !== '' ? (string) $event['time'] : $times[($idx + $timeOffset) % count($times)],
         'venue' => $event['venue'] ?? 'Venue TBA',
         'price' => $price,
         'priceValue' => categoryPagePriceValue($price),
         'type' => $type,
         'sub' => $sub,
-        'poster' => posterUrl($posterCategory, $idx + 10),
+        'poster' => (string) ($event['poster'] ?? '') !== '' ? (string) $event['poster'] : posterUrl($posterCategory, $idx + 10),
+        'detailUrl' => $detailUrl,
     ];
 }
 
@@ -159,7 +162,7 @@ sort($typeOptions, SORT_NATURAL | SORT_FLAG_CASE);
               </div>
 
               <div class="category-card-bottom">
-                <a href="auth.php?mode=login&amp;event=<?= urlencode($event['id']) ?>" class="category-book-btn">Book Now</a>
+                <a href="<?= htmlspecialchars($event['detailUrl']) ?>" class="category-book-btn">View Event</a>
               </div>
             </div>
           </article>

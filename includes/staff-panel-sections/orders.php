@@ -45,3 +45,5 @@ $pendingCount = count(array_filter($orders, static fn (array $order): bool => in
 </section>
 
 <script type="application/json" id="staffOrdersJson"><?= json_encode($ordersForClient, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?></script>
+
+<?php require __DIR__ . '/payments.php'; ?>

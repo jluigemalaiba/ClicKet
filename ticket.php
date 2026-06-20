@@ -17,6 +17,11 @@ if (!$resolved) {
 $event = $resolved['event'];
 $venueProfile = clicketVenueProfile($event['venue'], $resolved['categoryKey']);
 $categories = clicketTicketCategories();
+$dbTierPayload = clicketTicketDbTierPayload($eventKey, $venueProfile);
+if ($dbTierPayload) {
+    $venueProfile = $dbTierPayload['profile'];
+    $categories = $dbTierPayload['categories'] ?: $categories;
+}
 $performanceIndex = max(0, (int) ($_GET['performance'] ?? 0));
 $reservationExpired = ($_GET['reservation'] ?? '') === 'expired';
 if ($reservationExpired) {
@@ -60,6 +65,11 @@ $priceFactors = [
 
 $categoryPayload = [];
 foreach ($categories as $key => $category) {
+    if (isset($category['price'])) {
+        $categoryPayload[$key] = $category + ['price' => (int) $category['price']];
+        continue;
+    }
+
     $categoryPayload[$key] = $category + [
         'price' => (int) (round(($basePrice * $priceFactors[$key]) / 50) * 50),
     ];

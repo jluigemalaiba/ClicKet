@@ -7,6 +7,7 @@ require_once __DIR__ . '/favorite-data.php';
 require_once __DIR__ . '/inventory-sync.php';
 require_once __DIR__ . '/ticket-validation.php';
 require_once __DIR__ . '/virtual-queue.php';
+require_once __DIR__ . '/ticketing.php';
 
 function clicketStaffTier(string $name, string $color): array {
     return [
@@ -202,9 +203,32 @@ function clicketStaffAssignedVenueNames(array $staff): array {
 
 function clicketStaffAssignmentOptions(): array {
     return array_map(static fn (array $venue): array => [
-        'id' => (string) ($venue['id'] ?? ''),
-        'label' => (string) ($venue['venue'] ?? '') . ' — ' . (string) ($venue['variant'] ?? ''),
-    ], clicketStaffVenueDefinitions());
+        'id' => (string) $venue['id'],
+        'label' => (string) $venue['name'] . ' — ' . clicketStaffEventCategoryLabel((string) $venue['category']),
+    ], clicketDbFetchAll(
+        'SELECT id, name, category
+         FROM (
+             SELECT DISTINCT v.id, v.name, vl.category
+             FROM venues v
+             INNER JOIN venue_layouts vl ON vl.venue_id = v.id
+             WHERE v.status = "active" AND vl.status = "active"
+               AND NOT (v.slug = "philippine-arena" AND vl.category = "sports")
+               AND NOT (v.slug = "philsports-arena" AND vl.category = "concert")
+             UNION
+             SELECT v.id, v.name, "sports" AS category
+             FROM venues v
+             WHERE v.status = "active" AND v.slug = "mall-of-asia-arena"
+             UNION
+             SELECT v.id, v.name, "concert" AS category
+             FROM venues v
+             WHERE v.status = "active" AND v.slug = "smart-araneta-coliseum"
+             UNION
+             SELECT v.id, v.name, "sports" AS category
+             FROM venues v
+             WHERE v.status = "active" AND v.slug = "smart-araneta-coliseum"
+         ) AS assignment_venues
+         ORDER BY name, category'
+    ));
 }
 
 function clicketStaffAssignmentLabel(string $assignment): string {
@@ -329,6 +353,90 @@ function clicketStaffEventOwnerLabel(array $row): string {
     return $owner !== '' ? $owner : (string) ($row['organizer_name'] ?? 'Organizer');
 }
 
+function clicketStaffEventSchedules(int $eventId): array {
+    return array_map(static function (array $row): array {
+        $date = (string) ($row['performance_date'] ?? '');
+        $time = (string) ($row['performance_time'] ?? '');
+
+        return [
+            'id' => (int) ($row['id'] ?? 0),
+            'date' => $date,
+            'time' => $time,
+            'label' => trim(clicketDbDisplayDate($date) . ' at ' . clicketDbDisplayTime($time)),
+            'status' => (string) ($row['status'] ?? 'scheduled'),
+        ];
+    }, clicketDbFetchAll(
+        'SELECT id, performance_date, performance_time, status
+         FROM event_performances
+         WHERE event_id = :event_id AND status <> "cancelled"
+         ORDER BY performance_date, performance_time, id',
+        ['event_id' => $eventId]
+    ));
+}
+
+function clicketStaffLayoutTierRows(int $venueLayoutId, ?int $eventId = null): array {
+    if (function_exists('clicketTicketSyncVenueLayoutFromDatabase')) {
+        clicketTicketSyncVenueLayoutFromDatabase($venueLayoutId);
+    }
+
+    $params = ['venue_layout_id' => $venueLayoutId];
+    $eventJoin = '';
+    if ($eventId !== null) {
+        $eventJoin = 'LEFT JOIN event_tier_settings ets ON ets.tier_id = vt.id AND ets.event_id = :event_id';
+        $params['event_id'] = $eventId;
+    } else {
+        $eventJoin = 'LEFT JOIN event_tier_settings ets ON 1 = 0';
+    }
+
+    return array_map(static function (array $row): array {
+        $capacity = (int) ($row['event_capacity'] ?? 0);
+        if ($capacity <= 0) {
+            $capacity = (int) ($row['seat_capacity'] ?? 0);
+        }
+        $sold = (int) ($row['sold_count'] ?? 0);
+        $held = (int) ($row['held_count'] ?? 0);
+        $available = (int) ($row['available_count'] ?? 0);
+        if (empty($row['setting_id'])) {
+            $available = max(0, $capacity - $sold - $held);
+        }
+
+        return [
+            'id' => (int) ($row['id'] ?? 0),
+            'tier_id' => (int) ($row['id'] ?? 0),
+            'name' => (string) ($row['name'] ?? ''),
+            'color' => (string) ($row['color'] ?? '#d8b7ff'),
+            'price' => (float) ($row['price'] ?? 0),
+            'price_label' => clicketDbFormatPrice($row['price'] ?? 0),
+            'capacity' => $capacity,
+            'sold' => $sold,
+            'held' => $held,
+            'available' => $available,
+            'status' => (string) ($row['tier_status'] ?? 'active'),
+        ];
+    }, clicketDbFetchAll(
+        'SELECT vt.id,
+                vt.name,
+                vt.color,
+                COALESCE(ets.price, 0) AS price,
+                ets.id AS setting_id,
+                COALESCE(ets.capacity, 0) AS event_capacity,
+                COALESCE(ets.sold_count, 0) AS sold_count,
+                COALESCE(ets.held_count, 0) AS held_count,
+                COALESCE(ets.available_count, 0) AS available_count,
+                COALESCE(ets.status, vt.default_status) AS tier_status,
+                COALESCE(SUM(CASE WHEN s.id IS NULL THEN vs.capacity ELSE 1 END), 0) AS seat_capacity
+         FROM venue_tiers vt
+         LEFT JOIN venue_sections vs ON vs.tier_id = vt.id
+         LEFT JOIN seats s ON s.venue_section_id = vs.id
+         ' . $eventJoin . '
+         WHERE vt.venue_layout_id = :venue_layout_id
+           AND vt.default_status = "active"
+         GROUP BY vt.id, vt.name, vt.color, ets.id, ets.price, ets.capacity, ets.sold_count, ets.held_count, ets.available_count, ets.status, vt.default_status, vt.sort_order
+         ORDER BY vt.sort_order, vt.name',
+        $params
+    ));
+}
+
 function clicketStaffEventRowToPanel(array $row): array {
     $primaryDate = (string) ($row['primary_performance_date'] ?? '');
     $primaryTime = (string) ($row['primary_performance_time'] ?? '');
@@ -348,6 +456,9 @@ function clicketStaffEventRowToPanel(array $row): array {
         'category_db' => $category,
         'category_label' => clicketStaffEventCategoryLabel($category),
         'title' => (string) $row['title'],
+        'description' => (string) ($row['description'] ?? ''),
+        'cast_performers' => (string) ($row['cast_performers'] ?? ''),
+        'cast_logo_url' => (string) ($row['cast_logo_url'] ?? ''),
         'venue' => (string) $row['venue_name'],
         'venue_id' => (int) $row['venue_id'],
         'venue_layout_id' => (int) $row['venue_layout_id'],
@@ -361,6 +472,9 @@ function clicketStaffEventRowToPanel(array $row): array {
         'type' => (string) ($row['type'] ?? clicketStaffEventCategoryLabel($category)),
         'price' => clicketDbFormatPrice($row['base_price'] ?? 0),
         'base_price' => (float) ($row['base_price'] ?? 0),
+        'running_minutes' => (int) ($row['running_minutes'] ?? 0),
+        'age_range' => (string) ($row['age_range'] ?? ''),
+        'doors_open_minutes' => (int) ($row['doors_open_minutes'] ?? 0),
         'owner' => clicketStaffEventOwnerLabel($row),
         'artist' => (string) ($row['artist'] ?? ''),
         'company' => (string) ($row['company'] ?? ''),
@@ -370,6 +484,8 @@ function clicketStaffEventRowToPanel(array $row): array {
         'status' => clicketStaffEventStatusLabel($status),
         'status_value' => $status,
         'archived_at' => clicketDbDisplayDateTime((string) ($row['archived_at'] ?? '')),
+        'schedules' => clicketStaffEventSchedules((int) $row['id']),
+        'tiers' => clicketStaffLayoutTierRows((int) $row['venue_layout_id'], (int) $row['id']),
     ];
 }
 
@@ -407,7 +523,12 @@ function clicketStaffAllEvents(?array $staff = null): array {
     $params = [];
 
     if (!$isAdmin) {
-        $sql .= ' WHERE e.created_by_staff_id = :staff_id';
+        $sql .= ' WHERE EXISTS (
+                    SELECT 1
+                    FROM staff_venue_assignments sva
+                    WHERE sva.staff_id = :staff_id
+                      AND sva.venue_id = e.venue_id
+                  )';
         $params['staff_id'] = $staffId;
     }
 
@@ -449,7 +570,11 @@ function clicketStaffCanAccessEvent(array $staff, string $eventKey): bool {
     }
 
     return clicketDbFetch(
-        'SELECT id FROM events WHERE event_key = :event_key AND created_by_staff_id = :staff_id LIMIT 1',
+        'SELECT e.id
+         FROM events e
+         INNER JOIN staff_venue_assignments sva ON sva.venue_id = e.venue_id
+         WHERE e.event_key = :event_key AND sva.staff_id = :staff_id
+         LIMIT 1',
         ['event_key' => $eventKey, 'staff_id' => $staffId]
     ) !== null;
 }
@@ -466,11 +591,13 @@ function clicketStaffEventLayoutOptions(array $staff): array {
         );
         $venueIds = array_values(array_map(static fn (array $row): int => (int) $row['venue_id'], $assignedVenueIds));
 
-        if ($venueIds) {
-            $placeholders = implode(',', array_fill(0, count($venueIds), '?'));
-            $where .= ' AND v.id IN (' . $placeholders . ')';
-            $params = $venueIds;
+        if (!$venueIds) {
+            return [];
         }
+
+        $placeholders = implode(',', array_fill(0, count($venueIds), '?'));
+        $where .= ' AND v.id IN (' . $placeholders . ')';
+        $params = $venueIds;
     }
 
     $rows = clicketDbExecute(
@@ -502,6 +629,7 @@ function clicketStaffEventLayoutOptions(array $staff): array {
             'category_label' => clicketStaffEventCategoryLabel($category),
             'capacity' => (int) ($row['capacity'] ?? 0),
             'label' => trim($venue . ' - ' . clicketStaffEventCategoryLabel($category) . ($variant !== '' ? ' / ' . ucfirst($variant) : '')),
+            'tiers' => clicketStaffLayoutTierRows((int) $row['venue_layout_id'], null),
         ];
     }, $rows);
 }
@@ -834,37 +962,40 @@ function clicketStaffNewsRows(array $events = []): array {
 }
 
 function clicketStaffArchiveRows(array $orders, array $events, array $users = []): array {
+    $eventById = [];
+    foreach ($events as $event) {
+        $eventById[(int) ($event['db_id'] ?? 0)] = $event;
+    }
+
+    $records = clicketDbFetchAll(
+        'SELECT ar.id, ar.entity_type, ar.entity_id, ar.reason, ar.archived_at, ar.restored_at
+         FROM archive_records ar
+         ORDER BY ar.archived_at DESC, ar.id DESC'
+    );
     $rows = [];
-    foreach (array_slice(array_reverse($events), 0, 4) as $event) {
+    foreach ($records as $record) {
+        if ($record['restored_at'] !== null) {
+            continue;
+        }
+
+        $entityType = strtolower((string) $record['entity_type']);
+        $entityId = (int) $record['entity_id'];
+        if ($entityType !== 'event' || !isset($eventById[$entityId])) {
+            continue;
+        }
+
+        $event = $eventById[$entityId];
         $rows[] = [
+            'archive_id' => (int) $record['id'],
+            'entity_type' => 'event',
+            'entity_id' => $entityId,
+            'event_key' => (string) ($event['event_key'] ?? $event['key'] ?? ''),
             'type' => 'Archived event',
             'title' => (string) ($event['title'] ?? 'Event'),
             'scope' => (string) ($event['venue'] ?? 'Venue'),
-            'status' => (string) ($event['status'] ?? 'Archived'),
-            'archived_at' => 'Retention ready',
-        ];
-    }
-
-    foreach (array_slice($orders, 0, 4) as $order) {
-        $rows[] = [
-            'type' => 'Archived order',
-            'title' => (string) ($order['order_id'] ?? 'Order'),
-            'scope' => (string) ($order['event_title'] ?? 'Event'),
-            'status' => (string) ($order['order_status'] ?? 'Confirmed'),
-            'archived_at' => (string) ($order['booked_at'] ?? 'Order history'),
-        ];
-    }
-
-    foreach ($users as $user) {
-        if (empty($user['disabled']) && strtolower((string) ($user['status'] ?? 'Active')) !== 'archived') {
-            continue;
-        }
-        $rows[] = [
-            'type' => 'Archived ' . ucfirst((string) ($user['role'] ?? 'user')),
-            'title' => (string) ($user['name'] ?? $user['email'] ?? 'User account'),
-            'scope' => (string) ($user['email'] ?? ''),
             'status' => 'Archived',
-            'archived_at' => (string) ($user['archived_at'] ?? 'Account archive'),
+            'reason' => (string) ($record['reason'] ?? ''),
+            'archived_at' => (string) $record['archived_at'],
         ];
     }
 
@@ -959,12 +1090,14 @@ function clicketStaffPanelPayload(array $staff): array {
     $virtualQueue = clicketVirtualQueueStatsForEvents($events);
     $queueMetrics = clicketVirtualQueueAggregateMetrics($virtualQueue);
 
-    $audit = [
-        ['type' => 'Payment approval', 'actor' => 'ClicKet Admin', 'scope' => 'All venues', 'time' => 'Live audit stream'],
-        ['type' => 'Seat block/release', 'actor' => $staff['name'] ?? 'Authorized user', 'scope' => ($staff['role'] ?? '') === 'admin' ? 'System-wide' : 'Assigned venues', 'time' => 'Tracked per action'],
-        ['type' => 'Event archive', 'actor' => 'Organizer / Admin', 'scope' => 'Permission controlled', 'time' => 'Requires reason log'],
-        ['type' => 'Tier price change', 'actor' => 'Authorized staff', 'scope' => 'Venue tier', 'time' => 'Before/after value saved'],
-    ];
+    $audit = clicketDbFetchAll(
+        'SELECT al.action_type AS type, COALESCE(sa.name, "System") AS actor, al.entity_type AS scope, al.created_at AS time
+         FROM audit_logs al
+         LEFT JOIN staff_accounts sa ON sa.id = al.actor_staff_id
+         ORDER BY al.created_at DESC, al.id DESC
+         LIMIT 20'
+    );
+    $inventorySeats = clicketDbFetchAll('SELECT seat_code, status FROM seats ORDER BY id LIMIT 144');
 
     return [
         'venues' => $venueRows,
@@ -988,6 +1121,7 @@ function clicketStaffPanelPayload(array $staff): array {
         'sectionInventory' => $isAdmin ? $sectionInventory : [],
         'tierInventory' => $isAdmin ? $tierInventory : [],
         'inventorySummary' => $isAdmin ? $inventorySummary : ['capacity' => 0, 'available' => 0, 'sold' => 0, 'held' => 0, 'blocked' => 0],
+        'inventorySeats' => $isAdmin ? $inventorySeats : [],
         'attendance' => $attendance,
         'virtualQueue' => $virtualQueue,
         'news' => clicketStaffNewsRows(),

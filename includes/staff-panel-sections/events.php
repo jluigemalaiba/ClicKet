@@ -54,8 +54,8 @@ $eventReviewRows = $eventRows;
               <small>projected gross</small>
             </td>
             <td>
+              <button type="button" data-event-edit data-event="<?= sp_h($eventJson ?: '{}') ?>">Edit</button>
               <button type="button" data-event-card="<?= sp_h($event['key']) ?>" data-event-venue="<?= sp_h($event['venue']) ?>">Details</button>
-              <button type="button" data-event-edit="<?= sp_h($event['key']) ?>" data-event="<?= sp_h($eventJson ?: '{}') ?>">Edit</button>
               <?php if ($isAdmin): ?>
                 <form action="staff-events-api.php" method="post" style="display:inline">
                   <input type="hidden" name="action" value="archive">
@@ -85,6 +85,9 @@ $eventReviewRows = $eventRows;
         $eventAvailable = (int) ($event['available'] ?? 0);
         $eventVenueCapacity = (int) ($event['venue_capacity'] ?? 0);
         $eventTiers = is_array($event['tiers'] ?? null) ? $event['tiers'] : [];
+        $eventSchedules = is_array($event['schedules'] ?? null) ? $event['schedules'] : [];
+        $runningMinutes = (int) ($event['running_minutes'] ?? 0);
+        $doorsOpen = (int) ($event['doors_open_minutes'] ?? 0);
         ?>
         <article class="staff-event-review-detail" data-event-panel="<?= sp_h($event['key']) ?>">
       <div class="staff-event-review-banner">
@@ -95,6 +98,31 @@ $eventReviewRows = $eventRows;
           <span><?= sp_h($event['date']) ?> &middot; <?= sp_h($event['venue']) ?></span>
         </div>
       </div>
+
+      <div class="staff-detail-list">
+        <div><span>About</span><strong><?= sp_h((string) ($event['description'] ?? 'No description yet.')) ?></strong></div>
+        <div><span>Cast / Performers</span><strong><?= sp_h((string) ($event['cast_performers'] ?? $event['owner'] ?? 'Not set')) ?></strong></div>
+        <div><span>Type</span><strong><?= sp_h((string) ($event['type'] ?? 'Not set')) ?></strong></div>
+        <div><span>Running time</span><strong><?= $runningMinutes > 0 ? sp_count($runningMinutes) . ' minutes' : 'Not set' ?></strong></div>
+        <div><span>Age range</span><strong><?= sp_h((string) ($event['age_range'] ?? 'Not set')) ?></strong></div>
+        <div><span>Doors open</span><strong><?= $doorsOpen > 0 ? sp_count($doorsOpen) . ' minutes before' : 'Not set' ?></strong></div>
+      </div>
+
+      <section class="staff-event-review-tiers">
+        <div class="staff-venue-subheading">
+          <div>
+            <p>Schedule</p>
+            <h3>Published date and time slots</h3>
+          </div>
+          <span><?= sp_count(count($eventSchedules)) ?> schedule<?= count($eventSchedules) === 1 ? '' : 's' ?></span>
+        </div>
+        <div class="staff-detail-list">
+          <?php foreach ($eventSchedules as $schedule): ?>
+            <div><span><?= sp_h(ucfirst((string) ($schedule['status'] ?? 'scheduled'))) ?></span><strong><?= sp_h((string) ($schedule['label'] ?? '')) ?></strong></div>
+          <?php endforeach; ?>
+          <?php if (!$eventSchedules): ?><div><span>Schedule</span><strong>No schedule saved.</strong></div><?php endif; ?>
+        </div>
+      </section>
 
       <div class="staff-event-review-stats">
         <div><span>Paid sales</span><strong><?= sp_money($eventSales) ?></strong></div>
@@ -114,7 +142,7 @@ $eventReviewRows = $eventRows;
           <?php foreach ($eventTiers as $tier): ?>
             <div class="staff-event-tier-row">
               <span class="staff-event-tier-swatch" style="--tier-color: <?= sp_h($tier['color']) ?>"></span>
-              <span><strong><?= sp_h($tier['name']) ?></strong><small><?= sp_count($tier['sold']) ?> sold of <?= sp_count($tier['capacity']) ?></small></span>
+              <span><strong><?= sp_h($tier['name']) ?></strong><small><?= sp_h((string) ($tier['price_label'] ?? '₱0.00')) ?> &middot; <?= sp_count($tier['sold']) ?> sold of <?= sp_count($tier['capacity']) ?></small></span>
               <strong><?= sp_count($tier['available']) ?> left</strong>
               <i><b style="width: <?= sp_percent((int) $tier['available'], max(1, (int) $tier['capacity'])) ?>%"></b></i>
             </div>

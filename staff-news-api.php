@@ -45,8 +45,21 @@ foreach ($sectionHeaders as $index => $header) {
 }
 if (!$sections) { http_response_code(422); echo json_encode(['success' => false, 'message' => 'Add at least one content section.']); exit; }
 
-$now = date('c');
-$article = ['id' => 'NWS-' . strtoupper(substr(hash('sha256', microtime(true) . $title), 0, 10)), 'title' => $title, 'category' => $category, 'description' => $description, 'banner' => $bannerFilename, 'sections' => $sections, 'status' => $status, 'author' => (string) ($staff['name'] ?? 'Authorized Staff'), 'created_at' => $now, 'updated_at' => $now, 'published_at' => $status === 'Published' ? $now : null];
-$items = clicketReadNews(); $items[] = $article;
-if (!clicketWriteNews($items)) { http_response_code(500); echo json_encode(['success' => false, 'message' => 'Could not save the news article.']); exit; }
+$authorStaffId = clicketDbStaffIdBySession($staff);
+if (!$authorStaffId) { http_response_code(403); echo json_encode(['success' => false, 'message' => 'Staff account could not be verified.']); exit; }
+try {
+    $article = clicketCreateNewsArticle([
+        'title' => $title,
+        'category' => $category,
+        'description' => $description,
+        'banner' => $bannerFilename,
+        'sections' => $sections,
+        'status' => strtolower($status),
+    ], $authorStaffId);
+} catch (Throwable) {
+    if ($bannerFilename !== '') {
+        @unlink(__DIR__ . '/storage/news-banners/' . $bannerFilename);
+    }
+    http_response_code(500); echo json_encode(['success' => false, 'message' => 'Could not save the news article.']); exit;
+}
 echo json_encode(['success' => true, 'message' => $status === 'Published' ? 'Published to the public News page.' : 'News article saved outside the public News page.', 'article' => $article]);

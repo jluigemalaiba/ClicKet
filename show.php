@@ -25,29 +25,44 @@ $catalogs = [
 ];
 
 $eventKey = trim((string) ($_GET['event'] ?? ''));
-if (!preg_match('/^(concerts|theater|sports)-(\d+)$/', $eventKey, $matches)) {
+if (!preg_match('/^(concerts|theater|sports)-(.+)$/', $eventKey, $matches)) {
     header('Location: events.php');
     exit;
 }
 
 $categoryKey = $matches[1];
-$eventIndex = (int) $matches[2] - 1;
 $catalog = $catalogs[$categoryKey];
-$event = $catalog['events'][$eventIndex] ?? null;
+$event = null;
+$eventIndex = 0;
+
+foreach ($catalog['events'] as $index => $candidate) {
+    if ((string) ($candidate['event_key'] ?? $candidate['id'] ?? '') === $eventKey) {
+        $event = $candidate;
+        $eventIndex = (int) $index;
+        break;
+    }
+}
+
+if (!$event && ctype_digit($matches[2])) {
+    $eventIndex = (int) $matches[2] - 1;
+    $event = $catalog['events'][$eventIndex] ?? null;
+}
 
 if (!$event) {
     http_response_code(404);
     $event = $catalog['events'][0];
     $eventIndex = 0;
-    $eventKey = $categoryKey . '-1';
+    $eventKey = (string) ($event['event_key'] ?? $event['id'] ?? ($categoryKey . '-1'));
 }
 
 $times = ['6:00 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM'];
-$eventTime = $times[($eventIndex + $catalog['timeOffset']) % count($times)];
-$performer = $event['artist'] ?? $event['company'] ?? $event['league'] ?? '';
-$poster = posterUrl($catalog['posterCategory'], $eventIndex + 10);
-$banner = landscapeUrl($catalog['posterCategory'], $eventIndex + 10);
-$eventDate = DateTimeImmutable::createFromFormat('M j, Y', $event['date']) ?: new DateTimeImmutable($event['date']);
+$eventTime = (string) ($event['time'] ?? '') !== '' ? (string) $event['time'] : $times[($eventIndex + $catalog['timeOffset']) % count($times)];
+$performer = (string) ($event['cast_performers'] ?? ($event['artist'] ?? $event['company'] ?? $event['league'] ?? ''));
+$poster = (string) ($event['poster'] ?? '') !== '' ? (string) $event['poster'] : posterUrl($catalog['posterCategory'], $eventIndex + 10);
+$banner = (string) ($event['banner'] ?? '') !== '' ? (string) $event['banner'] : landscapeUrl($catalog['posterCategory'], $eventIndex + 10);
+$eventDateValue = (string) ($event['performance_date'] ?? $event['date'] ?? 'now');
+$eventDate = DateTimeImmutable::createFromFormat('Y-m-d', $eventDateValue)
+    ?: (DateTimeImmutable::createFromFormat('M j, Y', (string) ($event['date'] ?? '')) ?: new DateTimeImmutable($eventDateValue));
 $isMultiDay = $categoryKey === 'theater';
 
 $venueDetails = [
@@ -81,14 +96,17 @@ $synopsisTemplates = [
         $event['title']
     ),
 ];
-$synopsis = $synopsisTemplates[$categoryKey];
+$synopsis = trim((string) ($event['description'] ?? '')) !== '' ? (string) $event['description'] : $synopsisTemplates[$categoryKey];
 
-$duration = match ($categoryKey) {
+$runningMinutes = (int) ($event['running_minutes'] ?? 0);
+$duration = $runningMinutes > 0 ? sprintf('%d minutes', $runningMinutes) : match ($categoryKey) {
     'concerts' => 'Approximately 2 hours 30 minutes',
     'theater' => 'Approximately 2 hours 20 minutes, including intermission',
     default => 'Approximately 2 to 3 hours',
 };
-$ageGuidance = $categoryKey === 'theater' ? 'Recommended for ages 8 and above' : 'All ages; minors must follow venue policy';
+$ageGuidance = trim((string) ($event['age_range'] ?? '')) !== '' ? (string) $event['age_range'] : ($categoryKey === 'theater' ? 'Recommended for ages 8 and above' : 'All ages; minors must follow venue policy');
+$doorsOpenMinutes = (int) ($event['doors_open_minutes'] ?? 0);
+$doorsOpenLabel = $doorsOpenMinutes > 0 ? sprintf('%d minutes before showtime', $doorsOpenMinutes) : '90 minutes before showtime';
 $organizer = match ($categoryKey) {
     'concerts' => 'ClicKet Live and partner promoters',
     'theater' => $performer ?: 'ClicKet Stage',
@@ -104,7 +122,28 @@ $ticketPolicies = [
 $schedule = [
     ['date' => $eventDate, 'time' => $eventTime, 'label' => 'Main performance'],
 ];
-if ($isMultiDay) {
+if (!empty($event['db_id'])) {
+    $dbSchedules = clicketDbFetchAll(
+        'SELECT performance_date, performance_time
+         FROM event_performances
+         WHERE event_id = :event_id AND status <> "cancelled"
+         ORDER BY performance_date, performance_time, id',
+        ['event_id' => (int) $event['db_id']]
+    );
+    if ($dbSchedules) {
+        $schedule = array_map(static function (array $slot, int $index): array {
+            $date = DateTimeImmutable::createFromFormat('Y-m-d', (string) $slot['performance_date'])
+                ?: new DateTimeImmutable((string) $slot['performance_date']);
+            $time = clicketDbDisplayTime((string) $slot['performance_time']);
+
+            return [
+                'date' => $date,
+                'time' => $time,
+                'label' => $index === 0 ? 'Main performance' : 'Performance ' . ($index + 1),
+            ];
+        }, $dbSchedules, array_keys($dbSchedules));
+    }
+} elseif ($isMultiDay) {
     $schedule = [
         ['date' => $eventDate, 'time' => $eventTime, 'label' => 'Opening performance'],
         ['date' => $eventDate->modify('+1 day'), 'time' => '2:00 PM', 'label' => 'Matinee'],
@@ -207,7 +246,7 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
             <div><span>Presented by</span><strong><?= htmlspecialchars($organizer) ?></strong></div>
             <div><span>Running time</span><strong><?= htmlspecialchars($duration) ?></strong></div>
             <div><span>Audience</span><strong><?= htmlspecialchars($ageGuidance) ?></strong></div>
-            <div><span>Doors open</span><strong>90 minutes before showtime</strong></div>
+            <div><span>Doors open</span><strong><?= htmlspecialchars($doorsOpenLabel) ?></strong></div>
           </div>
         </article>
 
@@ -216,7 +255,13 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
             <p class="show-kicker"><?= $categoryKey === 'sports' ? 'League and participants' : 'Cast and performers' ?></p>
             <h2><?= htmlspecialchars($performer) ?></h2>
             <div class="show-performer">
-              <div class="show-performer-avatar"><?= htmlspecialchars(strtoupper(substr($performer, 0, 1))) ?></div>
+              <div class="show-performer-avatar">
+                <?php if (!empty($event['cast_logo_url'])): ?>
+                  <img src="<?= htmlspecialchars((string) $event['cast_logo_url']) ?>" alt="<?= htmlspecialchars($performer) ?> logo">
+                <?php else: ?>
+                  <?= htmlspecialchars(strtoupper(substr($performer, 0, 1))) ?>
+                <?php endif; ?>
+              </div>
               <div>
                 <strong><?= htmlspecialchars($performer) ?></strong>
                 <p><?= $categoryKey === 'theater' ? 'Production company and featured ensemble' : ($categoryKey === 'sports' ? 'Sanctioning league and competing athletes' : 'Headline artist with special guests') ?></p>
@@ -283,9 +328,11 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
       <div class="show-related-grid">
         <?php foreach ($relatedEvents as $relatedIndex => $related):
             $actualIndex = array_search($related, $catalog['events'], true);
+            $actualIndex = $actualIndex === false ? $relatedIndex : (int) $actualIndex;
+            $relatedPoster = (string) ($related['poster'] ?? '') !== '' ? (string) $related['poster'] : posterUrl($catalog['posterCategory'], $actualIndex + 10);
         ?>
-          <a class="show-related-card" href="<?= htmlspecialchars(eventDetailUrl($categoryKey, (int) $actualIndex)) ?>">
-            <img src="<?= htmlspecialchars(posterUrl($catalog['posterCategory'], (int) $actualIndex + 10)) ?>" alt="<?= htmlspecialchars($related['title']) ?> poster" loading="lazy">
+          <a class="show-related-card" href="<?= htmlspecialchars(clicketEventDetailUrl($related, $categoryKey, $actualIndex)) ?>">
+            <img src="<?= htmlspecialchars($relatedPoster) ?>" alt="<?= htmlspecialchars($related['title']) ?> poster" loading="lazy">
             <span><?= htmlspecialchars($related['type']) ?></span>
             <strong><?= htmlspecialchars($related['title']) ?></strong>
             <small><?= htmlspecialchars($related['date']) ?> &middot; <?= htmlspecialchars($related['venue']) ?></small>

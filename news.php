@@ -215,7 +215,7 @@ foreach ($publishedNews as $article) {
           <p class="news-kicker">Trending</p>
           <h2>Featured News</h2>
         </div>
-        <span>Updated monthly</span>
+        <span>Newest published updates</span>
       </div>
 
       <div class="news-filter-bar" aria-label="Filter news by category">
@@ -226,42 +226,27 @@ foreach ($publishedNews as $article) {
       </div>
 
       <div class="news-feature-grid">
-        <button class="news-feature-card news-feature-card-large news-filter-item news-trigger" data-category="platform" data-modal="modal-seat-maps" type="button">
-          <img src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&h=820&fit=crop" alt="Outdoor concert crowd with confetti" loading="eager">
-          <span class="news-category-badge">Platform Update</span>
-          <div class="news-feature-copy">
-            <div class="news-meta"><time>May 2026</time></div>
-            <h3>Expanded support for larger venue seat maps</h3>
-            <p>Zone-level pricing overlays and live availability highlights make large venue booking faster for fans and organizers.</p>
-          </div>
-        </button>
-
-        <button class="news-feature-card news-filter-item news-trigger" data-category="fans" data-modal="modal-mobile-wallet" type="button">
-          <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=720&h=480&fit=crop" alt="Concert crowd with phone lights" loading="lazy">
-          <span class="news-category-badge">For Fans</span>
-          <div class="news-feature-copy">
-            <h3>Mobile ticket wallet improvements</h3>
-            <div class="news-meta"><time>April 2026</time></div>
-          </div>
-        </button>
-
-        <button class="news-feature-card news-filter-item news-trigger" data-category="organizer" data-modal="modal-analytics" type="button">
-          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=720&h=480&fit=crop" alt="Analytics dashboard screens" loading="lazy">
-          <span class="news-category-badge">For Organizers</span>
-          <div class="news-feature-copy">
-            <h3>Organizer analytics dashboard</h3>
-            <div class="news-meta"><time>March 2026</time></div>
-          </div>
-        </button>
-
-        <button class="news-feature-card news-feature-card-wide news-filter-item news-trigger" data-category="platform" data-modal="modal-gate-scanning" type="button">
-          <img src="https://images.unsplash.com/photo-1603739903239-8b6e64c3b185?w=1000&h=460&fit=crop" alt="Event entrance gate" loading="lazy">
-          <span class="news-category-badge">Platform Update</span>
-          <div class="news-feature-copy">
-            <h3>Faster gate scanning for high-capacity venues</h3>
-            <div class="news-meta"><time>February 2026</time></div>
-          </div>
-        </button>
+        <?php foreach (array_slice($publishedNews, 0, 4) as $index => $article): ?>
+          <?php
+            $category = (string) ($article['category'] ?? 'Platform Updates');
+            $filterCategory = match ($category) {
+              'For Fans' => 'fans',
+              'For Organizers' => 'organizer',
+              default => 'platform',
+            };
+            $cardClass = $index === 0 ? ' news-feature-card-large' : ($index === 3 ? ' news-feature-card-wide' : '');
+          ?>
+          <a class="news-feature-card<?= $cardClass ?> news-filter-item" data-category="<?= htmlspecialchars($filterCategory) ?>" href="news.php?article=<?= urlencode((string) ($article['id'] ?? '')) ?>">
+            <?php if (!empty($article['banner'])): ?><img src="storage/news-banners/<?= rawurlencode(basename((string) $article['banner'])) ?>" alt="<?= htmlspecialchars((string) ($article['title'] ?? 'News banner')) ?>" loading="<?= $index === 0 ? 'eager' : 'lazy' ?>"><?php endif; ?>
+            <span class="news-category-badge"><?= htmlspecialchars($category) ?></span>
+            <div class="news-feature-copy">
+              <div class="news-meta"><time><?= htmlspecialchars(clicketNewsDate((string) ($article['published_at'] ?? ''))) ?></time></div>
+              <h3><?= htmlspecialchars((string) ($article['title'] ?? 'ClicKet update')) ?></h3>
+              <p><?= htmlspecialchars((string) ($article['description'] ?? '')) ?></p>
+            </div>
+          </a>
+        <?php endforeach; ?>
+        <?php if (!$publishedNews): ?><p class="news-empty-state">No published news yet. Create an article in News admin to feature it here.</p><?php endif; ?>
       </div>
     </section>
 

@@ -5,14 +5,14 @@
  * Renders a single event card (for concert / theater / sports grids).
  */
 function renderEventCard(array $event, string $category, int $idx): void {
-    $poster = posterUrl($category, $idx + 10);
+    $poster = (string) ($event['poster'] ?? '') !== '' ? (string) $event['poster'] : posterUrl($category, $idx + 10);
     $sub    = $event['artist'] ?? $event['company'] ?? $event['league'] ?? '';
     $type   = htmlspecialchars($event['type'] ?? '');
     $title  = htmlspecialchars($event['title']);
     $venue  = htmlspecialchars($event['venue']);
     $date   = htmlspecialchars($event['date']);
     $price  = htmlspecialchars($event['price'] ?? 'PHP 500');
-    $detailUrl = htmlspecialchars(eventDetailUrl($category, $idx));
+    $detailUrl = htmlspecialchars(clicketEventDetailUrl($event, $category, $idx));
 ?>
     <div class="event-card" role="group" aria-label="<?= $title ?>">
       <!-- Poster -->
@@ -72,7 +72,7 @@ function renderFeaturedCard(array $event, int $pos): void {
     $title    = htmlspecialchars($event['title']);
     $sub      = htmlspecialchars($event['sub']);
     $category = htmlspecialchars($event['category']);
-    $detailUrl = htmlspecialchars(eventDetailUrlByTitle($event['title']));
+    $detailUrl = htmlspecialchars(clicketEventDetailUrl($event, strtolower($event['category'] ?? 'events'), 0));
 ?>
     <a class="feat-card" data-pos="<?= $pos ?>" href="<?= $detailUrl ?>" aria-label="View <?= $title ?>">
       <img src="<?= $poster ?>" alt="<?= $title ?>" loading="lazy">
@@ -104,9 +104,11 @@ function renderCategoryShowcase(
 
     $firstSub = $first['artist'] ?? $first['company'] ?? $first['league'] ?? '';
     $firstType = $first['type'] ?? $label;
+    $firstBanner = (string) ($first['banner'] ?? '') !== '' ? (string) $first['banner'] : landscapeUrl($category, 10);
+    $firstUrl = clicketEventDetailUrl($first, $category, 0);
 ?>
     <div class="category-showcase" data-showcase="<?= htmlspecialchars($sectionId) ?>">
-      <div class="showcase-stage" style="--stage-bg: url('<?= landscapeUrl($category, 10) ?>');">
+      <div class="showcase-stage" style="--stage-bg: url('<?= htmlspecialchars($firstBanner) ?>');">
         <div class="showcase-copy">
           <div class="showcase-pills">
             <span><?= htmlspecialchars($label) ?></span>
@@ -118,7 +120,7 @@ function renderCategoryShowcase(
           </p>
           <p class="showcase-description"><?= htmlspecialchars($description) ?></p>
           <div class="showcase-actions">
-            <a href="<?= htmlspecialchars(eventDetailUrl($category, 0)) ?>" class="btn-primary showcase-book">
+            <a href="<?= htmlspecialchars($firstUrl) ?>" class="btn-primary showcase-book">
               View Event
             </a>
           </div>
@@ -142,20 +144,23 @@ function renderCategoryShowcase(
               <?php foreach ($events as $idx => $event):
                   $sub = $event['artist'] ?? $event['company'] ?? $event['league'] ?? '';
                   $type = $event['type'] ?? $label;
+                  $poster = (string) ($event['poster'] ?? '') !== '' ? (string) $event['poster'] : posterUrl($category, $idx + 10);
+                  $banner = (string) ($event['banner'] ?? '') !== '' ? (string) $event['banner'] : landscapeUrl($category, $idx + 10);
+                  $detailUrl = clicketEventDetailUrl($event, $category, $idx);
               ?>
                 <a
                   class="showcase-card <?= $idx === 0 ? 'active' : '' ?>"
-                  href="<?= htmlspecialchars(eventDetailUrl($category, $idx)) ?>"
+                  href="<?= htmlspecialchars($detailUrl) ?>"
                   data-type="<?= htmlspecialchars($type) ?>"
                   data-title="<?= htmlspecialchars($event['title']) ?>"
                   data-date="<?= htmlspecialchars($event['date']) ?>"
                   data-venue="<?= htmlspecialchars($event['venue']) ?>"
                   data-sub="<?= htmlspecialchars($sub) ?>"
                   data-category="<?= htmlspecialchars($label) ?>"
-                  data-image="<?= landscapeUrl($category, $idx + 10) ?>"
-                  data-link="<?= htmlspecialchars(eventDetailUrl($category, $idx)) ?>"
+                  data-image="<?= htmlspecialchars($banner) ?>"
+                  data-link="<?= htmlspecialchars($detailUrl) ?>"
                 >
-                  <img src="<?= posterUrl($category, $idx + 10) ?>" alt="<?= htmlspecialchars($event['title']) ?>" loading="lazy">
+                  <img src="<?= htmlspecialchars($poster) ?>" alt="<?= htmlspecialchars($event['title']) ?>" loading="lazy">
                   <span class="showcase-card-overlay">
                     <span class="showcase-card-type"><?= htmlspecialchars($type) ?></span>
                     <strong><?= htmlspecialchars($event['title']) ?></strong>

@@ -68,51 +68,17 @@ function clicketPeopleUserRow(int $userId): ?array {
     return $account;
 }
 
-function clicketPeopleVenueDefinition(string $assignmentId): ?array {
-    foreach (clicketStaffVenueDefinitions() as $venue) {
-        if ((string) ($venue['id'] ?? '') === $assignmentId) {
-            return $venue;
-        }
-    }
-
-    return null;
-}
-
 function clicketPeopleVenueDbId(string $assignmentId): ?int {
-    if (ctype_digit($assignmentId)) {
-        $row = clicketDbFetch('SELECT id FROM venues WHERE id = :id LIMIT 1', ['id' => (int) $assignmentId]);
-        if ($row) {
-            return (int) $row['id'];
-        }
-    }
-
-    $definition = clicketPeopleVenueDefinition($assignmentId);
-    if (!$definition) {
+    if (!ctype_digit($assignmentId)) {
         return null;
     }
 
-    $names = array_values(array_unique(array_filter(array_map('strval', array_merge(
-        [$definition['profileVenue'] ?? '', $definition['venue'] ?? ''],
-        is_array($definition['aliases'] ?? null) ? $definition['aliases'] : []
-    )))));
+    $row = clicketDbFetch(
+        'SELECT id FROM venues WHERE id = :id AND status = "active" LIMIT 1',
+        ['id' => (int) $assignmentId]
+    );
 
-    foreach ($names as $name) {
-        $row = clicketDbFetch(
-            'SELECT v.id
-             FROM venues v
-             LEFT JOIN venue_aliases va ON va.venue_id = v.id
-             WHERE LOWER(v.name) = LOWER(:name)
-                OR LOWER(va.alias) = LOWER(:alias)
-                OR v.slug = :slug
-             LIMIT 1',
-            ['name' => $name, 'alias' => $name, 'slug' => clicketDbSlug($name)]
-        );
-        if ($row) {
-            return (int) $row['id'];
-        }
-    }
-
-    return null;
+    return $row ? (int) $row['id'] : null;
 }
 
 function clicketPeopleReplaceVenueAssignment(int $staffId, string $assignmentId): bool {
@@ -150,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $action = strtolower(trim((string) ($_POST['action'] ?? '')));
-$availableVenues = array_map(static fn (array $venue): string => (string) ($venue['id'] ?? ''), clicketStaffVenueDefinitions());
+$availableVenues = array_map(static fn (array $venue): string => (string) ($venue['id'] ?? ''), clicketStaffAssignmentOptions());
 
 if ($action === 'create') {
     $role = strtolower(trim((string) ($_POST['role'] ?? '')));
@@ -159,8 +125,8 @@ if ($action === 'create') {
     $password = (string) ($_POST['password'] ?? '');
     $venue = trim((string) ($_POST['venue'] ?? ''));
 
-    if (!in_array($role, ['admin', 'organizer'], true) || strlen($name) < 3 || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($password) < 8) {
-        clicketPeopleRespond(['success' => false, 'message' => 'Add a username, valid email, and password with at least 8 characters.'], 422);
+    if (!in_array($role, ['admin', 'organizer'], true) || strlen($name) < 3 || !clicketIsSupportedPublicEmail($email) || strlen($password) < 8) {
+        clicketPeopleRespond(['success' => false, 'message' => 'Add a username, supported email provider, and password with at least 8 characters.'], 422);
     }
 
     if ($role === 'organizer' && !in_array($venue, $availableVenues, true)) {
