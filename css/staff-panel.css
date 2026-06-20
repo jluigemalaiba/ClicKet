@@ -4700,3 +4700,169 @@ body.event-review-modal-open {
     flex-wrap: nowrap;
   }
 }
+
+.staff-checkin-workspace {
+  display: grid;
+  gap: 16px;
+}
+
+.staff-checkin-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, .85fr) minmax(0, 1.15fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.staff-checkin-form {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.staff-checkin-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.staff-checkin-form label span,
+.staff-checkin-ticket-grid span {
+  color: var(--panel-muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.staff-checkin-form input {
+  width: 100%;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--panel-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  outline: 0;
+}
+
+.staff-checkin-form input:focus {
+  border-color: rgba(232, 22, 43, .42);
+  box-shadow: 0 0 0 3px rgba(232, 22, 43, .08);
+}
+
+.staff-checkin-message {
+  min-height: 18px;
+  margin: 0;
+  color: var(--panel-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.staff-checkin-message.is-success {
+  color: #15803d;
+}
+
+.staff-checkin-message.is-danger {
+  color: var(--panel-red);
+}
+
+.staff-checkin-result-body {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.staff-checkin-result-body > strong {
+  color: var(--panel-ink);
+  font-size: 18px;
+}
+
+.staff-checkin-result-body > span {
+  color: var(--panel-muted);
+  font-weight: 700;
+}
+
+.staff-checkin-ticket-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.staff-checkin-ticket-grid div {
+  display: grid;
+  gap: 4px;
+  padding: 11px;
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.staff-checkin-ticket-grid b {
+  overflow-wrap: anywhere;
+  color: var(--panel-ink);
+  font-size: 12px;
+}
+
+.staff-queue-form {
+  display: grid;
+  grid-template-columns: minmax(76px, .75fr) repeat(3, minmax(92px, 1fr)) auto;
+  gap: 8px;
+  align-items: end;
+  min-width: 520px;
+}
+
+.staff-queue-form label {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  color: var(--panel-muted);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.staff-queue-form input[type="number"] {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid var(--panel-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--panel-ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.staff-queue-form input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--panel-red);
+}
+
+.staff-queue-form button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--panel-red);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.staff-muted {
+  margin: 0;
+  color: var(--panel-muted);
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+@media (max-width: 850px) {
+  .staff-checkin-grid,
+  .staff-checkin-ticket-grid,
+  .staff-queue-form {
+    grid-template-columns: 1fr;
+  }
+}

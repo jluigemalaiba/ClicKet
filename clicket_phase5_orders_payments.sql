@@ -69,6 +69,8 @@ CREATE TABLE `orders` (
 CREATE TABLE `order_seats` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `order_id` BIGINT UNSIGNED NOT NULL,
+  `event_id` BIGINT UNSIGNED NOT NULL,
+  `performance_id` BIGINT UNSIGNED NOT NULL,
   `seat_id` BIGINT UNSIGNED NOT NULL,
   `seat_code` VARCHAR(120) NOT NULL,
   `section` VARCHAR(120) NOT NULL,
@@ -77,15 +79,29 @@ CREATE TABLE `order_seats` (
   `category` VARCHAR(120) DEFAULT NULL,
   `price` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `ticket_code` VARCHAR(190) DEFAULT NULL,
+  `reservation_status` ENUM('held', 'sold', 'released') NOT NULL DEFAULT 'held',
+  `active_reservation_key` VARCHAR(12) DEFAULT 'active',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_order_seats_order_seat` (`order_id`, `seat_id`),
+  UNIQUE KEY `uq_order_seats_active_event_performance_seat` (`event_id`, `performance_id`, `seat_id`, `active_reservation_key`),
   UNIQUE KEY `uq_order_seats_ticket_code` (`ticket_code`),
   KEY `idx_order_seats_order_id` (`order_id`),
+  KEY `idx_order_seats_event_id` (`event_id`),
+  KEY `idx_order_seats_performance_id` (`performance_id`),
   KEY `idx_order_seats_seat_id` (`seat_id`),
+  KEY `idx_order_seats_reservation_status` (`reservation_status`),
   CONSTRAINT `fk_order_seats_order`
     FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`)
     ON UPDATE CASCADE
     ON DELETE CASCADE,
+  CONSTRAINT `fk_order_seats_event`
+    FOREIGN KEY (`event_id`) REFERENCES `events` (`id`)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT,
+  CONSTRAINT `fk_order_seats_performance`
+    FOREIGN KEY (`performance_id`) REFERENCES `event_performances` (`id`)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT,
   CONSTRAINT `fk_order_seats_seat`
     FOREIGN KEY (`seat_id`) REFERENCES `seats` (`id`)
     ON UPDATE CASCADE

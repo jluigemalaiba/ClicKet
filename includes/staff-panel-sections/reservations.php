@@ -1,3 +1,10 @@
+<?php
+$activeReservationRows = array_values(array_filter(
+    $payload['reservationRows'],
+    static fn (array $row): bool => ($row['status'] ?? '') === 'Active' && (int) ($row['db_id'] ?? 0) > 0
+));
+$firstActiveHold = $activeReservationRows[0] ?? null;
+?>
 <section class="staff-grid-two" data-subsection="active">
   <article class="staff-card">
     <div class="staff-card-heading">
@@ -8,7 +15,7 @@
       <span><?= sp_count($metrics['activeReservations']) ?> active</span>
     </div>
     <div class="staff-reservation-list">
-      <?php foreach (array_slice($payload['reservationRows'], 0, 6) as $hold): ?>
+      <?php foreach (array_slice($activeReservationRows, 0, 6) as $hold): ?>
         <div class="staff-reservation-card" data-search-row>
           <div>
             <strong><?= sp_h($hold['id']) ?></strong>
@@ -16,7 +23,11 @@
             <small><?= sp_h($hold['venue']) ?> &middot; <?= sp_h($hold['buyer']) ?> &middot; <?= sp_count($hold['seats']) ?> seats</small>
           </div>
           <em class="staff-countdown" data-countdown="<?= (int) $hold['expires_at'] ?>"><?= sp_h($hold['expires_label']) ?></em>
-          <button type="button">Release</button>
+          <form method="post" action="staff-reservation-api.php">
+            <input type="hidden" name="action" value="release">
+            <input type="hidden" name="hold_id" value="<?= sp_h((string) ($hold['db_id'] ?? '')) ?>">
+            <button type="submit">Release</button>
+          </form>
         </div>
       <?php endforeach; ?>
     </div>
@@ -36,9 +47,21 @@
       <div class="staff-status-tile"><strong>15 min</strong><small>Default timer</small></div>
     </div>
     <div class="staff-card-actions">
-      <button type="button">Release Held Seats</button>
-      <button type="button">Extend Hold</button>
-      <button type="button">Export Holds</button>
+      <form method="post" action="staff-reservation-api.php">
+        <input type="hidden" name="action" value="release">
+        <input type="hidden" name="hold_id" value="<?= sp_h((string) ($firstActiveHold['db_id'] ?? '')) ?>">
+        <button type="submit" <?= $firstActiveHold ? '' : 'disabled' ?>>Release Hold</button>
+      </form>
+      <form method="post" action="staff-reservation-api.php">
+        <input type="hidden" name="action" value="extend">
+        <input type="hidden" name="hold_id" value="<?= sp_h((string) ($firstActiveHold['db_id'] ?? '')) ?>">
+        <input type="hidden" name="minutes" value="15">
+        <button type="submit" <?= $firstActiveHold ? '' : 'disabled' ?>>Extend Hold</button>
+      </form>
+      <form method="get" action="staff-reservation-api.php">
+        <input type="hidden" name="action" value="export">
+        <button type="submit">Export Reservations</button>
+      </form>
     </div>
   </article>
 </section>
@@ -72,7 +95,13 @@
             <td><?= sp_h($hold['buyer']) ?></td>
             <td><?= sp_count($hold['seats']) ?></td>
             <td><span class="staff-status <?= sp_status_class($hold['status']) ?>"><?= sp_h($hold['status']) ?></span></td>
-            <td><button type="button"><?= $hold['status'] === 'Expired' ? 'Audit Release' : 'Release Held Seats' ?></button></td>
+            <td>
+              <form method="post" action="staff-reservation-api.php">
+                <input type="hidden" name="action" value="release">
+                <input type="hidden" name="hold_id" value="<?= sp_h((string) ($hold['db_id'] ?? '')) ?>">
+                <button type="submit" <?= (int) ($hold['db_id'] ?? 0) > 0 ? '' : 'disabled' ?>><?= $hold['status'] === 'Expired' ? 'Audit Release' : 'Release Hold' ?></button>
+              </form>
+            </td>
           </tr>
         <?php endforeach; ?>
       </tbody>

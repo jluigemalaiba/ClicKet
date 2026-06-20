@@ -102,6 +102,8 @@ function sp_panel_icon(string $key): string {
         'orders' => '<path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z"></path><path d="M9 7h6"></path><path d="M9 11h6"></path><path d="M9 15h4"></path>',
         'payments' => '<rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path><path d="M7 15h4"></path>',
         'tickets' => '<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4V7z"></path><path d="M13 5v14"></path>',
+        'checkin' => '<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4V7z"></path><path d="M9 12l2 2 4-5"></path>',
+        'virtual_queue' => '<path d="M4 7h12"></path><path d="M4 12h16"></path><path d="M4 17h10"></path><circle cx="19" cy="7" r="2"></circle><path d="M18 17h2"></path>',
         'reservations' => '<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>',
         'users' => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
         'favorites' => '<path d="m12 3 2.7 5.47 6.03.88-4.37 4.25 1.03 6-5.39-2.83-5.39 2.83 1.03-6-4.37-4.25 6.03-.88L12 3z"></path>',
@@ -124,6 +126,8 @@ $adminModules = [
     ['Seats & Inventory', 'Seat map, available, sold, held, blocked, accessible, complimentary, and section analytics.'],
     ['Orders', 'Order records with buyer information, seats, payment references, proof screenshots, and complete details.'],
     ['Tickets', 'Ticket ID, validation code, voucher, seat assignment, status, and complete view-only details.'],
+    ['Check-In', 'Ticket validation, venue entry logging, duplicate scan handling, and attendance counts.'],
+    ['Virtual Queue', 'Waiting room admission caps, queue timeout, throughput, and live demand metrics.'],
     ['Reservations', 'Active holds, expired holds, countdown monitoring, and release controls.'],
     ['Users', 'Customer, organizer, role management, assignments, history, suspension, and disabling.'],
     ['Favorites', 'Most favorited events, favorite trends, and popularity analytics.'],
@@ -139,6 +143,8 @@ $organizerModules = [
     ['Venues', 'Assigned venue capacity, event revenue, ticket sales, and organizer coverage.'],
     ['Events', 'Create and manage owned event records, schedules, media, and event status.'],
     ['Tickets', 'Ticket ID, validation code, voucher, seat assignment, and view-only details.'],
+    ['Check-In', 'Validate owned event tickets and track venue entry.'],
+    ['Virtual Queue', 'View waiting room demand for your owned events.'],
     ['Reports', 'Scoped sales, venue, event, ticket, attendance, PDF, and Excel exports.'],
     ['News Management', 'Create event news, save drafts, and publish updates.'],
     ['Archives', 'Archived owned events, closed records, and retention views.'],
@@ -149,7 +155,10 @@ $adminPanelGroups = [
     'venues' => ['label' => 'Venues', 'eyebrow' => 'Venue Operations', 'partial' => 'venues.php', 'items' => ['cards' => 'Venue List', 'details' => 'Revenue & Tickets', 'tiers' => 'Tier Setup', 'organizers' => 'Organizer Roster']],
     'events' => ['label' => 'Events', 'eyebrow' => 'Organizer Event Review', 'partial' => 'events.php', 'items' => ['listing' => 'Event Gallery', 'details' => 'Submission Details', 'sales' => 'Sales & Seats', 'venues' => 'Venue Filter']],
     'orders' => ['label' => 'Orders', 'eyebrow' => 'Order Operations', 'partial' => 'orders.php', 'items' => ['table' => 'All Orders', 'details' => 'Order Details']],
+    'payments' => ['label' => 'Payments', 'eyebrow' => 'Payment Review', 'partial' => 'payments.php', 'items' => ['queue' => 'Payment Queue', 'proof' => 'Proof Viewer', 'revenue' => 'Revenue']],
     'tickets' => ['label' => 'Tickets', 'eyebrow' => 'Ticket Registry', 'partial' => 'tickets.php', 'items' => ['search' => 'All Tickets', 'details' => 'Ticket Details']],
+    'checkin' => ['label' => 'Check-In', 'eyebrow' => 'Gate Operations', 'partial' => 'checkin.php', 'items' => ['entry' => 'Entry Scan', 'logs' => 'Scan Logs']],
+    'virtual_queue' => ['label' => 'Virtual Queue', 'eyebrow' => 'Waiting Room', 'partial' => 'virtual-queue.php', 'items' => ['overview' => 'Metrics', 'events' => 'Event Queues']],
     'users' => ['label' => 'Users', 'eyebrow' => 'Identity & Roles', 'partial' => 'users.php', 'items' => ['table' => 'User Table', 'roles' => 'Roles', 'assignment' => 'Organizer Assignment', 'history' => 'Order History']],
     'reports' => ['label' => 'Reports', 'eyebrow' => 'Exports', 'partial' => 'reports.php', 'items' => ['sales' => 'Sales', 'venue' => 'Venue', 'attendance' => 'Attendance', 'exports' => 'PDF / Excel']],
     'news' => ['label' => 'News Management', 'eyebrow' => 'Content', 'partial' => 'news.php', 'items' => ['create' => 'Create Article', 'editor' => 'Editor', 'publish' => 'Publishing', 'archive' => 'Archive']],
@@ -161,6 +170,8 @@ $organizerPanelGroups = array_intersect_key($adminPanelGroups, array_flip([
     'venues',
     'events',
     'tickets',
+    'checkin',
+    'virtual_queue',
     'reports',
     'news',
     'archives',
@@ -176,6 +187,7 @@ $assignedVenueNames = clicketStaffAssignedVenueNames($staff);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= sp_h($panelTitle) ?> | CLICKET</title>
+  <meta name="clicket-csrf-token" content="<?= sp_h(clicketCsrfToken('staff_payment')) ?>">
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/staff-panel.css?v=<?= filemtime(__DIR__ . '/css/staff-panel.css') ?>">
 </head>

@@ -3,6 +3,7 @@
 require_once __DIR__ . '/includes/log.php';
 require_once __DIR__ . '/includes/staff-panel-data.php';
 require_once __DIR__ . '/includes/ticket-data.php';
+require_once __DIR__ . '/includes/ticket-validation.php';
 require_once __DIR__ . '/includes/voucher-generator.php';
 
 clicketRequireAdmin();
@@ -37,6 +38,10 @@ foreach (clicketReadOrders() as $order) {
 if (!$records) {
     http_response_code(404);
     exit('Ticket voucher not found or outside your assigned venue scope.');
+}
+
+foreach ($records as $record) {
+    clicketRecordTicketPrintByPublicId((string) ($record['ticket']['ticket_id'] ?? ''), $staff, 'staff_voucher');
 }
 ?>
 <!DOCTYPE html>

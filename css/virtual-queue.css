@@ -1,0 +1,161 @@
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.virtual-queue-page {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #101319;
+  background: #f5f7fb;
+}
+
+.vq-shell,
+.vq-hero {
+  min-height: 100vh;
+}
+
+.vq-hero {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 32px 18px;
+  background-image: var(--vq-banner);
+  background-position: center;
+  background-size: cover;
+}
+
+.vq-hero-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(8, 11, 18, .82), rgba(8, 11, 18, .5));
+}
+
+.vq-card {
+  position: relative;
+  width: min(720px, 100%);
+  padding: 32px;
+  border: 1px solid rgba(255, 255, 255, .26);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .24);
+}
+
+.vq-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 34px;
+}
+
+.vq-brand img:first-child {
+  width: 34px;
+  height: 34px;
+}
+
+.vq-brand img:last-child {
+  width: 106px;
+  height: auto;
+}
+
+.vq-kicker {
+  margin: 0 0 8px;
+  color: #d9142c;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.vq-card h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.45rem);
+  line-height: 1.02;
+}
+
+.vq-meta {
+  margin: 12px 0 26px;
+  color: #566070;
+  font-weight: 650;
+}
+
+.vq-status {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 20px;
+}
+
+.vq-status div {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #dfe4ee;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.vq-status span {
+  display: block;
+  margin-bottom: 7px;
+  color: #697284;
+  font-size: .75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.vq-status strong {
+  display: block;
+  overflow-wrap: anywhere;
+  color: #101319;
+  font-size: clamp(1.35rem, 5vw, 2.2rem);
+  line-height: 1;
+}
+
+.vq-progress {
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5eaf2;
+}
+
+.vq-progress span {
+  display: block;
+  width: 8%;
+  height: 100%;
+  border-radius: inherit;
+  background: #d9142c;
+  transition: width .3s ease;
+}
+
+.vq-message {
+  margin: 18px 0 0;
+  color: #303846;
+  font-weight: 700;
+}
+
+.vq-link {
+  display: inline-flex;
+  margin-top: 22px;
+  color: #d9142c;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.vq-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  .vq-card {
+    padding: 24px;
+  }
+
+  .vq-status {
+    grid-template-columns: 1fr;
+  }
+}

@@ -4,6 +4,7 @@ require_once __DIR__ . '/includes/ticketing.php';
 require_once __DIR__ . '/includes/log.php';
 require_once __DIR__ . '/includes/reservation.php';
 require_once __DIR__ . '/includes/order-history-data.php';
+require_once __DIR__ . '/includes/virtual-queue.php';
 
 $eventKey = trim((string) ($_GET['event'] ?? ''));
 $resolved = clicketResolveEvent($eventKey);
@@ -21,6 +22,8 @@ $reservationExpired = ($_GET['reservation'] ?? '') === 'expired';
 if ($reservationExpired) {
     clicketClearReservation();
 }
+clicketVirtualQueueRequireAdmission($eventKey, $performanceIndex);
+clicketVirtualQueueMarkBookingStarted($eventKey, $performanceIndex);
 $reservation = clicketStartReservation($eventKey, $performanceIndex);
 $performanceDate = $resolved['date'];
 $performanceTime = $resolved['time'];
@@ -37,7 +40,8 @@ if ($resolved['categoryKey'] === 'theater' && $performanceIndex > 0) {
 
 $unavailableSeatIds = array_values(array_unique(array_merge(
     clicketBookedSeatIds($eventKey, $performanceDate->format('l, F j, Y'), $performanceTime),
-    clicketHeldSeatIds($eventKey, $performanceIndex)
+    clicketHeldSeatIds($eventKey, $performanceIndex),
+    clicketInventoryBlockedSeatCodes($eventKey, $performanceIndex)
 )));
 
 $basePrice = (int) preg_replace('/\D/', '', (string) ($event['price'] ?? '2500'));

@@ -13,6 +13,37 @@ function startSessionIfNeeded(): void {
 
 startSessionIfNeeded();
 
+function clicketCsrfToken(string $scope = 'default'): string {
+    startSessionIfNeeded();
+
+    $key = 'clicket_csrf_' . preg_replace('/[^a-z0-9_]/i', '_', $scope);
+    if (empty($_SESSION[$key]) || !is_string($_SESSION[$key])) {
+        $_SESSION[$key] = bin2hex(random_bytes(32));
+    }
+
+    return $_SESSION[$key];
+}
+
+function clicketVerifyCsrfToken(string $token, string $scope = 'default'): bool {
+    startSessionIfNeeded();
+
+    $key = 'clicket_csrf_' . preg_replace('/[^a-z0-9_]/i', '_', $scope);
+    $expected = (string) ($_SESSION[$key] ?? '');
+
+    return $expected !== '' && hash_equals($expected, $token);
+}
+
+function clicketRequireCsrfJson(string $scope = 'default'): void {
+    $token = (string) ($_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? ''));
+    if (clicketVerifyCsrfToken($token, $scope)) {
+        return;
+    }
+
+    http_response_code(419);
+    echo json_encode(['success' => false, 'message' => 'Security token expired. Refresh the page and try again.']);
+    exit;
+}
+
 if (!isset($_SESSION['clicket_cart'])) {
     $_SESSION['clicket_cart'] = [];
 }
@@ -121,6 +152,11 @@ function saveUsers(array $users): bool {
 
     try {
         foreach ($users as $user) {
+            $role = strtolower(trim((string) ($user['role'] ?? 'customer')));
+            if ($role !== '' && $role !== 'customer') {
+                continue;
+            }
+
             $email = strtolower(trim((string) ($user['email'] ?? '')));
             if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 continue;

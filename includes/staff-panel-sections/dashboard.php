@@ -12,6 +12,7 @@ $paymentClearance = sp_percent($paidOrdersCount, max(1, $metrics['orders']));
 $eventPublishRate = sp_percent($publishedEvents, max(1, $metrics['activeEvents']));
 $ticketFillRate = sp_percent($metrics['ticketsSold'], max(1, $metrics['ticketsSold'] + $metrics['activeReservations'] + 25));
 $reservationLoad = sp_percent($metrics['activeReservations'], max(1, $metrics['activeReservations'] + 12));
+$attendanceRate = (int) ($metrics['attendanceRate'] ?? 0);
 $chartWidth = 680;
 $chartHeight = 270;
 $chartPadLeft = 58;
@@ -69,13 +70,17 @@ $circleStats = $isAdmin ? [
 $dashboardCards = $isAdmin ? [
     ['Total Sales', sp_money($metrics['sales']), 'Paid revenue', 'sales'],
     ['Tickets Sold', sp_count($metrics['ticketsSold']), 'Issued from paid orders', 'tickets'],
+    ['Checked In', sp_count($metrics['checkedIn'] ?? 0), sp_count($attendanceRate) . '% attendance', 'tickets'],
     ['Pending Payments', sp_count($metrics['pendingPayments']), 'Needs review', 'payments'],
     ['Active Events', sp_count($metrics['activeEvents']), 'Published and draft', 'events'],
     ['Reservations', sp_count($metrics['activeReservations']), 'Active seat holds', 'reservations'],
+    ['Virtual Queue', sp_count($metrics['queueSize'] ?? 0), sp_count($metrics['queueActiveSessions'] ?? 0) . ' active sessions', 'virtual_queue'],
     ['Revenue Fees', sp_money($metrics['serviceFees']), 'Service fee capture', 'revenue'],
 ] : [
     ['Owned Events', sp_count($metrics['activeEvents']), 'Assigned to your account', 'events'],
     ['Tickets Sold', sp_count($metrics['ticketsSold']), 'Issued from paid orders', 'tickets'],
+    ['Checked In', sp_count($metrics['checkedIn'] ?? 0), sp_count($attendanceRate) . '% attendance', 'tickets'],
+    ['Virtual Queue', sp_count($metrics['queueSize'] ?? 0), clicketVirtualQueueFormatDuration((int) ($metrics['queueAverageWaitSeconds'] ?? 0)) . ' avg wait', 'virtual_queue'],
     ['Published', sp_count($publishedEvents), 'Visible owned events', 'events'],
     ['Sales', sp_money($metrics['sales']), 'Paid revenue in scope', 'reports'],
 ];
@@ -83,11 +88,15 @@ $dashboardCards = $isAdmin ? [
 $dashboardUpdates = $isAdmin ? [
     ['Payment queue', sp_count($metrics['pendingPayments']) . ' orders still need approval', 'payments'],
     ['Ticket volume', sp_count($metrics['ticketsSold']) . ' tickets sold from paid orders', 'tickets'],
+    ['Gate check-in', sp_count($metrics['checkedIn'] ?? 0) . ' tickets checked in', 'checkin'],
+    ['Virtual queue', sp_count($metrics['queueSize'] ?? 0) . ' users waiting across enabled events', 'virtual_queue'],
     ['Reservation monitor', sp_count($metrics['activeReservations']) . ' active holds are currently running', 'reservations'],
     ['Inventory watch', sp_count($metrics['lowInventory']) . ' venues are near low inventory threshold', 'events'],
 ] : [
     ['Event worklist', sp_count($metrics['activeEvents']) . ' owned events in your current scope', 'events'],
     ['Ticket registry', sp_count($metrics['tickets']) . ' issued tickets in your current scope', 'tickets'],
+    ['Gate check-in', sp_count($metrics['checkedIn'] ?? 0) . ' tickets checked in', 'checkin'],
+    ['Virtual queue', sp_count($metrics['queueSize'] ?? 0) . ' users waiting for your events', 'virtual_queue'],
     ['Reports', sp_money($metrics['sales']) . ' paid revenue in your current scope', 'reports'],
 ];
 ?>
@@ -101,9 +110,11 @@ $dashboardUpdates = $isAdmin ? [
     <div class="staff-dashboard-actions">
       <?php if ($isAdmin): ?>
         <button class="staff-action-btn" type="button" data-panel-shortcut="payments">Review Payments</button>
+        <button class="staff-secondary-btn" type="button" data-panel-shortcut="checkin">Check In</button>
         <button class="staff-secondary-btn" type="button" data-panel-shortcut="events">Manage Events</button>
       <?php else: ?>
         <button class="staff-action-btn" type="button" data-panel-shortcut="events">Manage Events</button>
+        <button class="staff-secondary-btn" type="button" data-panel-shortcut="checkin">Check In</button>
         <button class="staff-secondary-btn" type="button" data-panel-shortcut="reports">View Reports</button>
       <?php endif; ?>
     </div>

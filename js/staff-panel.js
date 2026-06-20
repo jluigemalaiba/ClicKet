@@ -15,6 +15,7 @@
   const modalTitle = document.getElementById('staffModalTitle');
   const modalEyebrow = document.getElementById('staffModalEyebrow');
   const modalBody = document.querySelector('[data-modal-body]');
+  const csrfToken = document.querySelector('meta[name="clicket-csrf-token"]')?.content || '';
 
   function updateClock() {
     if (!clock) return;
@@ -611,6 +612,19 @@
   const managedOrders = staffOrders();
   const orderById = id => managedOrders.find(order => order.order_id === id);
 
+  function openProofPreview(orderId, source = '') {
+    if (!modal || !modalBody || !modalTitle) return;
+    const order = orderById(orderId);
+    const proofUrl = source || order?.proof_url || '';
+    modal.classList.remove('is-order-record', 'is-ticket-record');
+    modalTitle.textContent = order?.payment_reference || order?.reference || 'Proof Viewer';
+    if (modalEyebrow) modalEyebrow.textContent = 'payment proof';
+    modalBody.innerHTML = proofUrl
+      ? `<img class="staff-modal-proof" src="${escapeHtml(proofUrl)}" alt="Payment proof for ${escapeHtml(order?.order_id || 'order')}">`
+      : `<p class="staff-empty-state">No uploaded proof image is available for this payment.</p>`;
+    modal.hidden = false;
+  }
+
   document.querySelectorAll('[data-order-filter]').forEach(filter => {
     filter.addEventListener('click', () => {
       const selection = filter.dataset.orderFilter || 'all';
@@ -701,11 +715,56 @@
       row.querySelectorAll('[data-order-payment-status]').forEach(status => { status.textContent = updated.payment_status; setPaymentStatusClass(status, updated.payment_status); });
       row.querySelectorAll('[data-order-status]').forEach(status => { status.textContent = updated.order_status; });
     });
+    document.querySelectorAll(`[data-payment-row="${CSS.escape(updated.order_id)}"]`).forEach(row => {
+      row.querySelectorAll('[data-payment-status]').forEach(status => { status.textContent = updated.payment_status; setPaymentStatusClass(status, updated.payment_status); });
+      row.querySelectorAll('[data-payment-action]').forEach(button => { button.disabled = String(updated.payment_status || '').toLowerCase() !== 'pending'; });
+    });
+  }
+
+  async function submitOrderAction(action, orderId, reason = '', messageNode = null, submit = null) {
+    if (submit) submit.disabled = true;
+    if (messageNode) messageNode.textContent = 'Saving update...';
+    try {
+      const response = await fetch('staff-payment-api.php', {
+        method: 'POST',
+        body: new URLSearchParams({ action, order_id: orderId, reason, csrf_token: csrfToken }),
+      });
+      const payload = await response.json();
+      if (!payload.success) throw new Error(payload.message || 'Order update failed.');
+      applyOrderUpdate(payload.order);
+      if (messageNode) messageNode.textContent = 'Saved. The order record and payment log were updated.';
+      return payload;
+    } catch (error) {
+      if (messageNode) messageNode.textContent = error.message || 'Order update failed.';
+      throw error;
+    } finally {
+      if (submit) submit.disabled = false;
+    }
   }
 
   document.addEventListener('click', event => {
+    const proofPreview = event.target.closest('[data-proof-preview]');
+    if (proofPreview) {
+      openProofPreview(proofPreview.dataset.proofOrderId || '', proofPreview.dataset.proofPreview || '');
+      return;
+    }
     const details = event.target.closest('[data-order-details]');
     if (details) { showOrderDetails(details.dataset.orderDetails || ''); return; }
+    const paymentAction = event.target.closest('[data-payment-action][data-order-id]');
+    if (paymentAction && !paymentAction.disabled) {
+      const action = paymentAction.dataset.paymentAction || '';
+      const orderId = paymentAction.dataset.orderId || '';
+      if (action === 'reject') {
+        openOrderAction(action, orderId);
+        return;
+      }
+      if (action === 'approve' && window.confirm('Approve this payment and activate its tickets?')) {
+        submitOrderAction(action, orderId, '', null, paymentAction)
+          .then(() => window.setTimeout(() => window.location.reload(), 700))
+          .catch(() => {});
+      }
+      return;
+    }
     const action = event.target.closest('[data-order-action][data-order-id]');
     if (action && !action.disabled) openOrderAction(action.dataset.orderAction || '', action.dataset.orderId || '');
   });
@@ -719,7 +778,7 @@
     submit.disabled = true;
     if (message) message.textContent = 'Saving update…';
     try {
-      const response = await fetch('staff-payment-api.php', { method: 'POST', body: new URLSearchParams({ action: form.dataset.action || '', order_id: form.dataset.orderId || '', reason: new FormData(form).get('reason') || '' }) });
+      const response = await fetch('staff-payment-api.php', { method: 'POST', body: new URLSearchParams({ action: form.dataset.action || '', order_id: form.dataset.orderId || '', reason: new FormData(form).get('reason') || '', csrf_token: csrfToken }) });
       const payload = await response.json();
       if (!payload.success) throw new Error(payload.message || 'Order update failed.');
       applyOrderUpdate(payload.order);
@@ -808,6 +867,83 @@
       "'": '&#039;',
     }[char]));
   }
+
+  const checkinForm = document.querySelector('[data-checkin-form]');
+  const checkinResult = document.querySelector('[data-checkin-result]');
+  const checkinMessage = document.querySelector('[data-checkin-message]');
+
+  function checkinStatusClass(scanResult) {
+    return ({
+      valid: 'is-success',
+      already_used: 'is-muted',
+      blocked: 'is-danger',
+      invalid: 'is-danger',
+    })[scanResult] || 'is-info';
+  }
+
+  function renderCheckinResult(payload) {
+    if (!checkinResult) return;
+    const ticket = payload?.ticket || {};
+    const scanResult = payload?.scan_result || 'invalid';
+    const resultLabel = scanResult.replace(/_/g, ' ');
+    const statusClass = checkinStatusClass(scanResult);
+    const title = payload?.success ? 'Entry recorded' : 'Entry blocked';
+    const seatLabel = [ticket.section, ticket.row_label, ticket.seat_number].filter(Boolean).join(' ');
+    checkinResult.innerHTML = `
+      <header><div><p>Result</p><h3>${escapeHtml(title)}</h3></div><span class="staff-status ${statusClass}">${escapeHtml(resultLabel)}</span></header>
+      <div class="staff-checkin-result-body">
+        <strong>${escapeHtml(payload?.message || 'Validation complete.')}</strong>
+        ${ticket.ticket_id ? `
+          <div class="staff-checkin-ticket-grid">
+            <div><span>Ticket</span><b>${escapeHtml(ticket.ticket_id)}</b></div>
+            <div><span>Order</span><b>${escapeHtml(ticket.order_id || '-')}</b></div>
+            <div><span>Event</span><b>${escapeHtml(ticket.event_title || '-')}</b></div>
+            <div><span>Venue</span><b>${escapeHtml(ticket.venue || '-')}</b></div>
+            <div><span>Buyer</span><b>${escapeHtml(ticket.buyer_name || '-')}</b></div>
+            <div><span>Seat</span><b>${escapeHtml(seatLabel || ticket.category || '-')}</b></div>
+            <div><span>Status</span><b>${escapeHtml(ticket.status || '-')}</b></div>
+            <div><span>Used At</span><b>${escapeHtml(ticket.used_at || '-')}</b></div>
+          </div>
+        ` : '<span>No matching ticket record.</span>'}
+      </div>`;
+  }
+
+  checkinForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+    const submit = checkinForm.querySelector('[type="submit"]');
+    if (submit) submit.disabled = true;
+    if (checkinMessage) {
+      checkinMessage.textContent = 'Validating ticket...';
+      checkinMessage.className = 'staff-checkin-message';
+    }
+
+    try {
+      const response = await fetch('staff-checkin-api.php', {
+        method: 'POST',
+        body: new FormData(checkinForm),
+      });
+      const payload = await response.json();
+      renderCheckinResult(payload);
+      if (checkinMessage) {
+        checkinMessage.textContent = payload.message || 'Validation complete.';
+        checkinMessage.classList.toggle('is-success', Boolean(payload.success));
+        checkinMessage.classList.toggle('is-danger', !payload.success);
+      }
+      if (payload.success) {
+        checkinForm.querySelector('[name="validation_code"]')?.focus();
+        checkinForm.querySelector('[name="validation_code"]')?.select();
+      }
+    } catch (error) {
+      const payload = { success: false, scan_result: 'invalid', message: 'Ticket validation failed.', ticket: null };
+      renderCheckinResult(payload);
+      if (checkinMessage) {
+        checkinMessage.textContent = payload.message;
+        checkinMessage.classList.add('is-danger');
+      }
+    } finally {
+      if (submit) submit.disabled = false;
+    }
+  });
 
   function staffPeopleData() {
     const source = document.getElementById('staffPeopleJson');

@@ -3,17 +3,21 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/inventory-sync.php';
 
 if (!defined('CLICKET_RESERVATION_SECONDS')) {
     define('CLICKET_RESERVATION_SECONDS', 15 * 60);
 }
 
 function clicketExpireOldSeatHolds(): void {
-    clicketDbExecute(
+    $statement = clicketDbExecute(
         'UPDATE seat_holds
          SET status = "expired"
          WHERE status = "active" AND expires_at <= UTC_TIMESTAMP()'
     );
+    if ($statement->rowCount() > 0) {
+        clicketInventorySyncAll();
+    }
 }
 
 function clicketReservation(): ?array {
@@ -26,10 +30,13 @@ function clicketClearReservation(bool $clearSelection = true): void {
     $reservation = clicketReservation();
     $token = (string) ($reservation['token'] ?? '');
     if ($token !== '') {
-        clicketDbExecute(
+        $statement = clicketDbExecute(
             'UPDATE seat_holds SET status = "released" WHERE token = :token AND status = "active"',
             ['token' => $token]
         );
+        if ($statement->rowCount() > 0) {
+            clicketInventorySyncAll();
+        }
     }
 
     unset($_SESSION['clicket_reservation']);
@@ -150,34 +157,29 @@ function clicketHoldReservationSeats(array $seats): bool {
         $seatIds[] = clicketDbEnsureSeat($eventKey, $seatCode, $details);
     }
 
-    $placeholders = implode(',', array_fill(0, count($seatIds), '?'));
-    $params = array_merge(
-        [(int) $event['id'], (int) $performanceRow['id'], $token],
-        $seatIds
-    );
-    $conflict = clicketDbExecute(
-        'SELECT s.seat_code
-         FROM seat_holds h
-         INNER JOIN seat_hold_items hi ON hi.seat_hold_id = h.id
-         INNER JOIN seats s ON s.id = hi.seat_id
-         WHERE h.event_id = ?
-           AND h.performance_id = ?
-           AND h.token <> ?
-           AND h.status = "active"
-           AND h.expires_at > UTC_TIMESTAMP()
-           AND hi.seat_id IN (' . $placeholders . ')
-         LIMIT 1',
-        $params
-    )->fetch();
-
-    if ($conflict) {
-        return false;
-    }
-
     $pdo = clicketDb();
     $pdo->beginTransaction();
 
     try {
+        $lockPlaceholders = implode(',', array_fill(0, count($seatIds), '?'));
+        clicketDbExecute(
+            'SELECT id FROM seats WHERE id IN (' . $lockPlaceholders . ') ORDER BY id FOR UPDATE',
+            $seatIds
+        )->fetchAll();
+
+        $unavailable = clicketInventoryUnavailableSeatIds(
+            (int) $event['id'],
+            (int) $performanceRow['id'],
+            $seatIds,
+            $token,
+            null,
+            true
+        );
+        if ($unavailable) {
+            $pdo->rollBack();
+            return false;
+        }
+
         $hold = clicketDbFetch(
             'SELECT id FROM seat_holds WHERE token = :token LIMIT 1',
             ['token' => $token]
@@ -223,6 +225,7 @@ function clicketHoldReservationSeats(array $seats): bool {
         }
 
         $pdo->commit();
+        clicketInventorySyncEventPerformance((int) $event['id'], (int) $performanceRow['id']);
         return true;
     } catch (Throwable) {
         $pdo->rollBack();
@@ -309,6 +312,9 @@ function clicketReadReservationRows(): array {
         return [
             'id' => 'HLD-' . str_pad((string) $row['id'], 5, '0', STR_PAD_LEFT),
             'token' => (string) $row['token'],
+            'db_id' => (int) $row['id'],
+            'event_id' => (int) $row['event_id'],
+            'performance_id' => (int) $row['performance_id'],
             'event' => (string) $row['event_key'],
             'event_title' => (string) $row['event_title'],
             'venue' => (string) $row['venue_name'],
@@ -319,6 +325,7 @@ function clicketReadReservationRows(): array {
             'event_time' => clicketDbDisplayTime((string) $row['performance_time']),
             'seats' => array_map(static fn (string $code): array => ['id' => $code], $seatCodes),
             'status' => (string) $row['status'],
+            'raw_status' => (string) $row['status'],
             'expires_at' => $expiresAt,
             'created_at' => clicketDbDisplayDateTime((string) $row['started_at']),
         ];

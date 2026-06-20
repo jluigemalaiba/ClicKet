@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/data.php';
 require_once __DIR__ . '/includes/log.php';
+require_once __DIR__ . '/includes/virtual-queue.php';
 
 $catalogs = [
     'concerts' => [
@@ -178,10 +179,14 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
           </div>
           <div class="<?= $isMultiDay ? 'show-calendar' : 'show-single-date' ?>">
             <?php foreach ($schedule as $slotIndex => $slot): ?>
+              <?php
+                $ticketUrl = 'ticket.php?event=' . rawurlencode($eventKey) . '&performance=' . (int) $slotIndex;
+                $performanceUrl = clicketVirtualQueueEntryUrl($eventKey, (int) $slotIndex, $ticketUrl);
+              ?>
               <button
                 type="button"
                 class="show-date-card"
-                data-performance-url="ticket.php?event=<?= urlencode($eventKey) ?>&amp;performance=<?= (int) $slotIndex ?>"
+                data-performance-url="<?= htmlspecialchars($performanceUrl, ENT_QUOTES, 'UTF-8') ?>"
                 aria-pressed="false"
               >
                 <span class="show-date-month"><?= $slot['date']->format('M') ?></span>

@@ -4,6 +4,7 @@ require_once __DIR__ . '/log.php';
 require_once __DIR__ . '/ticketing.php';
 require_once __DIR__ . '/reservation.php';
 require_once __DIR__ . '/order-history-data.php';
+require_once __DIR__ . '/virtual-queue.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -25,6 +26,7 @@ if (!$resolved || !is_array($seats)) {
 }
 
 $performance = max(0, min(3, (int) ($payload['performance'] ?? 0)));
+clicketVirtualQueueRequireAdmissionJson($eventKey, $performance);
 if (!clicketReservationIsActive($eventKey, $performance)) {
     clicketClearReservation();
     http_response_code(410);
@@ -99,7 +101,8 @@ if ($resolved['categoryKey'] === 'theater' && $performance > 0) {
 $performanceDateLabel = $performanceDate->format('l, F j, Y');
 $seatIds = array_column($normalized, 'id');
 $bookedSeatIds = clicketBookedSeatIds($eventKey, $performanceDateLabel, $performanceTime);
-if (array_intersect($seatIds, $bookedSeatIds) || !clicketHoldReservationSeats($normalized)) {
+$blockedSeatIds = clicketInventoryBlockedSeatCodes($eventKey, $performance);
+if (array_intersect($seatIds, array_merge($bookedSeatIds, $blockedSeatIds)) || !clicketHoldReservationSeats($normalized)) {
     http_response_code(409);
     echo json_encode([
         'success' => false,

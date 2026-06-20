@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/log.php';
 require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/inventory-sync.php';
 
 function clicketEnsureOrderStore(): void {
     clicketDb();
@@ -101,6 +102,8 @@ function clicketOrderRowToApp(array $row): array {
         'payment_account' => (string) ($row['payment_account'] ?? ''),
         'proof_of_payment' => (string) ($row['proof_file_name'] ?? ''),
         'proof_file_path' => (string) ($row['proof_file_path'] ?? ''),
+        'proof_review_status' => (string) ($row['proof_review_status'] ?? ''),
+        'proof_review_note' => (string) ($row['proof_review_note'] ?? ''),
         'non_transferable' => (bool) $row['non_transferable'],
         'payment_status' => clicketDbDisplayPaymentStatus((string) $row['payment_status']),
         'order_status' => clicketDbDisplayOrderStatus((string) $row['order_status']),
@@ -128,6 +131,7 @@ function clicketReadOrders(): array {
                 p.payment_reference AS payment_row_reference, p.method AS payment_method,
                 p.method_label, p.payment_account,
                 pp.file_name AS proof_file_name, pp.file_path AS proof_file_path,
+                pp.review_status AS proof_review_status, pp.review_note AS proof_review_note,
                 approved.email AS approved_by_email,
                 rejected.email AS rejected_by_email
          FROM orders o
@@ -186,31 +190,107 @@ function clicketOrderHasSeatConflict(array $order): bool {
     $eventKey = (string) ($order['event'] ?? '');
     $event = clicketDbEventByKey($eventKey);
     $performance = clicketResolveOrderPerformance($eventKey, $order);
-    $seatCodes = clicketSelectedSeatCodes($order);
+    $seats = is_array($order['seats'] ?? null) ? $order['seats'] : [];
 
-    if (!$event || !$performance || !$seatCodes) {
+    if (!$event || !$performance || !$seats) {
         return true;
     }
 
-    $placeholders = implode(',', array_fill(0, count($seatCodes), '?'));
-    $params = array_merge(
-        [(int) $event['id'], (int) $performance['id']],
-        $seatCodes
-    );
-    $existing = clicketDbExecute(
-        'SELECT os.seat_code
-         FROM orders o
-         INNER JOIN order_seats os ON os.order_id = o.id
-         WHERE o.event_id = ?
-           AND o.performance_id = ?
-           AND o.payment_status = "approved"
-           AND o.order_status IN ("approved", "completed")
-           AND os.seat_code IN (' . $placeholders . ')
-         LIMIT 1',
-        $params
-    )->fetch();
+    $seatIds = [];
+    foreach ($seats as $seat) {
+        $seatCode = (string) ($seat['id'] ?? $seat['seat_code'] ?? '');
+        if ($seatCode === '') {
+            continue;
+        }
+        $seatIds[] = clicketDbEnsureSeat($eventKey, $seatCode, $seat);
+    }
 
-    return is_array($existing);
+    if (!$seatIds) {
+        return true;
+    }
+
+    $reservation = function_exists('clicketReservation') ? clicketReservation() : null;
+    $ownToken = is_array($reservation) ? (string) ($reservation['token'] ?? '') : '';
+
+    return clicketInventoryUnavailableSeatIds(
+        (int) $event['id'],
+        (int) $performance['id'],
+        $seatIds,
+        $ownToken !== '' ? $ownToken : null
+    ) !== [];
+}
+
+function clicketPreparedOrderSeats(string $eventKey, array $seats): array {
+    $prepared = [];
+    foreach ($seats as $seat) {
+        $seatCode = (string) ($seat['id'] ?? $seat['seat_code'] ?? '');
+        if ($seatCode === '') {
+            continue;
+        }
+
+        $seat['__seat_code'] = $seatCode;
+        $seat['__seat_id'] = clicketDbEnsureSeat($eventKey, $seatCode, $seat);
+        $prepared[] = $seat;
+    }
+
+    return $prepared;
+}
+
+function clicketOrderSeatIds(array $preparedSeats): array {
+    return array_values(array_unique(array_filter(array_map(
+        static fn (array $seat): int => (int) ($seat['__seat_id'] ?? 0),
+        $preparedSeats
+    ))));
+}
+
+function clicketSetOrderSeatsStatus(int $orderPk, string $status): void {
+    $reservationStatus = in_array($status, ['held', 'sold'], true) ? $status : 'released';
+    $activeReservationKey = in_array($status, ['held', 'sold'], true) ? 'active' : null;
+
+    clicketDbExecute(
+        'UPDATE order_seats
+         SET reservation_status = :reservation_status,
+             active_reservation_key = :active_reservation_key
+         WHERE order_id = :order_id',
+        [
+            'reservation_status' => $reservationStatus,
+            'active_reservation_key' => $activeReservationKey,
+            'order_id' => $orderPk,
+        ]
+    );
+
+    if (in_array($status, ['held', 'sold'], true)) {
+        clicketDbExecute(
+            'UPDATE seats s
+             INNER JOIN order_seats os ON os.seat_id = s.id
+             SET s.status = :status
+             WHERE os.order_id = :order_id',
+            ['status' => $status, 'order_id' => $orderPk]
+        );
+        return;
+    }
+
+    clicketDbExecute(
+        'UPDATE seats s
+         INNER JOIN order_seats os ON os.seat_id = s.id
+         SET s.status = "available"
+         WHERE os.order_id = :order_id
+           AND NOT EXISTS (
+             SELECT 1
+             FROM order_seats os2
+             WHERE os2.seat_id = s.id
+               AND os2.active_reservation_key = "active"
+           )
+           AND NOT EXISTS (
+             SELECT 1
+             FROM seat_blocks sb
+             WHERE sb.event_id = os.event_id
+               AND sb.performance_id = os.performance_id
+               AND sb.seat_id = s.id
+               AND sb.status = "active"
+           )',
+        ['order_id' => $orderPk]
+    );
 }
 
 function clicketTicketStatusForOrder(array $order): string {
@@ -240,6 +320,133 @@ function clicketOrderStaffIdFromField(array $order, string $field): ?int {
     return null;
 }
 
+function clicketOrderReviewNote(array $order, string $paymentStatus): string {
+    $note = '';
+    if ($paymentStatus === 'rejected') {
+        $note = trim((string) ($order['rejection_reason'] ?? ''));
+    }
+
+    $logs = is_array($order['payment_logs'] ?? null) ? $order['payment_logs'] : [];
+    if ($note === '' && $logs) {
+        $lastLog = end($logs);
+        if (is_array($lastLog)) {
+            $note = trim((string) ($lastLog['note'] ?? ''));
+        }
+    }
+
+    if ($note !== '' && strtolower($note) !== 'no reason provided.') {
+        return $note;
+    }
+
+    return $paymentStatus === 'approved'
+        ? 'Payment approved.'
+        : ($paymentStatus === 'rejected' ? 'Payment rejected.' : 'Awaiting staff review.');
+}
+
+function clicketSyncPaymentReviewRecords(int $orderPk, array $order, string $paymentStatus, ?int $reviewedByStaffId, ?string $reviewedAt): void {
+    $reviewStatus = in_array($paymentStatus, ['pending', 'under_review', 'approved', 'rejected'], true)
+        ? $paymentStatus
+        : 'pending';
+    $reviewNote = clicketOrderReviewNote($order, $reviewStatus);
+
+    clicketDbExecute(
+        'UPDATE payments
+         SET status = :status,
+             reviewed_by_staff_id = COALESCE(:staff_id, reviewed_by_staff_id),
+             reviewed_at = COALESCE(:reviewed_at, reviewed_at)
+         WHERE order_id = :order_id',
+        [
+            'order_id' => $orderPk,
+            'status' => $reviewStatus,
+            'staff_id' => $reviewedByStaffId,
+            'reviewed_at' => $reviewedAt,
+        ]
+    );
+
+    clicketDbExecute(
+        'UPDATE payment_proofs
+         SET review_status = :review_status,
+             review_note = CASE
+               WHEN review_status <> :review_status_compare OR review_note IS NULL OR review_note = "" THEN :review_note
+               ELSE review_note
+             END
+         WHERE order_id = :order_id',
+        [
+            'order_id' => $orderPk,
+            'review_status' => $reviewStatus,
+            'review_status_compare' => $reviewStatus,
+            'review_note' => $reviewNote,
+        ]
+    );
+}
+
+function clicketUniqueTicketValue(string $prefix, string $seed, string $column): string {
+    for ($attempt = 0; $attempt < 8; $attempt++) {
+        $candidate = $prefix . '-' . strtoupper(substr(hash('sha256', $seed . '-' . $attempt), 0, $prefix === 'VAL' ? 16 : 12));
+        if (!clicketDbFetch('SELECT id FROM tickets WHERE ' . $column . ' = :value LIMIT 1', ['value' => $candidate])) {
+            return $candidate;
+        }
+    }
+
+    return $prefix . '-' . strtoupper(bin2hex(random_bytes($prefix === 'VAL' ? 8 : 6)));
+}
+
+function clicketEnsureOrderTickets(int $orderPk, array $order): void {
+    $existing = clicketDbFetch(
+        'SELECT order_id, booked_at FROM orders WHERE id = :order_id LIMIT 1',
+        ['order_id' => $orderPk]
+    );
+    if (!$existing) {
+        return;
+    }
+
+    $ticketStatus = clicketTicketStatusForOrder($order);
+    $voucherId = (string) ($order['voucher']['voucher_id'] ?? ('VCH-' . strtoupper(substr(hash('sha256', (string) $existing['order_id']), 0, 12))));
+    $rows = clicketDbFetchAll(
+        'SELECT os.*
+         FROM order_seats os
+         LEFT JOIN tickets t ON t.order_id = os.order_id AND t.seat_id = os.seat_id
+         WHERE os.order_id = :order_id
+           AND t.id IS NULL
+         ORDER BY os.id',
+        ['order_id' => $orderPk]
+    );
+
+    foreach ($rows as $index => $seat) {
+        $seed = (string) $existing['order_id'] . '-' . (string) $seat['id'] . '-' . (string) $index;
+        $ticketId = trim((string) ($seat['ticket_code'] ?? ''));
+        if ($ticketId === '' || clicketDbFetch('SELECT id FROM tickets WHERE ticket_id = :ticket_id LIMIT 1', ['ticket_id' => $ticketId])) {
+            $ticketId = clicketUniqueTicketValue('TKT', $seed, 'ticket_id');
+        }
+
+        $validationCode = clicketUniqueTicketValue('VAL', $ticketId . '-' . $seed, 'validation_code');
+
+        clicketDbExecute(
+            'INSERT INTO tickets
+               (ticket_id, order_id, seat_id, voucher_id, validation_code, barcode_value, status,
+                section, row_label, seat_number, category, price, issued_at, used_at, reissued_from_ticket_id)
+             VALUES
+               (:ticket_id, :order_id, :seat_id, :voucher_id, :validation_code, :barcode_value, :status,
+                :section, :row_label, :seat_number, :category, :price, :issued_at, NULL, NULL)',
+            [
+                'ticket_id' => $ticketId,
+                'order_id' => $orderPk,
+                'seat_id' => (int) $seat['seat_id'],
+                'voucher_id' => $voucherId,
+                'validation_code' => $validationCode,
+                'barcode_value' => $ticketId,
+                'status' => $ticketStatus,
+                'section' => (string) ($seat['section'] ?? ''),
+                'row_label' => (string) ($seat['row_label'] ?? ''),
+                'seat_number' => (string) ($seat['seat_number'] ?? ''),
+                'category' => (string) ($seat['category'] ?? 'Admission'),
+                'price' => clicketDbMoneyValue($seat['price'] ?? 0),
+                'issued_at' => clicketDbDateTime((string) ($existing['booked_at'] ?? 'now')),
+            ]
+        );
+    }
+}
+
 function clicketSaveOrder(array $order, bool $allowDuplicateSeats = false): bool {
     clicketEnsureOrderStore();
 
@@ -258,6 +465,11 @@ function clicketSaveOrder(array $order, bool $allowDuplicateSeats = false): bool
         return true;
     }
 
+    $preparedSeats = clicketPreparedOrderSeats($eventKey, $seats);
+    if (!$preparedSeats) {
+        return false;
+    }
+
     if (!$allowDuplicateSeats && clicketOrderHasSeatConflict($order)) {
         return false;
     }
@@ -270,6 +482,31 @@ function clicketSaveOrder(array $order, bool $allowDuplicateSeats = false): bool
         $rejectedStaffId = clicketOrderStaffIdFromField($order, 'rejected_by');
         $paymentStatus = clicketDbNormalizePaymentStatus((string) ($order['payment_status'] ?? 'pending'));
         $orderStatus = clicketDbNormalizeOrderStatus((string) ($order['order_status'] ?? 'pending'));
+        $seatReservationStatus = $paymentStatus === 'approved' && in_array($orderStatus, ['approved', 'completed'], true)
+            ? 'sold'
+            : (($paymentStatus === 'pending' || $paymentStatus === 'under_review') && $orderStatus === 'pending' ? 'held' : 'released');
+        $activeReservationKey = in_array($seatReservationStatus, ['held', 'sold'], true) ? 'active' : null;
+        $seatIds = clicketOrderSeatIds($preparedSeats);
+        if (!$allowDuplicateSeats && $seatIds) {
+            $placeholders = implode(',', array_fill(0, count($seatIds), '?'));
+            clicketDbExecute(
+                'SELECT id FROM seats WHERE id IN (' . $placeholders . ') ORDER BY id FOR UPDATE',
+                $seatIds
+            )->fetchAll();
+            $reservation = function_exists('clicketReservation') ? clicketReservation() : null;
+            $ownToken = is_array($reservation) ? (string) ($reservation['token'] ?? '') : '';
+            if (clicketInventoryUnavailableSeatIds(
+                (int) $event['id'],
+                (int) $performance['id'],
+                $seatIds,
+                $ownToken !== '' ? $ownToken : null,
+                null,
+                true
+            )) {
+                $pdo->rollBack();
+                return false;
+            }
+        }
 
         clicketDbExecute(
             'INSERT INTO orders
@@ -352,13 +589,13 @@ function clicketSaveOrder(array $order, bool $allowDuplicateSeats = false): bool
         $ticketStatus = clicketTicketStatusForOrder($order);
         $voucherId = (string) ($order['voucher']['voucher_id'] ?? ('VCH-' . strtoupper(substr(hash('sha256', $orderId), 0, 12))));
 
-        foreach ($seats as $index => $seat) {
-            $seatCode = (string) ($seat['id'] ?? $seat['seat_code'] ?? '');
+        foreach ($preparedSeats as $index => $seat) {
+            $seatCode = (string) ($seat['__seat_code'] ?? '');
             if ($seatCode === '') {
                 continue;
             }
 
-            $seatId = clicketDbEnsureSeat($eventKey, $seatCode, $seat);
+            $seatId = (int) ($seat['__seat_id'] ?? 0);
             $ticketCode = (string) ($seat['ticket_code'] ?? '');
             if ($ticketCode === '') {
                 $ticketCode = 'TKT-' . strtoupper(substr(hash('sha256', $orderId . '-' . $index), 0, 12));
@@ -366,11 +603,13 @@ function clicketSaveOrder(array $order, bool $allowDuplicateSeats = false): bool
 
             clicketDbExecute(
                 'INSERT INTO order_seats
-                   (order_id, seat_id, seat_code, section, row_label, seat_number, category, price, ticket_code)
+                   (order_id, event_id, performance_id, seat_id, seat_code, section, row_label, seat_number, category, price, ticket_code, reservation_status, active_reservation_key)
                  VALUES
-                   (:order_id, :seat_id, :seat_code, :section, :row_label, :seat_number, :category, :price, :ticket_code)',
+                   (:order_id, :event_id, :performance_id, :seat_id, :seat_code, :section, :row_label, :seat_number, :category, :price, :ticket_code, :reservation_status, :active_reservation_key)',
                 [
                     'order_id' => $orderPk,
+                    'event_id' => (int) $event['id'],
+                    'performance_id' => (int) $performance['id'],
                     'seat_id' => $seatId,
                     'seat_code' => $seatCode,
                     'section' => (string) ($seat['section'] ?? ''),
@@ -379,6 +618,8 @@ function clicketSaveOrder(array $order, bool $allowDuplicateSeats = false): bool
                     'category' => (string) ($seat['category'] ?? 'Admission'),
                     'price' => clicketDbMoneyValue($seat['price'] ?? 0),
                     'ticket_code' => $ticketCode,
+                    'reservation_status' => $seatReservationStatus,
+                    'active_reservation_key' => $activeReservationKey,
                 ]
             );
 
@@ -420,6 +661,11 @@ function clicketSaveOrder(array $order, bool $allowDuplicateSeats = false): bool
                     'UPDATE seats SET status = "sold" WHERE id = :seat_id',
                     ['seat_id' => $seatId]
                 );
+            } elseif ($paymentStatus === 'pending' || $paymentStatus === 'under_review') {
+                clicketDbExecute(
+                    'UPDATE seats SET status = "held" WHERE id = :seat_id AND status <> "blocked"',
+                    ['seat_id' => $seatId]
+                );
             }
         }
 
@@ -432,6 +678,7 @@ function clicketSaveOrder(array $order, bool $allowDuplicateSeats = false): bool
         }
 
         $pdo->commit();
+        clicketInventorySyncEventPerformance((int) $event['id'], (int) $performance['id']);
         return true;
     } catch (Throwable) {
         $pdo->rollBack();
@@ -451,7 +698,7 @@ function clicketWriteOrders(array $orders): bool {
             }
 
             $existing = clicketDbFetch(
-                'SELECT id FROM orders WHERE order_id = :order_id LIMIT 1',
+                'SELECT id, event_id, performance_id FROM orders WHERE order_id = :order_id LIMIT 1',
                 ['order_id' => $orderId]
             );
             if (!$existing) {
@@ -462,6 +709,10 @@ function clicketWriteOrders(array $orders): bool {
             $rejectedStaffId = clicketOrderStaffIdFromField($order, 'rejected_by');
             $paymentStatus = clicketDbNormalizePaymentStatus((string) ($order['payment_status'] ?? 'pending'));
             $orderStatus = clicketDbNormalizeOrderStatus((string) ($order['order_status'] ?? 'pending'));
+            $reviewedAt = !empty($order['approved_at'])
+                ? clicketDbDateTime((string) $order['approved_at'])
+                : (!empty($order['rejected_at']) ? clicketDbDateTime((string) $order['rejected_at']) : null);
+            $reviewedByStaffId = $approvedStaffId ?? $rejectedStaffId;
 
             clicketDbExecute(
                 'UPDATE orders
@@ -477,27 +728,14 @@ function clicketWriteOrders(array $orders): bool {
                     'payment_status' => $paymentStatus,
                     'order_status' => $orderStatus,
                     'approved_by_staff_id' => $approvedStaffId,
-                    'approved_at' => !empty($order['approved_at']) ? clicketDbDateTime((string) $order['approved_at']) : null,
+                    'approved_at' => !empty($order['approved_at']) ? $reviewedAt : null,
                     'rejected_by_staff_id' => $rejectedStaffId,
-                    'rejected_at' => !empty($order['rejected_at']) ? clicketDbDateTime((string) $order['rejected_at']) : null,
+                    'rejected_at' => !empty($order['rejected_at']) ? $reviewedAt : null,
                 ]
             );
 
-            clicketDbExecute(
-                'UPDATE payments
-                 SET status = :status,
-                     reviewed_by_staff_id = COALESCE(:staff_id, reviewed_by_staff_id),
-                     reviewed_at = COALESCE(:reviewed_at, reviewed_at)
-                 WHERE order_id = :order_id',
-                [
-                    'order_id' => (int) $existing['id'],
-                    'status' => $paymentStatus,
-                    'staff_id' => $approvedStaffId ?? $rejectedStaffId,
-                    'reviewed_at' => !empty($order['approved_at'])
-                        ? clicketDbDateTime((string) $order['approved_at'])
-                        : (!empty($order['rejected_at']) ? clicketDbDateTime((string) $order['rejected_at']) : null),
-                ]
-            );
+            clicketSyncPaymentReviewRecords((int) $existing['id'], $order, $paymentStatus, $reviewedByStaffId, $reviewedAt);
+            clicketEnsureOrderTickets((int) $existing['id'], $order);
 
             clicketDbExecute(
                 'UPDATE tickets
@@ -508,6 +746,14 @@ function clicketWriteOrders(array $orders): bool {
                     'status' => clicketTicketStatusForOrder($order),
                 ]
             );
+
+            if ($paymentStatus === 'approved' && in_array($orderStatus, ['approved', 'completed'], true)) {
+                clicketSetOrderSeatsStatus((int) $existing['id'], 'sold');
+            } elseif ($paymentStatus === 'rejected' || $orderStatus === 'rejected') {
+                clicketSetOrderSeatsStatus((int) $existing['id'], 'available');
+            }
+
+            clicketInventorySyncEventPerformance((int) $existing['event_id'], (int) $existing['performance_id']);
         }
 
         $pdo->commit();
@@ -531,8 +777,7 @@ function clicketBookedSeatIds(string $eventKey, string $eventDate, string $event
          INNER JOIN order_seats os ON os.order_id = o.id
          WHERE o.event_id = :event_id
            AND o.performance_id = :performance_id
-           AND o.payment_status = "approved"
-           AND o.order_status IN ("approved", "completed")
+           AND os.active_reservation_key = "active"
          ORDER BY os.seat_code',
         [
             'event_id' => (int) $event['id'],

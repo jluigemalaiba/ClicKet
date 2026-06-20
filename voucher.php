@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/includes/log.php';
 require_once __DIR__ . '/includes/ticket-data.php';
+require_once __DIR__ . '/includes/ticket-validation.php';
 require_once __DIR__ . '/includes/voucher-generator.php';
 
 if (!isLoggedIn()) {
@@ -17,6 +18,8 @@ if (!$voucherRecord) {
     http_response_code(404);
     exit('Ticket voucher not found.');
 }
+
+clicketRecordTicketPrintByPublicId($ticketId, null, 'customer_voucher');
 ?>
 <!DOCTYPE html>
 <html lang="en">

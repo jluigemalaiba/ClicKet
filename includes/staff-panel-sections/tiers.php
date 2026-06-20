@@ -1,3 +1,13 @@
+<?php
+$tierRowsByVenue = [];
+foreach ($payload['tierInventory'] as $tierRow) {
+    $key = strtolower((string) ($tierRow['venue'] ?? '') . '|' . (string) ($tierRow['variant'] ?? ''));
+    if (!isset($tierRowsByVenue[$key])) {
+        $tierRowsByVenue[$key] = [];
+    }
+    $tierRowsByVenue[$key][] = $tierRow;
+}
+?>
 <section class="staff-section" data-subsection="venue-tiers">
   <div class="staff-section-heading">
     <div>
@@ -9,30 +19,35 @@
 
   <div class="staff-tier-grid">
     <?php foreach ($payload['venues'] as $venue): ?>
+      <?php
+      $venueTierKey = strtolower((string) ($venue['venue'] ?? '') . '|' . (string) ($venue['variant'] ?? ''));
+      $venueTierRows = $tierRowsByVenue[$venueTierKey] ?? [];
+      $venueTierCapacity = array_sum(array_map(static fn (array $row): int => (int) ($row['capacity'] ?? 0), $venueTierRows));
+      $tierColors = [];
+      foreach (($venue['tiers'] ?? []) as $tier) {
+          $tierColors[strtolower((string) ($tier['name'] ?? ''))] = (string) ($tier['color'] ?? '#e63946');
+      }
+      ?>
       <article class="staff-tier-card" data-search-row>
         <header>
           <div>
             <strong><?= sp_h($venue['venue']) ?> - <?= sp_h($venue['variant']) ?></strong>
-            <small><?= sp_count(count($venue['tiers'])) ?> tiers &middot; <?= sp_count($venue['capacity']) ?> capacity</small>
+            <small><?= sp_count(count($venueTierRows)) ?> tiers &middot; <?= sp_count($venueTierCapacity) ?> capacity</small>
           </div>
           <span class="staff-status is-success">Open</span>
         </header>
         <div class="staff-tier-list">
-          <?php foreach ($venue['tiers'] as $tierIndex => $tier):
-              $tierCapacity = max(1, (int) floor($venue['capacity'] / max(1, count($venue['tiers']))));
-              $sold = min($tierCapacity, max(0, (int) floor(($venue['sold'] + $tierIndex * 3) / max(1, count($venue['tiers'])))));
-              $held = $tierIndex % 3;
-              $available = max(0, $tierCapacity - $sold - $held);
-          ?>
+          <?php foreach ($venueTierRows as $tier): ?>
             <div class="staff-tier-row">
-              <span class="staff-tier-color" style="--tier-color: <?= sp_h($tier['color']) ?>"></span>
+              <span class="staff-tier-color" style="--tier-color: <?= sp_h($tierColors[strtolower((string) ($tier['tier'] ?? ''))] ?? '#e63946') ?>"></span>
               <span>
-                <strong><?= sp_h($tier['name']) ?></strong>
-                <small><?= sp_count($tierCapacity) ?> cap &middot; <?= sp_count($sold) ?> sold &middot; <?= sp_count($available) ?> available &middot; <?= sp_count($held) ?> held</small>
+                <strong><?= sp_h($tier['tier']) ?></strong>
+                <small><?= sp_count($tier['capacity']) ?> cap &middot; <?= sp_count($tier['sold']) ?> sold &middot; <?= sp_count($tier['available']) ?> available &middot; <?= sp_count($tier['held']) ?> held</small>
               </span>
               <em><?= sp_h($tier['status']) ?></em>
             </div>
           <?php endforeach; ?>
+          <?php if (!$venueTierRows): ?><p class="staff-empty-state">Tier inventory will appear after event inventory is synchronized.</p><?php endif; ?>
         </div>
         <div class="staff-card-actions">
           <button type="button" data-open-modal data-modal-title="Edit Tier Price" data-modal-type="tier-price">Edit Price</button>

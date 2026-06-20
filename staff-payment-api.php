@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'POST required.']);
     exit;
 }
+clicketRequireCsrfJson('staff_payment');
 
 $orderId = trim((string) ($_POST['order_id'] ?? ''));
 $action = strtolower(trim((string) ($_POST['action'] ?? '')));
@@ -108,4 +109,22 @@ foreach ($orders as $index => $order) {
 if (!$updatedOrder) { http_response_code(404); echo json_encode(['success' => false, 'message' => 'Order not found.']); exit; }
 if (!clicketWriteOrders($orders)) { http_response_code(500); echo json_encode(['success' => false, 'message' => 'Could not save the order update.']); exit; }
 
-echo json_encode(['success' => true, 'message' => 'Order updated.', 'order' => ['order_id' => $updatedOrder['order_id'] ?? '', 'payment_status' => $updatedOrder['payment_status'] ?? '', 'order_status' => $updatedOrder['order_status'] ?? '', 'payment_logs' => $updatedOrder['payment_logs'] ?? []]]);
+$freshOrder = null;
+foreach (clicketReadOrders() as $order) {
+    if ((string) ($order['order_id'] ?? '') === $orderId) {
+        $order['proof_url'] = clicketStaffOrderProofUrl($order);
+        $freshOrder = $order;
+        break;
+    }
+}
+
+echo json_encode([
+    'success' => true,
+    'message' => 'Order updated.',
+    'order' => $freshOrder ?: [
+        'order_id' => $updatedOrder['order_id'] ?? '',
+        'payment_status' => $updatedOrder['payment_status'] ?? '',
+        'order_status' => $updatedOrder['order_status'] ?? '',
+        'payment_logs' => $updatedOrder['payment_logs'] ?? [],
+    ],
+]);

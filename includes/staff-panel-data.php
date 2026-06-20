@@ -4,6 +4,9 @@ require_once __DIR__ . '/order-history-data.php';
 require_once __DIR__ . '/news-data.php';
 require_once __DIR__ . '/reservation.php';
 require_once __DIR__ . '/favorite-data.php';
+require_once __DIR__ . '/inventory-sync.php';
+require_once __DIR__ . '/ticket-validation.php';
+require_once __DIR__ . '/virtual-queue.php';
 
 function clicketStaffTier(string $name, string $color): array {
     return [
@@ -209,6 +212,33 @@ function clicketStaffAssignmentLabel(string $assignment): string {
         if ($option['id'] === $assignment) return $option['label'];
     }
     return $assignment;
+}
+
+function clicketStaffPeopleRows(array $users, array $staffAccounts): array {
+    $people = [];
+
+    foreach ($users as $user) {
+        $dbId = (string) ($user['id'] ?? '');
+        $status = strtolower((string) ($user['status'] ?? 'active'));
+        $user['id'] = 'user-' . $dbId;
+        $user['db_id'] = $dbId;
+        $user['account_table'] = 'users';
+        $user['role'] = 'customer';
+        $user['disabled'] = $status !== 'active';
+        $people[] = $user;
+    }
+
+    foreach ($staffAccounts as $account) {
+        $dbId = (string) ($account['session_user_id'] ?? $account['id'] ?? '');
+        $status = strtolower((string) ($account['status'] ?? 'active'));
+        $account['id'] = 'staff-' . $dbId;
+        $account['db_id'] = $dbId;
+        $account['account_table'] = 'staff_accounts';
+        $account['disabled'] = $status !== 'active';
+        $people[] = $account;
+    }
+
+    return $people;
 }
 
 function clicketStaffVenueAllowed(array $staff, array $venue): bool {
@@ -565,13 +595,29 @@ function clicketRequireStaffCanAccessOrderJson(array $staff, array $order): void
 }
 
 function clicketStaffOrderProofUrl(array $order): string {
-    $proof = basename((string) ($order['proof_of_payment'] ?? ''));
-    if ($proof === '') {
-        return '';
+    $candidates = [];
+    $storedPath = trim((string) ($order['proof_file_path'] ?? ''));
+    if ($storedPath !== '') {
+        $candidates[] = $storedPath;
+    }
+    $proof = trim((string) ($order['proof_of_payment'] ?? ''));
+    if ($proof !== '') {
+        $candidates[] = $proof;
     }
 
-    $path = __DIR__ . '/../storage/payment-proofs/' . $proof;
-    return is_file($path) ? 'storage/payment-proofs/' . rawurlencode($proof) : '';
+    foreach ($candidates as $candidate) {
+        $filename = basename(str_replace('\\', '/', $candidate));
+        if ($filename === '') {
+            continue;
+        }
+
+        $path = __DIR__ . '/../storage/payment-proofs/' . $filename;
+        if (is_file($path)) {
+            return 'storage/payment-proofs/' . rawurlencode($filename);
+        }
+    }
+
+    return '';
 }
 
 function clicketStaffEventLookup(array $events): array {
@@ -709,86 +755,32 @@ function clicketStaffPaymentMethodSummary(array $orders): array {
     return array_values($summary);
 }
 
-function clicketStaffSectionInventory(array $orders, array $venues): array {
-    $sections = [];
-    foreach ($orders as $order) {
-        $venueName = (string) ($order['venue'] ?? 'Unassigned venue');
-        foreach ((array) ($order['seats'] ?? []) as $seat) {
-            $section = (string) ($seat['section'] ?? 'General');
-            $key = strtolower($venueName . '|' . $section);
-            if (!isset($sections[$key])) {
-                $sections[$key] = [
-                    'venue' => $venueName,
-                    'section' => $section,
-                    'sold' => 0,
-                    'held' => 0,
-                    'blocked' => 0,
-                    'accessible' => 0,
-                    'complimentary' => 0,
-                    'available' => 0,
-                ];
-            }
-            $sections[$key]['sold']++;
-        }
-    }
-
-    if (!$sections) {
-        foreach (array_slice($venues, 0, 6) as $index => $venue) {
-            $sections[$venue['id'] . '-sample'] = [
-                'venue' => (string) $venue['venue'],
-                'section' => ['Floor A', 'Lower Box 101', 'Upper Box 401', 'Balcony Center', 'Patron A', 'VIP Deck'][$index] ?? 'Main',
-                'sold' => 24 + ($index * 7),
-                'held' => $index % 4,
-                'blocked' => $index % 3,
-                'accessible' => 8 + $index,
-                'complimentary' => $index % 2,
-                'available' => 160 - ($index * 11),
-            ];
-        }
-    } else {
-        foreach ($sections as $key => $row) {
-            $sold = (int) $row['sold'];
-            $sections[$key]['held'] = max(1, $sold % 5);
-            $sections[$key]['blocked'] = $sold % 3;
-            $sections[$key]['accessible'] = 6 + ($sold % 4);
-            $sections[$key]['complimentary'] = $sold % 2;
-            $sections[$key]['available'] = max(0, 180 - $sold - $sections[$key]['held'] - $sections[$key]['blocked']);
-        }
-    }
-
-    return array_values($sections);
-}
-
 function clicketStaffBuildReservationRows(array $reservations, array $orders): array {
     $rows = [];
     foreach ($reservations as $index => $hold) {
         $expiresAt = (int) ($hold['expires_at'] ?? (time() + 600));
+        $rawStatus = strtolower((string) ($hold['raw_status'] ?? $hold['status'] ?? ''));
+        $status = match ($rawStatus) {
+            'active' => $expiresAt > time() ? 'Active' : 'Expired',
+            'released' => 'Released',
+            'converted' => 'Converted',
+            'expired' => 'Expired',
+            default => $expiresAt > time() ? 'Active' : 'Expired',
+        };
+
         $rows[] = [
             'id' => (string) ($hold['id'] ?? 'HLD-' . str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT)),
+            'db_id' => (int) ($hold['db_id'] ?? 0),
+            'token' => (string) ($hold['token'] ?? ''),
+            'event_key' => (string) ($hold['event'] ?? ''),
+            'event_id' => (int) ($hold['event_id'] ?? 0),
+            'performance_id' => (int) ($hold['performance_id'] ?? 0),
             'event' => (string) ($hold['event_title'] ?? $hold['event'] ?? 'Seat hold'),
             'venue' => (string) ($hold['venue'] ?? 'Assigned venue'),
             'buyer' => (string) ($hold['buyer_name'] ?? $hold['user_id'] ?? 'Guest checkout'),
             'seats' => clicketStaffTicketCount($hold),
-            'status' => $expiresAt > time() ? 'Active' : 'Expired',
+            'status' => $status,
             'expires_at' => $expiresAt,
-            'expires_label' => date('H:i:s', $expiresAt),
-        ];
-    }
-
-    if ($rows) {
-        return $rows;
-    }
-
-    foreach (array_slice($orders, 0, 4) as $index => $order) {
-        $expiresAt = time() + (($index + 2) * 180);
-        $rows[] = [
-            'id' => 'HLD-' . strtoupper(substr(md5((string) ($order['order_id'] ?? $index)), 0, 8)),
-            'event' => (string) ($order['event_title'] ?? 'Checkout hold'),
-            'venue' => (string) ($order['venue'] ?? 'Assigned venue'),
-            'buyer' => (string) ($order['buyer_name'] ?? 'Guest checkout'),
-            'seats' => clicketStaffTicketCount($order),
-            'status' => $index === 3 ? 'Expired' : 'Active',
-            'expires_at' => $index === 3 ? time() - 90 : $expiresAt,
             'expires_label' => date('H:i:s', $expiresAt),
         ];
     }
@@ -893,13 +885,23 @@ function clicketStaffPanelPayload(array $staff): array {
     $favorites = clicketReadFavorites();
     $users = getUsers();
     $allStaff = getStaffAccounts();
+    $people = clicketStaffPeopleRows($users, $allStaff);
 
     $paidOrders = array_values(array_filter($orders, static fn (array $order): bool => strtolower((string) ($order['payment_status'] ?? '')) === 'paid'));
     $pendingOrders = array_values(array_filter($orders, static fn (array $order): bool => strtolower((string) ($order['payment_status'] ?? '')) === 'pending'));
     $ticketsSold = array_sum(array_map(static fn (array $order): int => clicketStaffTicketCount($order), $paidOrders));
     $sales = array_sum(array_map(static fn (array $order): int => (int) ($order['total'] ?? 0), $paidOrders));
-    $activeReservations = array_values(array_filter($reservations, static fn (array $hold): bool => (int) ($hold['expires_at'] ?? 0) > time()));
+    $activeReservations = array_values(array_filter(
+        $reservations,
+        static fn (array $hold): bool => strtolower((string) ($hold['raw_status'] ?? $hold['status'] ?? '')) === 'active'
+            && (int) ($hold['expires_at'] ?? 0) > time()
+    ));
     $tickets = clicketStaffFlattenTickets($orders);
+    $eventKeys = array_values(array_filter(array_map(
+        static fn (array $event): string => (string) ($event['event_key'] ?? $event['key'] ?? ''),
+        $events
+    )));
+    $inventoryEventKeys = $isAdmin ? null : $eventKeys;
 
     $topEvents = [];
     foreach ($orders as $order) {
@@ -948,27 +950,14 @@ function clicketStaffPanelPayload(array $staff): array {
     $paymentMethods = clicketStaffPaymentMethodSummary($orders);
     $serviceFees = array_sum(array_map(static fn (array $order): int => (int) ($order['service_fee'] ?? 0), $orders));
     $lowInventory = array_values(array_filter($venueRows, static fn (array $venue): bool => ($venue['occupancy'] ?? 0) >= 70));
-    $reservationRows = clicketStaffBuildReservationRows($activeReservations, $orders);
+    $reservationRows = clicketStaffBuildReservationRows($reservations, $orders);
     $favoriteRows = clicketStaffBuildFavoriteRows($favorites, $events, $orders);
-    $sectionInventory = clicketStaffSectionInventory($orders, $venueRows);
-    $tierInventory = [];
-    foreach ($venueRows as $venue) {
-        foreach ($venue['tiers'] as $tierIndex => $tier) {
-            $tierCapacity = max(1, (int) floor($venue['capacity'] / max(1, count($venue['tiers']))));
-            $sold = min($tierCapacity, max(0, (int) floor(($venue['sold'] + $tierIndex * 3) / max(1, count($venue['tiers'])))));
-            $held = $tierIndex % 3;
-            $tierInventory[] = [
-                'venue' => (string) $venue['venue'],
-                'variant' => (string) $venue['variant'],
-                'tier' => (string) $tier['name'],
-                'capacity' => $tierCapacity,
-                'sold' => $sold,
-                'held' => $held,
-                'available' => max(0, $tierCapacity - $sold - $held),
-                'revenue' => $sold * max(650, 1800 - ($tierIndex * 100)),
-            ];
-        }
-    }
+    $sectionInventory = clicketInventorySectionRows($inventoryEventKeys);
+    $tierInventory = clicketInventoryTierRows($inventoryEventKeys);
+    $inventorySummary = clicketInventorySummary($inventoryEventKeys);
+    $attendance = clicketStaffAttendanceMetrics($staff);
+    $virtualQueue = clicketVirtualQueueStatsForEvents($events);
+    $queueMetrics = clicketVirtualQueueAggregateMetrics($virtualQueue);
 
     $audit = [
         ['type' => 'Payment approval', 'actor' => 'ClicKet Admin', 'scope' => 'All venues', 'time' => 'Live audit stream'],
@@ -988,7 +977,7 @@ function clicketStaffPanelPayload(array $staff): array {
         'reservationRows' => $reservationRows,
         'favorites' => $isAdmin ? $favorites : [],
         'favoriteRows' => $isAdmin ? $favoriteRows : [],
-        'users' => $isAdmin ? $users : [],
+        'users' => $isAdmin ? $people : [],
         'staff' => $isAdmin ? $allStaff : [],
         'topEvents' => array_slice(array_values($topEvents), 0, 5),
         'topVenues' => array_slice(array_values($topVenues), 0, 5),
@@ -998,8 +987,11 @@ function clicketStaffPanelPayload(array $staff): array {
         'paymentMethods' => $isAdmin ? $paymentMethods : [],
         'sectionInventory' => $isAdmin ? $sectionInventory : [],
         'tierInventory' => $isAdmin ? $tierInventory : [],
+        'inventorySummary' => $isAdmin ? $inventorySummary : ['capacity' => 0, 'available' => 0, 'sold' => 0, 'held' => 0, 'blocked' => 0],
+        'attendance' => $attendance,
+        'virtualQueue' => $virtualQueue,
         'news' => clicketStaffNewsRows(),
-        'archives' => clicketStaffArchiveRows($orders, $events, $isAdmin ? $users : []),
+        'archives' => clicketStaffArchiveRows($orders, $events, $isAdmin ? $people : []),
         'audit' => $isAdmin ? $audit : [],
         'metrics' => [
             'sales' => $sales,
@@ -1013,6 +1005,15 @@ function clicketStaffPanelPayload(array $staff): array {
             'serviceFees' => $serviceFees,
             'tickets' => count($tickets),
             'staff' => $isAdmin ? count($allStaff) : 0,
+            'checkedIn' => (int) ($attendance['checked_in'] ?? 0),
+            'attendanceRate' => (int) ($attendance['attendance_rate'] ?? 0),
+            'scanAttempts' => (int) ($attendance['scan_attempts'] ?? 0),
+            'duplicateScans' => (int) ($attendance['duplicate_scans'] ?? 0),
+            'invalidScans' => (int) ($attendance['invalid_scans'] ?? 0),
+            'blockedScans' => (int) ($attendance['blocked_scans'] ?? 0),
+            'queueSize' => (int) ($queueMetrics['queueSize'] ?? 0),
+            'queueActiveSessions' => (int) ($queueMetrics['queueActiveSessions'] ?? 0),
+            'queueAverageWaitSeconds' => (int) ($queueMetrics['queueAverageWaitSeconds'] ?? 0),
         ],
     ];
 }

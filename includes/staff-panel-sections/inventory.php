@@ -1,12 +1,13 @@
 <?php
 $inventoryVenue = $payload['venues'][0] ?? null;
+$inventorySummary = $payload['inventorySummary'] ?? [];
 $seatStatuses = [
-    ['Available', 'is-available', max(0, (int) ($inventoryVenue['available'] ?? 0))],
-    ['Sold', 'is-sold', max(0, (int) ($inventoryVenue['sold'] ?? 0))],
-    ['Held', 'is-held', max(0, (int) ($inventoryVenue['held'] ?? 0))],
-    ['Blocked', 'is-blocked', 14],
-    ['Accessible', 'is-accessible', 18],
-    ['Complimentary', 'is-comp', 8],
+    ['Available', 'is-available', max(0, (int) ($inventorySummary['available'] ?? 0))],
+    ['Sold', 'is-sold', max(0, (int) ($inventorySummary['sold'] ?? 0))],
+    ['Held', 'is-held', max(0, (int) ($inventorySummary['held'] ?? 0))],
+    ['Blocked', 'is-blocked', max(0, (int) ($inventorySummary['blocked'] ?? 0))],
+    ['Accessible', 'is-accessible', max(0, (int) ($inventorySummary['accessible'] ?? 0))],
+    ['Complimentary', 'is-comp', max(0, (int) ($inventorySummary['complimentary'] ?? 0))],
 ];
 ?>
 

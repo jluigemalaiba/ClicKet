@@ -3,7 +3,12 @@ $paymentReviewOrders = array_values(array_filter($payload['orders'], static func
     return (string) ($order['proof_of_payment'] ?? '') !== ''
         || strtolower((string) ($order['payment_status'] ?? '')) === 'pending';
 }));
+$paymentReviewOrders = array_map(static function (array $order): array {
+    $order['proof_url'] = clicketStaffOrderProofUrl($order);
+    return $order;
+}, $paymentReviewOrders);
 $proofOrder = $paymentReviewOrders[0] ?? ($payload['orders'][0] ?? []);
+$proofUrl = clicketStaffOrderProofUrl($proofOrder);
 ?>
 
 <section class="staff-grid-two" data-subsection="queue">
@@ -36,7 +41,7 @@ $proofOrder = $paymentReviewOrders[0] ?? ($payload['orders'][0] ?? []);
         <strong><?= sp_h(($proofOrder['proof_of_payment'] ?? '') !== '' ? $proofOrder['proof_of_payment'] : 'No uploaded proof') ?></strong>
         <small><?= sp_h($proofOrder['buyer_name'] ?? 'Buyer') ?> &middot; <?= sp_money((int) ($proofOrder['total'] ?? 0)) ?></small>
       </div>
-      <button type="button" data-open-modal data-modal-title="Proof Viewer" data-modal-type="proof-viewer">Open Proof</button>
+      <button type="button" data-proof-preview="<?= sp_h($proofUrl) ?>" data-proof-order-id="<?= sp_h($proofOrder['order_id'] ?? '') ?>">Open Proof</button>
     </div>
   </article>
 </section>
@@ -67,7 +72,7 @@ $proofOrder = $paymentReviewOrders[0] ?? ($payload['orders'][0] ?? []);
             <td><strong><?= sp_h($order['order_id'] ?? 'Order') ?></strong><small><?= sp_h($order['payment_reference'] ?? $order['reference'] ?? '') ?></small></td>
             <td><?= sp_h($order['buyer_name'] ?? '') ?><small><?= sp_h($order['buyer_email'] ?? '') ?></small></td>
             <td><?= sp_h($order['venue'] ?? '') ?><small><?= sp_h($order['event_title'] ?? $order['event'] ?? '') ?></small></td>
-            <td><strong><?= sp_h($order['proof_of_payment'] ?? 'No screenshot yet') ?></strong><small>Submitted for review</small></td>
+            <td><strong><?= sp_h($order['proof_of_payment'] ?? 'No screenshot yet') ?></strong><small><?= ($order['proof_url'] ?? '') !== '' ? 'Submitted for review' : 'Preview unavailable' ?></small></td>
             <td><?= sp_money((int) ($order['total'] ?? 0)) ?></td>
             <td><span class="staff-status <?= sp_status_class($order['payment_status'] ?? 'Pending') ?>" data-payment-status><?= sp_h($order['payment_status'] ?? 'Pending') ?></span></td>
             <td>

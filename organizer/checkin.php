@@ -1,0 +1,1 @@
+<?php $organizerPage = 'checkin'; $organizerTitle = 'Check-In'; require __DIR__ . '/includes/header.php'; require dirname(__DIR__) . '/includes/staff-panel-sections/checkin.php'; require __DIR__ . '/includes/footer.php'; ?>

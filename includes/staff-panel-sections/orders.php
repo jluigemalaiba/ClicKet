@@ -35,7 +35,7 @@ $pendingCount = count(array_filter($orders, static fn (array $order): bool => st
           <td><?= sp_h($order['buyer_name'] ?? '') ?><small><?= sp_h($order['buyer_email'] ?? '') ?></small></td>
           <td><strong><?= sp_h($order['payment_method_label'] ?? $order['payment_method'] ?? '') ?></strong><small><?= sp_h($order['payment_reference'] ?? $order['reference'] ?? '') ?></small></td>
           <td><strong><?= sp_money((int) ($order['total'] ?? 0)) ?></strong></td>
-          <td><span class="staff-status <?= sp_status_class($order['payment_status'] ?? 'Pending') ?>"><?= sp_h($order['payment_status'] ?? 'Pending') ?></span><small><?= sp_h($order['order_status'] ?? 'Open') ?></small></td>
+          <td><span class="staff-status <?= sp_status_class($order['payment_status'] ?? 'Pending') ?>" data-order-payment-status><?= sp_h($order['payment_status'] ?? 'Pending') ?></span><small data-order-status><?= sp_h($order['order_status'] ?? 'Open') ?></small></td>
           <td class="staff-orders-table__action"><button type="button" data-order-details="<?= sp_h($order['order_id'] ?? '') ?>">View details <span>→</span></button></td>
         </tr>
       <?php endforeach; ?>
