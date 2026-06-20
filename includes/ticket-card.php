@@ -2,24 +2,27 @@
 
 $order = $ticketRecord['order'] ?? [];
 $ticket = $ticketRecord['ticket'] ?? [];
+$tickets = is_array($ticketRecord['tickets'] ?? null) ? $ticketRecord['tickets'] : [$ticket];
+$ticketCount = count($tickets);
+$seatLabels = array_map(static fn (array $item): string => trim(
+    (string) ($item['section'] ?? '') . ' · Row ' . (string) ($item['row'] ?? '') . ' · Seat ' . (string) ($item['number'] ?? '')
+), $tickets);
 ?>
-<article class="my-ticket-card" data-ticket-id="<?= htmlspecialchars((string) ($ticket['ticket_id'] ?? '')) ?>">
+<article class="my-ticket-card" data-ticket-id="<?= htmlspecialchars((string) ($order['order_id'] ?? $ticket['ticket_id'] ?? '')) ?>">
   <button class="my-ticket-card__open" type="button" data-ticket-open="<?= htmlspecialchars((string) ($ticket['ticket_id'] ?? '')) ?>" aria-label="View <?= htmlspecialchars((string) ($order['event_title'] ?? 'ticket')) ?> details">
     <span class="my-ticket-card__poster">
       <img src="<?= htmlspecialchars((string) ($order['event_poster'] ?? 'assets/Icon_Logo.png')) ?>" alt="<?= htmlspecialchars((string) ($order['event_title'] ?? 'Event')) ?> poster">
       <span class="my-ticket-card__status is-<?= strtolower((string) ($ticket['status'] ?? 'valid')) ?>"><?= htmlspecialchars((string) ($ticket['status'] ?? 'Valid')) ?></span>
     </span>
     <span class="my-ticket-card__content">
-      <span class="my-ticket-card__eyebrow"><?= htmlspecialchars((string) ($ticket['category'] ?? 'Admission')) ?></span>
+      <span class="my-ticket-card__eyebrow"><?= $ticketCount ?> <?= $ticketCount === 1 ? 'Ticket' : 'Tickets' ?> &middot; One transaction</span>
       <strong><?= htmlspecialchars((string) ($order['event_title'] ?? 'ClicKet Event')) ?></strong>
       <span><?= htmlspecialchars(trim((string) ($order['event_date'] ?? '') . ' at ' . (string) ($order['event_time'] ?? ''))) ?></span>
       <span><?= htmlspecialchars((string) ($order['venue'] ?? '')) ?></span>
       <span class="my-ticket-card__seat">
-        <?= htmlspecialchars((string) ($ticket['section'] ?? '')) ?> &middot;
-        Row <?= htmlspecialchars((string) ($ticket['row'] ?? '')) ?> &middot;
-        Seat <?= htmlspecialchars((string) ($ticket['number'] ?? '')) ?>
+        <?= htmlspecialchars(implode(' / ', $seatLabels)) ?>
       </span>
-      <span class="my-ticket-card__id"><?= htmlspecialchars((string) ($ticket['ticket_id'] ?? $order['order_id'] ?? '')) ?></span>
+      <span class="my-ticket-card__id"><?= htmlspecialchars((string) ($order['order_id'] ?? '')) ?></span>
     </span>
   </button>
   <a class="my-ticket-card__print" href="voucher.php?ticket=<?= urlencode((string) ($ticket['ticket_id'] ?? '')) ?>" target="_blank" rel="noopener">
@@ -27,4 +30,3 @@ $ticket = $ticketRecord['ticket'] ?? [];
     Print Form
   </a>
 </article>
-

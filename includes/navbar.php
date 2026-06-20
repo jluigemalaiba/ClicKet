@@ -45,8 +45,8 @@ unset($navSearchCategoryKey, $navSearchCatalog, $navSearchEventIndex, $navSearch
 $navFlash = pullFlashMessage();
 ?>
 <?php if ($navUser): ?>
-<link rel="stylesheet" href="css/order-history.css">
-<link rel="stylesheet" href="css/my-tickets.css">
+<link rel="stylesheet" href="css/order-history.css?v=<?= filemtime(dirname(__DIR__) . '/css/order-history.css') ?>">
+<link rel="stylesheet" href="css/my-tickets.css?v=<?= filemtime(dirname(__DIR__) . '/css/my-tickets.css') ?>">
 <link rel="stylesheet" href="css/favorites.css">
 <?php endif; ?>
 <nav class="navbar-clicket navbar navbar-expand-xl">
@@ -110,17 +110,17 @@ $navFlash = pullFlashMessage();
         <?php if ($navUser): ?>
           <div class="nav-profile dropdown">
             <button class="nav-profile-toggle d-none d-xl-inline-flex" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Open profile menu">
-              <span class="nav-profile-avatar" aria-hidden="true"><?= htmlspecialchars($navUserInitial) ?></span>
+              <span class="nav-profile-avatar" aria-hidden="true"><?php if (!empty($navUser['avatar_url'])): ?><img src="<?= htmlspecialchars($navUser['avatar_url']) ?>" alt=""><?php else: ?><?= htmlspecialchars($navUserInitial) ?><?php endif; ?></span>
             </button>
             <!-- Mobile trigger -->
             <button class="nav-profile-mobile-btn d-xl-none" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-              <span class="nav-profile-avatar" aria-hidden="true"><?= htmlspecialchars($navUserInitial) ?></span>
+              <span class="nav-profile-avatar" aria-hidden="true"><?php if (!empty($navUser['avatar_url'])): ?><img src="<?= htmlspecialchars($navUser['avatar_url']) ?>" alt=""><?php else: ?><?= htmlspecialchars($navUserInitial) ?><?php endif; ?></span>
               <span><?= htmlspecialchars($navUser['name']) ?></span>
               <svg class="nav-profile-mobile-chevron" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
             <div class="dropdown-menu dropdown-menu-end nav-profile-menu">
               <div class="nav-profile-summary">
-                <span class="nav-profile-summary-avatar" aria-hidden="true"><?= htmlspecialchars($navUserInitial) ?></span>
+                <span class="nav-profile-summary-avatar" aria-hidden="true"><?php if (!empty($navUser['avatar_url'])): ?><img src="<?= htmlspecialchars($navUser['avatar_url']) ?>" alt=""><?php else: ?><?= htmlspecialchars($navUserInitial) ?><?php endif; ?></span>
                 <span class="nav-profile-summary-text">
                   <span class="nav-profile-name"><?= htmlspecialchars($navUser['name']) ?></span>
                   <span class="nav-profile-email"><?= htmlspecialchars($navUser['email']) ?></span>
@@ -202,14 +202,15 @@ $navFlash = pullFlashMessage();
   </div>
 
   <div class="profile-edit-body offcanvas-body">
-    <form class="profile-edit-form" id="profileEditForm" novalidate>
+    <form class="profile-edit-form" id="profileEditForm" novalidate enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(clicketCsrfToken('profile_update')) ?>">
 
       <!-- Avatar -->
       <div class="profile-edit-avatar-section">
         <div class="profile-edit-avatar-wrap">
           <div class="profile-edit-avatar-display" id="profileAvatarDisplay">
-            <span class="profile-edit-avatar-initial" id="profileAvatarInitial"><?= htmlspecialchars($navUserInitial) ?></span>
-            <img class="profile-edit-avatar-img" id="profileAvatarImg" src="" alt="Profile photo" style="display:none">
+            <span class="profile-edit-avatar-initial" id="profileAvatarInitial"<?= !empty($navUser['avatar_url']) ? ' style="display:none"' : '' ?>><?= htmlspecialchars($navUserInitial) ?></span>
+            <img class="profile-edit-avatar-img" id="profileAvatarImg" src="<?= htmlspecialchars($navUser['avatar_url'] ?? '') ?>" alt="Profile photo"<?= empty($navUser['avatar_url']) ? ' style="display:none"' : '' ?>>
           </div>
           <label class="profile-edit-avatar-btn" for="profileAvatarInput" tabindex="0" role="button" aria-label="Change profile photo">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -217,7 +218,7 @@ $navFlash = pullFlashMessage();
               <circle cx="12" cy="13" r="4"/>
             </svg>
           </label>
-          <input type="file" id="profileAvatarInput" accept="image/*" class="visually-hidden">
+          <input type="file" id="profileAvatarInput" name="avatar" accept="image/jpeg,image/png,image/gif,image/webp" class="visually-hidden">
         </div>
         <div class="profile-edit-avatar-info">
           <p class="profile-edit-avatar-label">Profile Photo</p>
@@ -230,7 +231,7 @@ $navFlash = pullFlashMessage();
         <label class="profile-edit-label" for="peUsername" style="margin-top: 0.5rem;">Username</label>
         <div class="profile-edit-input-wrap">
           <span class="profile-edit-prefix">@</span>
-          <input type="text" id="peUsername" name="username" class="profile-edit-input profile-edit-input--prefix" placeholder="yourname" autocomplete="username" value="<?= htmlspecialchars($navUser['username'] ?? '') ?>">
+          <input type="text" id="peUsername" name="username" class="profile-edit-input profile-edit-input--prefix" placeholder="yourname" autocomplete="username" value="<?= htmlspecialchars($navUser['username'] ?? $navUser['name'] ?? '') ?>">
         </div>
       </div>
 
@@ -289,7 +290,7 @@ $navFlash = pullFlashMessage();
         <label class="profile-edit-label" for="pePhone" style="margin-top: 0.5rem;">Phone Number</label>
         <div class="profile-edit-input-wrap">
           <span class="profile-edit-prefix">+63</span>
-          <input type="tel" id="pePhone" name="phone" class="profile-edit-input profile-edit-input--prefix" placeholder="9XXXXXXXXX" maxlength="10" pattern="9[0-9]{9}" autocomplete="tel-national" value="<?= htmlspecialchars(ltrim($navUser['phone'] ?? '', '+630')) ?>">
+          <input type="tel" id="pePhone" name="phone" class="profile-edit-input profile-edit-input--prefix" placeholder="9XXXXXXXXX" maxlength="10" pattern="9[0-9]{9}" autocomplete="tel-national" value="<?= htmlspecialchars(preg_replace('/^\+?63/', '', (string) ($navUser['phone'] ?? ''))) ?>">
         </div>
       </div>
 
@@ -432,7 +433,7 @@ require __DIR__ . '/ticket-details-panel.php';
 <script src="js/navbar.js" defer></script>
 <script src="js/favorites.js" defer></script>
 <?php if ($navUser): ?>
-<script src="js/order-history.js" defer></script>
-<script src="js/my-tickets.js" defer></script>
+<script src="js/order-history.js?v=<?= filemtime(dirname(__DIR__) . '/js/order-history.js') ?>" defer></script>
+<script src="js/my-tickets.js?v=<?= filemtime(dirname(__DIR__) . '/js/my-tickets.js') ?>" defer></script>
 <?php endif; ?>
 

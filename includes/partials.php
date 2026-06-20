@@ -109,6 +109,7 @@ function renderCategoryShowcase(
 ?>
     <div class="category-showcase" data-showcase="<?= htmlspecialchars($sectionId) ?>">
       <div class="showcase-stage" style="--stage-bg: url('<?= htmlspecialchars($firstBanner) ?>');">
+        <img class="showcase-stage__banner" src="<?= htmlspecialchars($firstBanner) ?>" alt="" aria-hidden="true">
         <div class="showcase-copy">
           <div class="showcase-pills">
             <span><?= htmlspecialchars($label) ?></span>

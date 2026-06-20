@@ -125,6 +125,42 @@ function ensureStaffStore(): void {
     clicketDb();
 }
 
+function clicketEnsureUserProfileSchema(): void {
+    static $ready = false;
+    if ($ready) return;
+    clicketDbExecute(
+        'CREATE TABLE IF NOT EXISTS user_profiles (
+            user_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+            username VARCHAR(80) NULL,
+            first_name VARCHAR(80) NULL,
+            last_name VARCHAR(80) NULL,
+            bio VARCHAR(200) NULL,
+            gender VARCHAR(20) NULL,
+            birthday DATE NULL,
+            phone VARCHAR(24) NULL,
+            street VARCHAR(190) NULL,
+            city VARCHAR(100) NULL,
+            province VARCHAR(100) NULL,
+            zip VARCHAR(12) NULL,
+            country VARCHAR(80) NULL,
+            avatar_url VARCHAR(255) NULL,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            CONSTRAINT fk_user_profiles_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+    );
+    clicketDbExecute(
+        'INSERT INTO user_profiles (user_id, username)
+         SELECT u.id, u.name FROM users u
+         LEFT JOIN user_profiles p ON p.user_id = u.id
+         WHERE p.user_id IS NULL'
+    );
+    clicketDbExecute(
+        'UPDATE user_profiles p INNER JOIN users u ON u.id = p.user_id
+         SET p.username = u.name WHERE p.username IS NULL OR TRIM(p.username) = ""'
+    );
+    $ready = true;
+}
+
 function clicketUserRowToApp(array $row): array {
     return [
         'id' => (string) $row['id'],
@@ -135,12 +171,29 @@ function clicketUserRowToApp(array $row): array {
         'status' => (string) ($row['status'] ?? 'active'),
         'email_verified_at' => (string) ($row['email_verified_at'] ?? ''),
         'created_at' => clicketDbDisplayDateTime((string) ($row['created_at'] ?? '')),
+        'username' => trim((string) ($row['username'] ?? '')) !== '' ? (string) $row['username'] : (string) $row['name'],
+        'first_name' => (string) ($row['first_name'] ?? ''),
+        'last_name' => (string) ($row['last_name'] ?? ''),
+        'bio' => (string) ($row['bio'] ?? ''),
+        'gender' => (string) ($row['gender'] ?? ''),
+        'birthday' => (string) ($row['birthday'] ?? ''),
+        'phone' => (string) ($row['phone'] ?? ''),
+        'street' => (string) ($row['street'] ?? ''),
+        'city' => (string) ($row['city'] ?? ''),
+        'province' => (string) ($row['province'] ?? ''),
+        'zip' => (string) ($row['zip'] ?? ''),
+        'country' => (string) ($row['country'] ?? ''),
+        'avatar_url' => (string) ($row['avatar_url'] ?? ''),
     ];
 }
 
 function getUsers(): array {
+    clicketEnsureUserProfileSchema();
     $rows = clicketDbFetchAll(
-        'SELECT * FROM users ORDER BY created_at, id'
+        'SELECT u.*, p.username, p.first_name, p.last_name, p.bio, p.gender, p.birthday,
+                p.phone, p.street, p.city, p.province, p.zip, p.country, p.avatar_url
+         FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id
+         ORDER BY u.created_at, u.id'
     );
 
     return array_map('clicketUserRowToApp', $rows);
@@ -617,7 +670,15 @@ function currentUser(): ?array {
     startSessionIfNeeded();
 
     if (is_array($_SESSION['clicket_user'] ?? null)) {
-        return $_SESSION['clicket_user'];
+        clicketEnsureUserProfileSchema();
+        $id = (int) ($_SESSION['clicket_user']['id'] ?? 0);
+        $row = $id > 0 ? clicketDbFetch(
+            'SELECT u.*, p.username, p.first_name, p.last_name, p.bio, p.gender, p.birthday,
+                    p.phone, p.street, p.city, p.province, p.zip, p.country, p.avatar_url
+             FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id WHERE u.id = :id LIMIT 1',
+            ['id' => $id]
+        ) : null;
+        return $row ? clicketUserRowToApp($row) : $_SESSION['clicket_user'];
     }
 
     $auth = currentAuth();

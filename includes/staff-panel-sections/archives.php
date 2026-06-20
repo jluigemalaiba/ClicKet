@@ -124,7 +124,7 @@ $archiveTotal = count($archiveRows);
   </div>
 </section>
 
-<section class="staff-grid-two" data-subsection="events">
+<section class="staff-grid-two staff-archive-controls" data-subsection="events">
   <article class="staff-card" id="archive-categories">
     <div class="staff-card-heading">
       <div>
@@ -259,7 +259,6 @@ $archiveTotal = count($archiveRows);
             <td>
               <div class="staff-archive-row-actions">
                 <?php if ($isAdmin && !empty($archive['archive_id'])): ?><form method="post" action="staff-archive-api.php"><input type="hidden" name="action" value="restore"><input type="hidden" name="archive_id" value="<?= (int) $archive['archive_id'] ?>"><button type="submit">Restore</button></form><?php endif; ?>
-                <button type="button" class="staff-archive-kebab" aria-label="More actions">⋮</button>
               </div>
             </td>
           </tr>

@@ -4,7 +4,6 @@ $organizerLinks = [
     'events' => ['label' => 'Events', 'icon' => 'events'],
     'venues' => ['label' => 'Venues', 'icon' => 'venues'],
     'tickets' => ['label' => 'Tickets', 'icon' => 'tickets'],
-    'checkin' => ['label' => 'Check-In', 'icon' => 'checkin'],
     'queue' => ['label' => 'Virtual Queue', 'icon' => 'virtual_queue'],
     'attendees' => ['label' => 'Attendees', 'icon' => 'attendees'],
     'reports' => ['label' => 'Reports', 'icon' => 'reports'],

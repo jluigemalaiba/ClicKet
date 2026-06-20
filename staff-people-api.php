@@ -106,6 +106,21 @@ function clicketPeopleReplaceVenueAssignment(int $staffId, string $assignmentId)
     return true;
 }
 
+function clicketPeopleArchiveAccount(string $entityType, int $entityId, int $actorStaffId, string $reason): void {
+    $existing = clicketDbFetch(
+        'SELECT id FROM archive_records
+         WHERE entity_type = :entity_type AND entity_id = :entity_id AND restored_at IS NULL
+         LIMIT 1',
+        ['entity_type' => $entityType, 'entity_id' => $entityId]
+    );
+    if ($existing) return;
+    clicketDbExecute(
+        'INSERT INTO archive_records (entity_type, entity_id, archived_by_staff_id, approved_by_staff_id, reason)
+         VALUES (:entity_type, :entity_id, :staff_id, :staff_id, :reason)',
+        ['entity_type' => $entityType, 'entity_id' => $entityId, 'staff_id' => $actorStaffId, 'reason' => $reason]
+    );
+}
+
 $staff = currentStaff();
 if (!$staff || ($staff['role'] ?? '') !== 'admin') {
     clicketPeopleRespond(['success' => false, 'message' => 'Admin access required.'], 403);
@@ -225,10 +240,19 @@ if ($target['table'] === 'staff_accounts') {
         clicketPeopleRespond(['success' => false, 'message' => 'You cannot disable your own admin account.'], 409);
     }
 
-    clicketDbExecute(
-        'UPDATE staff_accounts SET status = "inactive" WHERE id = :id AND role IN ("admin", "organizer")',
-        ['id' => (int) $target['id']]
-    );
+    $pdo = clicketDb();
+    $pdo->beginTransaction();
+    try {
+        clicketDbExecute(
+            'UPDATE staff_accounts SET status = "inactive" WHERE id = :id AND role IN ("admin", "organizer")',
+            ['id' => (int) $target['id']]
+        );
+        clicketPeopleArchiveAccount((string) $account['role'], (int) $target['id'], (int) $currentStaffId, ucfirst((string) $account['role']) . ' account disabled from Users panel');
+        $pdo->commit();
+    } catch (Throwable) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        clicketPeopleRespond(['success' => false, 'message' => 'Could not disable the staff account.'], 500);
+    }
 
     clicketPeopleRespond([
         'success' => true,
@@ -242,7 +266,17 @@ if (!$account) {
     clicketPeopleRespond(['success' => false, 'message' => 'Account not found.'], 404);
 }
 
-clicketDbExecute('UPDATE users SET status = "inactive" WHERE id = :id', ['id' => (int) $target['id']]);
+$actorStaffId = clicketDbStaffIdBySession($staff);
+$pdo = clicketDb();
+$pdo->beginTransaction();
+try {
+    clicketDbExecute('UPDATE users SET status = "inactive" WHERE id = :id', ['id' => (int) $target['id']]);
+    clicketPeopleArchiveAccount('user', (int) $target['id'], (int) $actorStaffId, 'Customer account disabled from Users panel');
+    $pdo->commit();
+} catch (Throwable) {
+    if ($pdo->inTransaction()) $pdo->rollBack();
+    clicketPeopleRespond(['success' => false, 'message' => 'Could not archive the customer account.'], 500);
+}
 clicketPeopleRespond([
     'success' => true,
     'message' => 'Customer account archived and disabled.',

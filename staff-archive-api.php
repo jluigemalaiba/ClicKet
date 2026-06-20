@@ -35,17 +35,21 @@ if ($archiveId <= 0) {
 }
 
 $record = clicketDbFetch('SELECT * FROM archive_records WHERE id = :id AND restored_at IS NULL LIMIT 1', ['id' => $archiveId]);
-if (!$record || (string) $record['entity_type'] !== 'event') {
-    clicketArchiveRedirect('error', 'Only archived events can be restored from this panel.');
+if (!$record || !in_array((string) $record['entity_type'], ['event', 'user', 'admin', 'organizer'], true)) {
+    clicketArchiveRedirect('error', 'This archived record cannot be restored from this panel.');
 }
 
 $pdo = clicketDb();
 $pdo->beginTransaction();
 try {
-    clicketDbExecute(
-        'UPDATE events SET status = "published", archived_at = NULL WHERE id = :id AND status = "archived"',
-        ['id' => (int) $record['entity_id']]
-    );
+    $entityType = (string) $record['entity_type'];
+    if ($entityType === 'event') {
+        clicketDbExecute('UPDATE events SET status = "published", archived_at = NULL WHERE id = :id AND status = "archived"', ['id' => (int) $record['entity_id']]);
+    } elseif ($entityType === 'user') {
+        clicketDbExecute('UPDATE users SET status = "active" WHERE id = :id', ['id' => (int) $record['entity_id']]);
+    } else {
+        clicketDbExecute('UPDATE staff_accounts SET status = "active" WHERE id = :id AND role = :role', ['id' => (int) $record['entity_id'], 'role' => $entityType]);
+    }
     clicketDbExecute('UPDATE archive_records SET restored_at = UTC_TIMESTAMP() WHERE id = :id', ['id' => $archiveId]);
     $pdo->commit();
 } catch (Throwable) {
@@ -53,4 +57,4 @@ try {
     clicketArchiveRedirect('error', 'The archived event could not be restored.');
 }
 
-clicketArchiveRedirect('success', 'Archived event restored and republished.');
+clicketArchiveRedirect('success', 'Archived record restored successfully.');

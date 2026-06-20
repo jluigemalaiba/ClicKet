@@ -1,5 +1,8 @@
 <?php
 $people = $payload['users'] ?? [];
+$people = array_values(array_filter($people, static function (array $person): bool {
+    return empty($person['disabled']) && strtolower((string) ($person['status'] ?? 'active')) === 'active';
+}));
 $peopleByRole = ['customer' => [], 'admin' => [], 'organizer' => []];
 foreach ($people as $person) {
     $role = strtolower((string) ($person['role'] ?? 'customer'));

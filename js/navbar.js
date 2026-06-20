@@ -211,6 +211,27 @@
     updateCount();
   }
 
+  const profileForm = document.getElementById('profileEditForm');
+  const profileSave = document.getElementById('profileEditSave');
+  if (profileForm && profileSave) {
+    profileSave.addEventListener('click', async () => {
+      if (!profileForm.reportValidity()) return;
+      const original = profileSave.innerHTML;
+      profileSave.disabled = true;
+      profileSave.textContent = 'Saving...';
+      try {
+        const response = await fetch('profile-api.php', { method: 'POST', body: new FormData(profileForm) });
+        const payload = await response.json();
+        if (!response.ok || !payload.success) throw new Error(payload.message || 'Could not save profile.');
+        window.location.reload();
+      } catch (error) {
+        window.alert(error.message || 'Could not save profile.');
+        profileSave.disabled = false;
+        profileSave.innerHTML = original;
+      }
+    });
+  }
+
   /* ─── Custom Gender Dropdown ───────────────────────────────────────────── */
 
   (function initGenderDropdown() {

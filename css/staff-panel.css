@@ -4160,6 +4160,46 @@ body.event-review-modal-open {
   animation: staffVenueMeterIn .45s cubic-bezier(.2, .72, .2, 1) both;
 }
 
+/* Editable tier rows use a roomier form layout than the compact review rows. */
+.staff-event-tier-row.staff-event-tier-row--editable {
+  grid-template-columns: 18px minmax(260px, 1fr) 104px minmax(220px, 280px);
+  align-items: end;
+  gap: 12px 14px;
+  padding: 16px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff 0%, #fcfcfd 100%);
+  box-shadow: 0 5px 18px rgba(20, 20, 24, .035);
+}
+
+.staff-event-tier-row--editable .staff-event-tier-swatch {
+  align-self: center;
+  width: 18px;
+  height: 18px;
+  margin-bottom: 17px;
+  border-radius: 5px;
+}
+
+.staff-event-tier-row--editable input[type="text"],
+.staff-event-tier-row--editable .staff-price-field,
+.staff-event-tier-row--editable .staff-tier-color-field input[type="color"] {
+  min-height: 56px;
+}
+
+.staff-event-tier-row--editable .staff-tier-color-field input[type="color"] {
+  padding: 7px;
+  border-radius: 12px;
+}
+
+.staff-event-tier-row--editable .staff-price-field b {
+  min-width: 58px;
+}
+
+@media (max-width: 980px) and (min-width: 761px) {
+  .staff-event-tier-row.staff-event-tier-row--editable {
+    grid-template-columns: 18px minmax(200px, 1fr) 94px minmax(180px, 220px);
+  }
+}
+
 @media (hover: hover) {
   .staff-module-card,
   .staff-venue-card,
@@ -4458,8 +4498,14 @@ body.event-review-modal-open {
     grid-template-columns: 1fr;
   }
 
+  .staff-event-tier-row.staff-event-tier-row--editable {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
   .staff-event-tier-row--editable .staff-event-tier-swatch {
     justify-self: start;
+    margin-bottom: 0;
   }
 
   .staff-event-review-filter {
@@ -4934,6 +4980,71 @@ body.event-review-modal-open {
   text-align: center;
 }
 
+.staff-archive-controls {
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, .65fr);
+  align-items: stretch;
+  gap: 16px;
+}
+
+.staff-archive-controls > .staff-card {
+  height: 100%;
+  padding: 18px;
+}
+
+.staff-archive-controls .staff-archive-quick-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+#archive-table {
+  padding: 20px;
+  border: 1px solid var(--panel-line);
+  border-radius: 14px;
+  background: var(--panel-card);
+  box-shadow: var(--panel-shadow);
+}
+
+#archive-table .staff-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--panel-line);
+  border-radius: 11px;
+}
+
+#archive-table .staff-table {
+  min-width: 880px;
+  table-layout: fixed;
+}
+
+#archive-table .staff-table th,
+#archive-table .staff-table td {
+  vertical-align: middle;
+}
+
+#archive-table .staff-table th:nth-child(1) { width: 170px; }
+#archive-table .staff-table th:nth-child(2) { width: 22%; }
+#archive-table .staff-table th:nth-child(3) { width: 24%; }
+#archive-table .staff-table th:nth-child(4) { width: 115px; }
+#archive-table .staff-table th:nth-child(5) { width: 165px; }
+#archive-table .staff-table th:nth-child(6) { width: 100px; text-align: right; }
+#archive-table .staff-table td:nth-child(6) { text-align: right; }
+#archive-table .staff-table td:nth-child(2),
+#archive-table .staff-table td:nth-child(3) { overflow-wrap: anywhere; }
+#archive-table .staff-table td:nth-child(5) small { display: block; margin-top: 3px; color: var(--panel-muted); }
+
+.staff-archive-row-actions { justify-content: flex-end; }
+.staff-archive-row-actions form { margin: 0; }
+.staff-archive-row-actions form button {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 1px solid rgba(232, 22, 43, .24);
+  border-radius: 8px;
+  background: rgba(232, 22, 43, .08);
+  color: var(--panel-red);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 900;
+}
+.staff-archive-row-actions form button:hover { background: var(--panel-red); color: #fff; }
+
 .staff-table tbody tr {
   transition: background-color .15s ease;
   animation: staffArchiveRowIn .32s ease both;
@@ -4966,12 +5077,16 @@ body.event-review-modal-open {
     flex-direction: column;
     align-items: stretch;
   }
+  .staff-archive-controls { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 760px) {
   .staff-archive-quick-grid {
     grid-template-columns: 1fr;
   }
+
+  .staff-archive-controls .staff-archive-quick-grid { grid-template-columns: 1fr; }
+  #archive-table { padding: 14px; }
 
   .staff-archive-summary-main {
     min-width: 0;

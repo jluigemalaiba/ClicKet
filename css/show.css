@@ -472,8 +472,19 @@
 .show-timer small { color: rgba(255,255,255,.55); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; }
 .show-timer strong { font-size: 18px; letter-spacing: 1px; line-height: 1.15; }
 .show-timer.is-urgent .show-timer-icon { animation: timerPulse 1s infinite; }
+.show-timer.is-loading .show-timer-icon svg { display: none; }
+.show-timer.is-loading .show-timer-icon::after {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  content: "";
+  animation: showTimerSpin .7s linear infinite;
+}
 .show-timer.is-expired { opacity: .72; }
 @keyframes timerPulse { 50% { transform: scale(1.1); box-shadow: 0 0 0 7px rgba(232,22,43,.15); } }
+@keyframes showTimerSpin { to { transform: rotate(360deg); } }
 
 @media (max-width: 1050px) {
   .show-content-grid { grid-template-columns: 1fr; }

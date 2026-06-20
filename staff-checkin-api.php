@@ -7,7 +7,7 @@ require_once __DIR__ . '/includes/ticket-validation.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
-clicketRequireRoleJson(['admin', 'organizer'], 'Staff access required.');
+clicketRequireRoleJson(['admin'], 'Administrator access required.');
 $staff = currentStaff();
 if (!$staff) {
     http_response_code(401);

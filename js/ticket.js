@@ -456,8 +456,7 @@
       const row = rowName(position.rowIndex);
       const seatNumber = position.columnIndex + 1;
       const id = `${section.id}-${row}-${seatNumber}`;
-      const random = deterministicNumber(`${config.event.key}-${id}`);
-      const unavailable = random % 100 < 28 || unavailableSeatIds.has(id);
+      const unavailable = unavailableSeatIds.has(id);
       const seat = {
         id,
         sectionId: section.id,
@@ -750,8 +749,7 @@
     const row = rowName(rowIndex);
     const seatNumber = columnIndex + 1;
     const id = `${section.id}-${row}-${seatNumber}`;
-    const random = deterministicNumber(`${config.event.key}-${id}`);
-    const unavailable = random % 100 < 28 || unavailableSeatIds.has(id);
+    const unavailable = unavailableSeatIds.has(id);
     const seat = {
       id,
       sectionId: section.id,
@@ -1068,8 +1066,7 @@
         const row = rowName(rowIndex);
         const seatNumber = columnIndex + 1;
         const id = `${section.id}-${row}-${seatNumber}`;
-        const random = deterministicNumber(`${config.event.key}-${id}`);
-        const unavailable = random % 100 < 28 || unavailableSeatIds.has(id);
+        const unavailable = unavailableSeatIds.has(id);
         const seat = {
           id,
           sectionId: section.id,
@@ -1216,8 +1213,7 @@
       for (let columnIndex = 0; columnIndex < columns; columnIndex += 1) {
         const seatNumber = columnIndex + 1;
         const id = `${section.id}-${row}-${seatNumber}`;
-        const random = deterministicNumber(`${config.event.key}-${id}`);
-        const unavailable = random % 100 < 28 || unavailableSeatIds.has(id);
+        const unavailable = unavailableSeatIds.has(id);
         const columnProgress = columns === 1 ? 0 : columnIndex / (columns - 1);
         const cx = rowStartX + rowWidth * columnProgress + wingShift;
         const curveDepth = isCenter ? Math.abs(columnIndex - (columns - 1) / 2) * 1.15 : 0;
@@ -1330,8 +1326,13 @@
   function updateAvailability() {
     let total = 0;
     Object.keys(config.categories).forEach(key => {
-      let count = availableByCategory(key);
-      if (config.venue.capacity && isDetailedBowl) {
+      let count = Number(config.availabilityByCategory?.[key]);
+      if (!Number.isFinite(count)) {
+        count = availableByCategory(key);
+      } else {
+        count = Math.max(0, count);
+      }
+      if (!Number.isFinite(Number(config.availabilityByCategory?.[key])) && config.venue.capacity && isDetailedBowl) {
         const categorySections = config.venue.sections.filter(section => section.category === key);
         const categoryCapacity = categorySections.reduce((sum, section) => sum + Number(section.capacity || 0), 0);
         const renderedSeats = state.seats.filter(seat => seat.categoryKey === key);

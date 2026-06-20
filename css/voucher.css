@@ -84,7 +84,7 @@ body {
   width: 190mm;
   min-height: 277mm;
   padding: 7mm 7mm 5mm;
-  overflow: hidden;
+  overflow: visible;
   border: 0;
   background: #fff;
   box-shadow: none;
@@ -189,8 +189,10 @@ body {
 }
 
 @media print {
-  html, body { width: 210mm; min-height: 297mm; background: #fff; }
+  @page { size: A4 portrait; margin: 10mm; }
+  html, body { width: auto; min-height: auto; background: #fff; }
   .voucher-toolbar { display: none !important; }
-  .voucher-shell { width: 190mm; margin: 0; }
-  .voucher { min-height: 277mm; }
+  .voucher-shell { width: 100%; margin: 0; }
+  .voucher { width: 100%; min-height: auto; padding: 0; overflow: visible; }
+  .voucher__ticket-details tr { break-inside: avoid; page-break-inside: avoid; }
 }

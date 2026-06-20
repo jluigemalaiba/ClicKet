@@ -23,11 +23,11 @@ $orderHistory = $orderHistory ?? [];
         <?php
         $seats = is_array($order['seats'] ?? null) ? $order['seats'] : [];
         $paymentMethod = strtolower((string) ($order['payment_method'] ?? ''));
-        $paymentStatus = strtolower((string) ($order['payment_status'] ?? ''));
-        $isDigitalPayment = in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true);
-        $canUploadProof = $isDigitalPayment && in_array($paymentStatus, ['pending payment', 'rejected'], true);
-        $isForVerification = $isDigitalPayment && $paymentStatus === 'for verification';
-        $isVerified = $paymentStatus === 'payment verified';
+        $paymentStatus = strtolower((string) ($order['payment_status_key'] ?? $order['payment_status'] ?? ''));
+        $isDigitalPayment = $paymentMethod === 'qrph';
+        $canUploadProof = $isDigitalPayment && in_array($paymentStatus, ['pending', 'rejected'], true);
+        $isForVerification = $isDigitalPayment && $paymentStatus === 'under_review';
+        $isVerified = $paymentStatus === 'approved';
         $qr = is_array($order['payment_qr'] ?? null) ? $order['payment_qr'] : null;
         $seatSummary = array_map(
             fn(array $seat): string => trim(($seat['section'] ?? '') . ' R' . ($seat['row'] ?? '') . '-S' . ($seat['number'] ?? '')),
@@ -80,14 +80,7 @@ $orderHistory = $orderHistory ?? [];
                 <p class="order-payment-panel__reason"><strong>Rejection reason:</strong> <?= htmlspecialchars((string) $order['rejection_reason']) ?></p>
               <?php endif; ?>
               <?php if ($canUploadProof): ?>
-                <form class="order-proof-form" method="post" action="payment-proof-upload.php" enctype="multipart/form-data">
-                  <input type="hidden" name="order_id" value="<?= htmlspecialchars((string) ($order['order_id'] ?? '')) ?>">
-                  <label>
-                    <span>Proof of payment</span>
-                    <input type="file" name="payment_proof" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" required>
-                  </label>
-                  <button type="submit"><?= $paymentStatus === 'rejected' ? 'Upload New Proof' : 'Upload Proof of Payment' ?></button>
-                </form>
+                <p class="order-payment-panel__state">Open View details to upload your proof of payment.</p>
               <?php elseif ($isForVerification): ?>
                 <p class="order-payment-panel__state">Payment submitted. Organizer verification is in progress.</p>
               <?php elseif ($isVerified): ?>

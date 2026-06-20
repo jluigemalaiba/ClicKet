@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/data.php';
 require_once __DIR__ . '/includes/log.php';
+require_once __DIR__ . '/includes/reservation.php';
 require_once __DIR__ . '/includes/virtual-queue.php';
 
 $catalogs = [
@@ -28,6 +29,12 @@ $eventKey = trim((string) ($_GET['event'] ?? ''));
 if (!preg_match('/^(concerts|theater|sports)-(.+)$/', $eventKey, $matches)) {
     header('Location: events.php');
     exit;
+}
+
+$bookingSessionExpired = ($_GET['session'] ?? '') === 'expired';
+if ($bookingSessionExpired) {
+    clicketClearReservation();
+    setFlashMessage('error', 'Your booking session expired. Unpaid seat selections were released.');
 }
 
 $categoryKey = $matches[1];
@@ -169,7 +176,7 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/navbar.css">
   <link rel="stylesheet" href="css/partners-footer.css">
-  <link rel="stylesheet" href="css/show.css">
+  <link rel="stylesheet" href="css/show.css?v=<?= filemtime(__DIR__ . '/css/show.css') ?>">
 </head>
 <body class="show-page">
 <?php require_once __DIR__ . '/includes/navbar.php'; ?>
@@ -360,6 +367,7 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
   const dateCards = document.querySelectorAll('.show-date-card[data-performance-url]');
   const ticketActions = document.querySelectorAll('[data-ticket-action]');
   const storageKey = 'clicket_event_timer_<?= htmlspecialchars($eventKey, ENT_QUOTES) ?>';
+  const selectedSeatsKey = 'clicket_selected_seats_<?= htmlspecialchars($eventKey, ENT_QUOTES) ?>';
   const duration = 15 * 60 * 1000;
 
   const updateNavbar = () => navbar?.classList.toggle('scrolled', window.scrollY > 60);
@@ -367,6 +375,7 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
   updateNavbar();
 
   const setTicketActions = (url) => {
+    if (timer.classList.contains('is-loading') || timer.classList.contains('is-expired')) return;
     ticketActions.forEach((action) => {
       action.href = url;
       action.classList.remove('is-disabled');
@@ -395,12 +404,43 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
   });
 
   let expiresAt = Number(sessionStorage.getItem(storageKey));
-  if (!expiresAt || expiresAt <= Date.now()) {
+  const sessionExpiredOnLoad = <?= $bookingSessionExpired ? 'true' : 'false' ?>;
+  if (sessionExpiredOnLoad) {
+    sessionStorage.removeItem(storageKey);
+    sessionStorage.removeItem(selectedSeatsKey);
+    const cleanUrl = new URL(window.location.href);
+    cleanUrl.searchParams.delete('session');
+    window.history.replaceState({}, '', cleanUrl);
+    expiresAt = 0;
+  }
+  if (!expiresAt) {
     expiresAt = Date.now() + duration;
     sessionStorage.setItem(storageKey, String(expiresAt));
   }
 
   let interval;
+  let expiryStarted = false;
+  const expireBookingWindow = () => {
+    if (expiryStarted) return;
+    expiryStarted = true;
+    window.clearInterval(interval);
+    timer.classList.remove('is-urgent');
+    timer.classList.add('is-loading');
+    timer.querySelector('small').textContent = 'Closing booking window';
+    timerValue.textContent = 'Loading';
+    ticketActions.forEach((action) => {
+      action.classList.add('is-disabled');
+      action.setAttribute('aria-disabled', 'true');
+      action.removeAttribute('href');
+    });
+    sessionStorage.removeItem(selectedSeatsKey);
+    window.setTimeout(() => {
+      const expiredUrl = new URL(window.location.href);
+      expiredUrl.searchParams.set('session', 'expired');
+      window.location.replace(expiredUrl);
+    }, 900);
+  };
+
   const renderTimer = () => {
     const remaining = Math.max(0, expiresAt - Date.now());
     const totalSeconds = Math.ceil(remaining / 1000);
@@ -409,14 +449,12 @@ $relatedEvents = array_slice($relatedEvents, 0, 3);
     timerValue.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     timer.classList.toggle('is-urgent', remaining > 0 && remaining <= 2 * 60 * 1000);
     if (remaining <= 0) {
-      timer.classList.add('is-expired');
-      timer.querySelector('small').textContent = 'Session expired';
-      window.clearInterval(interval);
+      expireBookingWindow();
     }
   };
 
   renderTimer();
-  interval = window.setInterval(renderTimer, 1000);
+  if (!expiryStarted) interval = window.setInterval(renderTimer, 1000);
 })();
 </script>
 </body>

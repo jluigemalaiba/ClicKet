@@ -2,14 +2,14 @@
 
 $order = $voucherRecord['order'];
 $ticket = $voucherRecord['ticket'];
-$orderSeats = is_array($order['seats'] ?? null) ? $order['seats'] : [];
-$ticketCount = max(1, count($orderSeats));
-$allocatedFee = (int) round(((int) ($order['service_fee'] ?? 0)) / $ticketCount);
-$ticketPrice = (int) ($ticket['price'] ?? 0);
-$voucherTotal = $ticketPrice + $allocatedFee;
+$transactionTickets = is_array($voucherRecord['tickets'] ?? null) ? $voucherRecord['tickets'] : [$ticket];
+$ticketCount = max(1, count($transactionTickets));
+$serviceFee = (int) ($order['service_fee'] ?? 0);
+$ticketTotal = array_sum(array_map(static fn (array $item): int => (int) ($item['price'] ?? 0), $transactionTickets));
+$voucherTotal = (int) ($order['total'] ?? ($ticketTotal + $serviceFee));
 $paymentMethod = (string) ($order['payment_method_label'] ?? $order['payment_method'] ?? 'Payment');
 $paymentAccount = trim((string) ($order['payment_account'] ?? ''));
-$voucherNumber = (string) ($ticket['voucher_id'] ?? $order['voucher']['voucher_id'] ?? '');
+$voucherNumber = (string) ($order['voucher']['voucher_id'] ?? $ticket['voucher_id'] ?? '');
 $ticketStatus = (string) ($ticket['status'] ?? 'Valid');
 ?>
 <article class="voucher" id="voucherDocument" data-ticket-id="<?= htmlspecialchars((string) ($ticket['ticket_id'] ?? 'clicket-ticket')) ?>">
@@ -63,8 +63,8 @@ $ticketStatus = (string) ($ticket['status'] ?? 'Valid');
     <table>
       <thead><tr><th>QUANTITY</th><th>PARTICULARS</th><th>PRICE</th><th>AMOUNT</th></tr></thead>
       <tbody>
-        <tr><td>1</td><td><?= htmlspecialchars((string) ($ticket['category'] ?? 'Admission')) ?> ticket</td><td>PHP <?= number_format($ticketPrice) ?></td><td>PHP <?= number_format($ticketPrice) ?></td></tr>
-        <tr><td>1</td><td>Online service fee</td><td>PHP <?= number_format($allocatedFee) ?></td><td>PHP <?= number_format($allocatedFee) ?></td></tr>
+        <tr><td><?= $ticketCount ?></td><td>Event admission <?= $ticketCount === 1 ? 'ticket' : 'tickets' ?></td><td>PHP <?= number_format((int) round($ticketTotal / $ticketCount)) ?></td><td>PHP <?= number_format($ticketTotal) ?></td></tr>
+        <tr><td>1</td><td>Online service fee</td><td>PHP <?= number_format($serviceFee) ?></td><td>PHP <?= number_format($serviceFee) ?></td></tr>
         <tr class="voucher__total-row"><td colspan="3">VOUCHER TOTAL</td><td>PHP <?= number_format($voucherTotal) ?></td></tr>
       </tbody>
     </table>
@@ -74,14 +74,18 @@ $ticketStatus = (string) ($ticket['status'] ?? 'Valid');
     <h2>TICKET DETAILS</h2>
     <table>
       <thead><tr><th>PRICE CATEGORY</th><th>TICKET ID</th><th>TICKET PRICE</th><th>SECTION</th><th>ROW</th><th>SEAT</th></tr></thead>
-      <tbody><tr>
-        <td><?= htmlspecialchars((string) ($ticket['category'] ?? 'Admission')) ?></td>
-        <td><?= htmlspecialchars((string) ($ticket['ticket_id'] ?? '')) ?></td>
-        <td>PHP <?= number_format($ticketPrice) ?></td>
-        <td><?= htmlspecialchars((string) ($ticket['section'] ?? '')) ?></td>
-        <td><?= htmlspecialchars((string) ($ticket['row'] ?? '')) ?></td>
-        <td><?= htmlspecialchars((string) ($ticket['number'] ?? '')) ?></td>
-      </tr></tbody>
+      <tbody>
+        <?php foreach ($transactionTickets as $transactionTicket): ?>
+          <tr>
+            <td><?= htmlspecialchars((string) ($transactionTicket['category'] ?? 'Admission')) ?></td>
+            <td><?= htmlspecialchars((string) ($transactionTicket['ticket_id'] ?? '')) ?></td>
+            <td>PHP <?= number_format((int) ($transactionTicket['price'] ?? 0)) ?></td>
+            <td><?= htmlspecialchars((string) ($transactionTicket['section'] ?? '')) ?></td>
+            <td><?= htmlspecialchars((string) ($transactionTicket['row'] ?? '')) ?></td>
+            <td><?= htmlspecialchars((string) ($transactionTicket['number'] ?? '')) ?></td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
     </table>
   </section>
 
@@ -123,7 +127,7 @@ $ticketStatus = (string) ($ticket['status'] ?? 'Valid');
       <table>
         <thead><tr><th>QTY</th><th>PARTICULARS</th><th>PRICE</th><th>AMOUNT</th></tr></thead>
         <tbody>
-          <tr><td>1</td><td><?= htmlspecialchars((string) ($ticket['category'] ?? 'Admission')) ?> ticket</td><td>PHP <?= number_format($ticketPrice) ?></td><td>PHP <?= number_format($voucherTotal) ?></td></tr>
+          <tr><td><?= $ticketCount ?></td><td>Event admission <?= $ticketCount === 1 ? 'ticket' : 'tickets' ?></td><td>PHP <?= number_format($ticketTotal) ?></td><td>PHP <?= number_format($voucherTotal) ?></td></tr>
         </tbody>
       </table>
       <p><b>Buyer:</b> <?= htmlspecialchars((string) ($order['buyer_name'] ?? 'ClicKet account holder')) ?></p>

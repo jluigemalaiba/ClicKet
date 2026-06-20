@@ -45,8 +45,6 @@ if (in_array($status, ['processing', 'success'], true)) {
         'visa' => 'Visa',
         'mastercard' => 'Mastercard',
         'jcb' => 'JCB',
-        'gcash' => 'GCash',
-        'maya' => 'Maya',
         'bpi' => 'BPI Online',
         'bdo' => 'BDO Online',
         'qrph' => 'QR Ph',
@@ -216,18 +214,15 @@ $paymentError = '';
 $selectedPaymentMethod = trim((string) ($_POST['payment_method'] ?? ''));
 $qrReference = 'QR-' . strtoupper(substr(hash('sha256', session_id() . $eventKey . $total), 0, 10));
 $cardNumber = '';
-$walletMobile = '';
 $paymentAccount = '';
 $proofName = '';
 $venueQrCodes = [
-    'gcash' => clicketPaymentQrForVenue((string) ($event['venue'] ?? ''), 'gcash'),
-    'maya' => clicketPaymentQrForVenue((string) ($event['venue'] ?? ''), 'maya'),
     'qrph' => clicketPaymentQrForVenue((string) ($event['venue'] ?? ''), 'qrph'),
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $paymentMethod = $selectedPaymentMethod;
-    $allowedMethods = ['visa', 'mastercard', 'jcb', 'gcash', 'maya', 'bpi', 'bdo', 'qrph'];
+    $allowedMethods = ['visa', 'mastercard', 'jcb', 'bpi', 'bdo', 'qrph'];
     $paymentErrors = [];
 
     if (!in_array($paymentMethod, $allowedMethods, true)) {
@@ -265,23 +260,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    if (in_array($paymentMethod, ['gcash', 'maya'], true)) {
-        $walletMobile = preg_replace('/\D/', '', (string) ($_POST['wallet_mobile'] ?? ''));
-        $walletName = trim((string) ($_POST['wallet_name'] ?? ''));
-        if ($walletMobile === '' || $walletName === '') $paymentErrors[] = 'Complete the wallet account details.';
-    }
-
-    if ($paymentMethod === 'qrph' && ($_POST['qr_confirmed'] ?? '') !== '1') {
-        $paymentErrors[] = 'Confirm that you completed the QR Ph payment.';
-    }
-
     if ($paymentErrors) {
         $paymentError = implode(' ', $paymentErrors);
     } else {
         if (in_array($paymentMethod, $cardMethods, true)) {
             $paymentAccount = 'card ending in ' . substr(preg_replace('/\D/', '', $cardNumber), -4);
-        } elseif (in_array($paymentMethod, ['gcash', 'maya'], true)) {
-            $paymentAccount = 'Mobile ending in ' . substr($walletMobile, -4);
         } else {
             $paymentAccount = $qrReference;
         }
@@ -315,18 +298,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'payment_method' => $paymentMethod,
             'payment_method_label' => [
                 'visa' => 'Visa', 'mastercard' => 'Mastercard', 'jcb' => 'JCB',
-                'gcash' => 'GCash', 'maya' => 'Maya', 'bpi' => 'BPI Online',
-                'bdo' => 'BDO Online', 'qrph' => 'QR Ph',
+                'bpi' => 'BPI Online', 'bdo' => 'BDO Online', 'qrph' => 'QR Ph',
             ][$paymentMethod],
             'payment_account' => $paymentAccount,
             'proof_of_payment' => $proofName,
             'non_transferable' => true,
-            'payment_status' => in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true) ? 'Pending Payment' : 'Payment Verified',
-            'order_status' => in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true) ? 'Pending Payment' : 'Payment Verified',
+            'payment_status' => $paymentMethod === 'qrph' ? 'Pending Payment' : 'Payment Verified',
+            'order_status' => $paymentMethod === 'qrph' ? 'Pending Payment' : 'Payment Verified',
             'booked_at' => (new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('c'),
             'payment_logs' => [[
-                'action' => in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true) ? 'Order created' : 'Payment confirmed',
-                'note' => in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true) ? 'Awaiting proof upload from Order History.' : 'Automatically confirmed card payment.',
+                'action' => $paymentMethod === 'qrph' ? 'Order created' : 'Payment confirmed',
+                'note' => $paymentMethod === 'qrph' ? 'Awaiting proof upload from Order History.' : 'Automatically confirmed card payment.',
                 'actor' => (string) ($currentBuyer['email'] ?? 'buyer'),
                 'at' => (new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('c'),
             ]],
@@ -356,7 +338,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Payment | <?= htmlspecialchars($event['title']) ?> | ClicKet</title>
-  <link rel="stylesheet" href="css/ticket.css">
+  <link rel="stylesheet" href="css/ticket.css?v=<?= filemtime(__DIR__ . '/css/ticket.css') ?>">
 </head>
 <body class="checkout-page">
   <header class="ticket-topbar">
@@ -404,11 +386,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ['mastercard', 'Mastercard', 'Credit or debit card', 'assets/payment/mastercard.svg'],
                 ['jcb', 'JCB', 'Credit or debit card', 'assets/payment/jcb.svg'],
             ],
-            'Digital Wallets' => [
-                ['gcash', 'GCash', 'Pay using your GCash wallet', 'assets/payment/gcash.svg'],
-                ['maya', 'Maya', 'Pay using your Maya wallet', 'assets/payment/maya.svg'],
-            ],
-            
             'QR Payments' => [
                 ['qrph', 'QR Ph', 'Scan with a participating bank or wallet', 'assets/payment/qrph.svg'],
             ],
@@ -463,40 +440,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
           </div>
 
-          <div class="payment-detail-panel" data-payment-panel="wallet" hidden>
-            <div class="payment-detail-heading">
-              <p class="ticket-panel-kicker">E-wallet details</p>
-              <h3>Confirm your wallet account</h3>
-            </div>
-            <div class="payment-instruction">Scan the QR for <?= htmlspecialchars((string) ($event['venue'] ?? 'this venue')) ?>, pay PHP <?= number_format($total) ?>, then upload your proof from Order History.</div>
-            <div class="qr-payment-layout payment-wallet-qr-list">
-              <?php foreach (['gcash' => 'GCash', 'maya' => 'Maya'] as $qrMethod => $qrLabel): $qr = $venueQrCodes[$qrMethod] ?? null; ?>
-                <div class="venue-payment-qr" data-wallet-qr="<?= htmlspecialchars($qrMethod) ?>">
-                  <?php if (($qr['exists'] ?? false) && !empty($qr['path'])): ?>
-                    <img data-payment-qr-image data-payment-qr-method="<?= htmlspecialchars($qrMethod) ?>" data-src="<?= htmlspecialchars($qr['path']) ?>" alt="<?= htmlspecialchars(($qr['venue_label'] ?? $event['venue']) . ' ' . $qrLabel . ' QR code') ?>">
-                  <?php else: ?>
-                    <div class="qr-placeholder" role="img" aria-label="<?= htmlspecialchars($qrLabel) ?> QR code pending upload"><span><?= htmlspecialchars($qrLabel) ?></span></div>
-                  <?php endif; ?>
-                  <small><?= htmlspecialchars($qrLabel) ?> QR for <?= htmlspecialchars((string) ($qr['venue_label'] ?? $event['venue'] ?? 'venue')) ?></small>
-                </div>
-              <?php endforeach; ?>
-            </div>
-            <div class="payment-field-grid">
-              <label class="payment-field payment-field--full">
-                <span>Mobile number</span>
-                <input type="text" name="wallet_mobile" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" maxlength="12" placeholder="09XXXXXXXXX" value="<?= htmlspecialchars((string) ($_POST['wallet_mobile'] ?? '')) ?>" data-payment-required="wallet">
-              </label>
-              <label class="payment-field payment-field--full">
-                <span>Account name</span>
-                <input type="text" name="wallet_name" autocomplete="name" placeholder="Name registered to the wallet" value="<?= htmlspecialchars((string) ($_POST['wallet_name'] ?? '')) ?>" data-payment-required="wallet">
-              </label>
-            </div>
-          </div>
-
           <div class="payment-detail-panel" data-payment-panel="qr" hidden>
             <div class="payment-detail-heading">
               <p class="ticket-panel-kicker">QR Ph payment</p>
-              <h3>Scan and confirm payment</h3>
+              <h3>Scan to pay</h3>
             </div>
             <div class="qr-payment-layout">
               <?php $qr = $venueQrCodes['qrph'] ?? null; ?>
@@ -511,10 +458,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p>Scan this code using a participating banking or wallet app. Verify the amount and reference number before completing payment.</p>
               </div>
             </div>
-            <label class="qr-confirmation">
-              <input type="checkbox" name="qr_confirmed" value="1" <?= ($_POST['qr_confirmed'] ?? '') === '1' ? 'checked' : '' ?> data-payment-required="qr">
-              <span>I have completed the QR Ph payment using the reference shown above.</span>
-            </label>
           </div>
           <p class="payment-validation" id="paymentDetailsError" role="alert"></p>
         </section>
@@ -556,6 +499,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </main>
   <script src="js/ticket-topbar.js" defer></script>
   <script src="js/reservation-timer.js" defer></script>
-  <script src="js/payment.js" defer></script>
+  <script src="js/payment.js?v=<?= filemtime(__DIR__ . '/js/payment.js') ?>" defer></script>
 </body>
 </html>

@@ -6,6 +6,7 @@ require_once __DIR__ . '/log.php';
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/inventory-sync.php';
 require_once __DIR__ . '/ticketing.php';
+require_once __DIR__ . '/payment-qr-config.php';
 
 function clicketEnsureOrderStore(): void {
     clicketDb();
@@ -16,8 +17,6 @@ function clicketOrderPaymentMethodLabel(string $method): string {
         'visa' => 'Visa',
         'mastercard' => 'Mastercard',
         'jcb' => 'JCB',
-        'gcash' => 'GCash',
-        'maya' => 'Maya',
         'bpi' => 'BPI Online',
         'bdo' => 'BDO Online',
         'qrph' => 'QR Ph',
@@ -79,6 +78,15 @@ function clicketOrderRowToApp(array $row): array {
         $voucherId = 'VCH-' . strtoupper(substr(hash('sha256', (string) $row['order_id']), 0, 12));
     }
 
+    $proofFilePath = trim((string) ($row['proof_file_path'] ?? ''));
+    $proofUrl = '';
+    if ($proofFilePath !== '') {
+        $normalizedProofPath = str_replace('\\', '/', ltrim($proofFilePath, '/'));
+        if (is_file(dirname(__DIR__) . '/' . $normalizedProofPath)) {
+            $proofUrl = implode('/', array_map('rawurlencode', explode('/', $normalizedProofPath)));
+        }
+    }
+
     return [
         'db_id' => (int) $row['id'],
         'order_id' => (string) $row['order_id'],
@@ -103,11 +111,14 @@ function clicketOrderRowToApp(array $row): array {
         'payment_account' => (string) ($row['payment_account'] ?? ''),
         'proof_of_payment' => (string) ($row['proof_file_name'] ?? ''),
         'proof_file_path' => (string) ($row['proof_file_path'] ?? ''),
+        'proof_url' => $proofUrl,
         'proof_review_status' => (string) ($row['proof_review_status'] ?? ''),
         'proof_review_note' => (string) ($row['proof_review_note'] ?? ''),
         'non_transferable' => (bool) $row['non_transferable'],
         'payment_status' => clicketDbDisplayPaymentStatus((string) $row['payment_status']),
+        'payment_status_key' => (string) $row['payment_status'],
         'order_status' => clicketDbDisplayOrderStatus((string) $row['order_status']),
+        'order_status_key' => (string) $row['order_status'],
         'booked_at' => clicketDbDisplayDateTime((string) $row['booked_at']),
         'approved_by' => (string) ($row['approved_by_email'] ?? ''),
         'approved_at' => clicketDbDisplayDateTime((string) ($row['approved_at'] ?? '')),
@@ -120,6 +131,9 @@ function clicketOrderRowToApp(array $row): array {
             'notice' => 'Tickets are non-transferable and linked to the purchasing ClicKet account.',
         ],
         'tickets' => $ticketRows,
+        'payment_qr' => (string) ($row['payment_method'] ?? '') === 'qrph'
+            ? clicketPaymentQrForVenue((string) $row['venue_name'])
+            : null,
     ];
 }
 

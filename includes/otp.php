@@ -99,6 +99,9 @@ function clicketOtpSendForUser(array $user): array {
 
 function clicketOtpVerify(string $email, string $code, ?array $pendingSignup = null): array {
     clicketOtpEnsureSchema();
+    if ($pendingSignup !== null && function_exists('clicketEnsureUserProfileSchema')) {
+        clicketEnsureUserProfileSchema();
+    }
 
     $email = strtolower(trim($email));
     $code = preg_replace('/\D+/', '', $code) ?? '';
@@ -148,6 +151,14 @@ function clicketOtpVerify(string $email, string $code, ?array $pendingSignup = n
                  VALUES (:name, :email, :password_hash, "active", UTC_TIMESTAMP())',
                 ['name' => $pendingName, 'email' => $email, 'password_hash' => $passwordHash]
             );
+            $newUserId = (int) $pdo->lastInsertId();
+            if ($newUserId > 0 && function_exists('clicketEnsureUserProfileSchema')) {
+                clicketDbExecute(
+                    'INSERT INTO user_profiles (user_id, username) VALUES (:user_id, :username)
+                     ON DUPLICATE KEY UPDATE username = VALUES(username)',
+                    ['user_id' => $newUserId, 'username' => $pendingName]
+                );
+            }
         } else {
             clicketDbExecute(
                 'UPDATE users SET email_verified_at = UTC_TIMESTAMP(), status = "active" WHERE LOWER(email) = LOWER(:email)',

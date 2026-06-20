@@ -58,6 +58,8 @@ function clicketResolveEvent(string $eventKey): ?array {
     $times = ['6:00 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM'];
     $eventDate = DateTimeImmutable::createFromFormat('M j, Y', $event['date'])
         ?: new DateTimeImmutable($event['date']);
+    $databasePoster = trim((string) ($event['poster'] ?? $event['poster_url'] ?? ''));
+    $databaseBanner = trim((string) ($event['banner'] ?? $event['banner_url'] ?? ''));
 
     return [
         'key' => $eventKey,
@@ -67,8 +69,12 @@ function clicketResolveEvent(string $eventKey): ?array {
         'event' => $event,
         'date' => $eventDate,
         'time' => $times[($eventIndex + $catalog['timeOffset']) % count($times)],
-        'poster' => posterUrl($catalog['posterCategory'], $eventIndex + 10),
-        'banner' => landscapeUrl($catalog['posterCategory'], $eventIndex + 10),
+        'poster' => $databasePoster !== ''
+            ? $databasePoster
+            : posterUrl($catalog['posterCategory'], $eventIndex + 10),
+        'banner' => $databaseBanner !== ''
+            ? $databaseBanner
+            : landscapeUrl($catalog['posterCategory'], $eventIndex + 10),
     ];
 }
 

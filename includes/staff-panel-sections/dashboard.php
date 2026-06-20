@@ -3,8 +3,10 @@ $revenueValues = array_column($payload['revenueTrend'], 'value');
 $ticketValues = array_column($payload['ticketTrend'], 'value');
 $revenueMax = max(1, $revenueValues ? max($revenueValues) : 0);
 $ticketMax = max(1, $ticketValues ? max($ticketValues) : 0);
-$recentOrders = array_slice(array_reverse($payload['orders']), 0, 5);
-$recentPayments = array_slice(array_reverse($payload['payments']), 0, 5);
+// Payload rows come directly from MySQL ordered by booked_at DESC.
+// Keep that ordering so the dashboard shows the newest database records.
+$recentOrders = array_slice($payload['orders'], 0, 5);
+$recentPayments = array_slice($payload['payments'], 0, 5);
 $draftNewsCount = count(array_filter($payload['news'], static fn (array $article): bool => ($article['status'] ?? '') === 'Draft'));
 $publishedEvents = count(array_filter($payload['events'], static fn (array $event): bool => ($event['status'] ?? '') === 'Published'));
 $paidOrdersCount = count(array_filter($payload['orders'], static fn (array $order): bool => in_array(strtolower((string) ($order['payment_status'] ?? '')), ['paid', 'payment verified'], true)));

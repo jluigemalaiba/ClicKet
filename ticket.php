@@ -49,6 +49,28 @@ $unavailableSeatIds = array_values(array_unique(array_merge(
     clicketInventoryBlockedSeatCodes($eventKey, $performanceIndex)
 )));
 
+$availabilityByCategory = [];
+foreach ($venueProfile['sections'] ?? [] as $section) {
+    $categoryKey = (string) ($section['category'] ?? '');
+    if ($categoryKey === '') {
+        continue;
+    }
+    $sectionCapacity = max(0, (int) ($section['capacity'] ?? 0));
+    if ($sectionCapacity > 0) {
+        $availabilityByCategory[$categoryKey] = ($availabilityByCategory[$categoryKey] ?? 0) + $sectionCapacity;
+    }
+}
+foreach ($unavailableSeatIds as $unavailableSeatId) {
+    foreach ($venueProfile['sections'] ?? [] as $section) {
+        $sectionId = (string) ($section['id'] ?? '');
+        $categoryKey = (string) ($section['category'] ?? '');
+        if ($sectionId !== '' && $categoryKey !== '' && str_starts_with((string) $unavailableSeatId, $sectionId . '-')) {
+            $availabilityByCategory[$categoryKey] = max(0, ($availabilityByCategory[$categoryKey] ?? 0) - 1);
+            break;
+        }
+    }
+}
+
 $basePrice = (int) preg_replace('/\D/', '', (string) ($event['price'] ?? '2500'));
 if ($basePrice < 500) {
     $basePrice = 2500;
@@ -91,6 +113,7 @@ $ticketConfig = [
     'selectionLimit' => 4,
     'reservationExpired' => $reservationExpired,
     'unavailableSeatIds' => $unavailableSeatIds,
+    'availabilityByCategory' => $availabilityByCategory,
 ];
 ?>
 <!DOCTYPE html>

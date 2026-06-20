@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       await waitForDocumentAssets();
       await window.html2pdf().set({
-        margin: [10, 10, 10, 10],
+        margin: [8, 8, 8, 8],
         filename: `${ticketId.replace(/[^a-z0-9-]/gi, '_')}-voucher.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
@@ -49,12 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
           backgroundColor: '#ffffff',
           scrollX: 0,
           scrollY: 0,
-          windowWidth: voucher.scrollWidth,
+          windowWidth: Math.max(voucher.scrollWidth, voucher.offsetWidth),
+          windowHeight: Math.max(voucher.scrollHeight, voucher.offsetHeight),
           imageTimeout: 0,
           logging: false,
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'], avoid: ['tr', '.voucher__claim-notice', '.voucher__redemption', '.voucher__footer'] },
       }).from(voucher).save();
     } catch (error) {
       window.alert('The PDF could not be generated. Please use Print Voucher instead.');

@@ -483,6 +483,10 @@ if (!in_array($action, ['create', 'update'], true)) {
     clicketStaffEventsFail($staff, 'Invalid event action.');
 }
 
+if (($staff['role'] ?? '') !== 'organizer') {
+    clicketStaffEventsFail($staff, 'Only organizers can add or edit events.');
+}
+
 $title = trim((string) ($_POST['title'] ?? ''));
 $category = clicketStaffNormalizeEventCategory((string) ($_POST['category'] ?? ''));
 $status = clicketStaffNormalizeEventStatus((string) ($_POST['status'] ?? 'published'));

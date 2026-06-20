@@ -19,7 +19,9 @@ if (!$voucherRecord) {
     exit('Ticket voucher not found.');
 }
 
-clicketRecordTicketPrintByPublicId($ticketId, null, 'customer_voucher');
+foreach ($voucherRecord['tickets'] ?? [$voucherRecord['ticket']] as $printedTicket) {
+    clicketRecordTicketPrintByPublicId((string) ($printedTicket['ticket_id'] ?? ''), null, 'customer_voucher');
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

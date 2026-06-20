@@ -739,9 +739,11 @@ function clicketStaffOrderProofUrl(array $order): string {
             continue;
         }
 
-        $path = __DIR__ . '/../storage/payment-proofs/' . $filename;
-        if (is_file($path)) {
-            return 'storage/payment-proofs/' . rawurlencode($filename);
+        foreach (['uploads/payment_proofs', 'storage/payment-proofs'] as $directory) {
+            $path = __DIR__ . '/../' . $directory . '/' . $filename;
+            if (is_file($path)) {
+                return $directory . '/' . rawurlencode($filename);
+            }
         }
     }
 
@@ -966,6 +968,13 @@ function clicketStaffArchiveRows(array $orders, array $events, array $users = []
     foreach ($events as $event) {
         $eventById[(int) ($event['db_id'] ?? 0)] = $event;
     }
+    $peopleByType = ['user' => [], 'admin' => [], 'organizer' => []];
+    foreach ($users as $person) {
+        $role = strtolower((string) ($person['role'] ?? 'customer'));
+        $type = $role === 'customer' ? 'user' : $role;
+        $dbId = (int) ($person['db_id'] ?? preg_replace('/\D+/', '', (string) ($person['id'] ?? '0')));
+        if (isset($peopleByType[$type]) && $dbId > 0) $peopleByType[$type][$dbId] = $person;
+    }
 
     $records = clicketDbFetchAll(
         'SELECT ar.id, ar.entity_type, ar.entity_id, ar.reason, ar.archived_at, ar.restored_at
@@ -980,23 +989,27 @@ function clicketStaffArchiveRows(array $orders, array $events, array $users = []
 
         $entityType = strtolower((string) $record['entity_type']);
         $entityId = (int) $record['entity_id'];
-        if ($entityType !== 'event' || !isset($eventById[$entityId])) {
+        if ($entityType === 'event' && isset($eventById[$entityId])) {
+            $event = $eventById[$entityId];
+            $rows[] = [
+                'archive_id' => (int) $record['id'], 'entity_type' => 'event', 'entity_id' => $entityId,
+                'event_key' => (string) ($event['event_key'] ?? $event['key'] ?? ''),
+                'type' => 'Archived event', 'title' => (string) ($event['title'] ?? 'Event'),
+                'scope' => (string) ($event['venue'] ?? 'Venue'), 'status' => 'Archived',
+                'reason' => (string) ($record['reason'] ?? ''), 'archived_at' => (string) $record['archived_at'],
+            ];
             continue;
         }
-
-        $event = $eventById[$entityId];
-        $rows[] = [
-            'archive_id' => (int) $record['id'],
-            'entity_type' => 'event',
-            'entity_id' => $entityId,
-            'event_key' => (string) ($event['event_key'] ?? $event['key'] ?? ''),
-            'type' => 'Archived event',
-            'title' => (string) ($event['title'] ?? 'Event'),
-            'scope' => (string) ($event['venue'] ?? 'Venue'),
-            'status' => 'Archived',
-            'reason' => (string) ($record['reason'] ?? ''),
-            'archived_at' => (string) $record['archived_at'],
-        ];
+        if (isset($peopleByType[$entityType][$entityId])) {
+            $person = $peopleByType[$entityType][$entityId];
+            $rows[] = [
+                'archive_id' => (int) $record['id'], 'entity_type' => $entityType, 'entity_id' => $entityId,
+                'type' => $entityType === 'user' ? 'Archived user' : 'Archived ' . $entityType,
+                'title' => (string) ($person['name'] ?? 'Account'),
+                'scope' => (string) ($person['email'] ?? ucfirst($entityType)), 'status' => 'Disabled',
+                'reason' => (string) ($record['reason'] ?? ''), 'archived_at' => (string) $record['archived_at'],
+            ];
+        }
     }
 
     return $rows;

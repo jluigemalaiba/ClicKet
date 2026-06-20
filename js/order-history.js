@@ -55,6 +55,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const renderOrder = (order) => {
     const buyer = order.buyer_name || order.buyer_email || 'ClicKet account holder';
+    const paymentMethod = String(order.payment_method || '').toLowerCase();
+    const paymentStatus = String(order.payment_status_key || order.payment_status || '').toLowerCase();
+    const canUploadProof = paymentMethod === 'qrph' && ['pending', 'rejected'].includes(paymentStatus);
+    const qr = order.payment_qr || null;
+    const qrImage = qr?.exists && qr?.path
+      ? `<img src="${escapeHtml(qr.path)}" alt="${escapeHtml(qr.venue_label || order.venue)} QR Ph code">`
+      : '<span>QR image unavailable</span>';
+    const proofContent = order.proof_url
+      ? `<div class="order-modal__proof-preview"><img src="${escapeHtml(order.proof_url)}" alt="Proof of payment for ${escapeHtml(order.order_id)}"><p>Uploaded proof of payment</p></div>`
+      : canUploadProof
+        ? `<form class="order-proof-form order-modal__proof-form" method="post" action="payment-proof-upload.php" enctype="multipart/form-data">
+            <input type="hidden" name="order_id" value="${escapeHtml(order.order_id)}">
+            <label class="order-proof-picker">
+              <input type="file" name="payment_proof" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" required>
+              <span class="order-proof-picker__button"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 20h14"></path></svg>Choose proof image</span>
+              <small data-proof-file-name>JPG, PNG, or WEBP up to 5 MB</small>
+            </label>
+            <button type="submit">${paymentStatus === 'rejected' ? 'Upload New Proof' : 'Submit Proof'}</button>
+          </form>`
+        : `<p class="order-modal__proof-state">${paymentStatus === 'under_review' ? 'Proof submitted. Organizer verification is in progress.' : paymentStatus === 'approved' ? 'Payment verified. No additional proof is required.' : 'No proof upload is required for this payment.'}</p>`;
     return `
       <div class="order-modal__hero">
         <div>
@@ -93,9 +113,16 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="order-modal__totals">
           <p><span>Tickets subtotal</span><strong>${money(order.subtotal)}</strong></p>
           <p><span>Service fee</span><strong>${money(order.service_fee)}</strong></p>
-          <p class="is-total"><span>Total amount paid</span><strong>${money(order.total)}</strong></p>
+          <p class="is-total"><span>${paymentStatus === 'approved' ? 'Total amount paid' : 'Total amount due'}</span><strong>${money(order.total)}</strong></p>
         </div>
       </section>
+
+      ${paymentMethod === 'qrph' ? `
+        <section class="order-modal__proof">
+          <div class="order-modal__proof-qr">${qrImage}<small>${escapeHtml(qr?.venue_label || order.venue)} QR Ph</small></div>
+          <div><span>Payment verification</span><h4>Upload proof of payment</h4>${proofContent}</div>
+        </section>
+      ` : ''}
 
       <div class="order-modal__notice">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M9 12l2 2 4-4"/></svg>
@@ -124,6 +151,16 @@ document.addEventListener('DOMContentLoaded', () => {
         modalPanel.focus();
       });
   };
+
+  modalBody.addEventListener('change', (event) => {
+    const input = event.target.closest('input[name="payment_proof"]');
+    if (!input) return;
+    const fileName = input.files?.[0]?.name || 'JPG, PNG, or WEBP up to 5 MB';
+    const picker = input.closest('.order-proof-picker');
+    const label = picker?.querySelector('[data-proof-file-name]');
+    if (label) label.textContent = fileName;
+    picker?.classList.toggle('has-file', Boolean(input.files?.length));
+  });
 
   triggers.forEach((trigger) => {
     trigger.addEventListener('click', () => {

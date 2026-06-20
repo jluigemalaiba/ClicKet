@@ -9,7 +9,9 @@ $eventReviewRows = $eventRows;
       <p><?= $isAdmin ? 'Organizer Event Review' : 'Organizer Event Management' ?></p>
       <h2><?= $isAdmin ? 'Published event submissions across every venue' : 'Add, edit, and manage your events' ?></h2>
     </div>
-    <button class="staff-action-btn" type="button" data-event-create>+ Add Event</button>
+    <?php if (!$isAdmin): ?>
+      <button class="staff-action-btn" type="button" data-event-create>+ Add Event</button>
+    <?php endif; ?>
   </div>
 
   <div class="staff-event-review-filter">
@@ -33,9 +35,7 @@ $eventReviewRows = $eventRows;
           <th>Venue</th>
           <th>Category</th>
           <th>Schedule</th>
-          <th>Base Price</th>
           <th>Status</th>
-          <th>Performance</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -47,14 +47,11 @@ $eventReviewRows = $eventRows;
             <td><?= sp_h($event['venue']) ?></td>
             <td><?= sp_h($event['category_label']) ?></td>
             <td><?= sp_h($event['date']) ?><small>Primary performance</small></td>
-            <td><?= sp_h($event['price']) ?></td>
             <td><span class="staff-status <?= sp_status_class($event['status']) ?>"><?= sp_h($event['status']) ?></span></td>
             <td>
-              <strong><?= sp_money(clicketStaffMoneyValue($event['price']) * 14) ?></strong>
-              <small>projected gross</small>
-            </td>
-            <td>
-              <button type="button" data-event-edit data-event="<?= sp_h($eventJson ?: '{}') ?>">Edit</button>
+              <?php if (!$isAdmin): ?>
+                <button type="button" data-event-edit data-event="<?= sp_h($eventJson ?: '{}') ?>">Edit</button>
+              <?php endif; ?>
               <button type="button" data-event-card="<?= sp_h($event['key']) ?>" data-event-venue="<?= sp_h($event['venue']) ?>">Details</button>
               <?php if ($isAdmin): ?>
                 <form action="staff-events-api.php" method="post" style="display:inline">

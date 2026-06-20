@@ -20,7 +20,7 @@ require_once __DIR__ . '/includes/log.php';
   <link rel="stylesheet" href="css/navbar.css">
   <link rel="stylesheet" href="css/hero.css">
   <link rel="stylesheet" href="css/featured.css">
-  <link rel="stylesheet" href="css/events.css">
+  <link rel="stylesheet" href="css/events.css?v=<?= filemtime(__DIR__ . '/css/events.css') ?>">
   <link rel="stylesheet" href="css/partners-footer.css">
 
   <style>
@@ -460,6 +460,7 @@ function scrollTrack(id, dir) {
     if (!showcase || !card) return;
 
     const stage = showcase.querySelector('.showcase-stage');
+    const stageBanner = showcase.querySelector('.showcase-stage__banner');
     const title = showcase.querySelector('.showcase-title');
     const type = showcase.querySelector('.showcase-type');
     const meta = showcase.querySelector('.showcase-meta');
@@ -467,11 +468,21 @@ function scrollTrack(id, dir) {
 
     showcase.querySelectorAll('.showcase-card').forEach(item => item.classList.toggle('active', item === card));
     if (stage) {
+      const bannerUrl = card.dataset.image || '';
       stage.classList.add('is-switching');
-      window.setTimeout(() => {
-        stage.style.setProperty('--stage-bg', `url('${card.dataset.image}')`);
+      const showBanner = () => window.setTimeout(() => {
+        stage.style.setProperty('--stage-bg', `url("${bannerUrl.replace(/"/g, '\\"')}")`);
+        if (stageBanner && bannerUrl) stageBanner.src = bannerUrl;
         stage.classList.remove('is-switching');
       }, 90);
+      if (bannerUrl) {
+        const banner = new Image();
+        banner.onload = showBanner;
+        banner.onerror = showBanner;
+        banner.src = bannerUrl;
+      } else {
+        showBanner();
+      }
     }
     if (title) title.textContent = card.dataset.title || '';
     if (type) type.textContent = card.dataset.type || '';

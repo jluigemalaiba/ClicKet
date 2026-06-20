@@ -103,7 +103,7 @@ function clicketHydrateOrderTickets(array $order): array {
 function clicketTicketsForUser(string $userId): array {
     $orders = clicketReadOrders();
     $changed = false;
-    $tickets = [];
+    $ticketGroups = [];
 
     foreach ($orders as $orderIndex => $order) {
         $hydrated = clicketHydrateOrderTickets($order);
@@ -116,14 +116,15 @@ function clicketTicketsForUser(string $userId): array {
             continue;
         }
 
-        foreach ($hydrated['tickets'] as $ticket) {
-            if (($ticket['status'] ?? '') !== 'Valid') {
-                continue;
-            }
-
-            $tickets[] = [
+        $validTickets = array_values(array_filter(
+            is_array($hydrated['tickets'] ?? null) ? $hydrated['tickets'] : [],
+            static fn (array $ticket): bool => ($ticket['status'] ?? '') === 'Valid'
+        ));
+        if ($validTickets) {
+            $ticketGroups[] = [
                 'order' => $hydrated,
-                'ticket' => $ticket,
+                'ticket' => $validTickets[0],
+                'tickets' => $validTickets,
             ];
         }
     }
@@ -132,18 +133,21 @@ function clicketTicketsForUser(string $userId): array {
         clicketWriteOrders($orders);
     }
 
-    usort($tickets, fn(array $left, array $right): int => strcmp(
+    usort($ticketGroups, fn(array $left, array $right): int => strcmp(
         (string) ($right['order']['booked_at'] ?? ''),
         (string) ($left['order']['booked_at'] ?? '')
     ));
 
-    return $tickets;
+    return $ticketGroups;
 }
 
 function clicketTicketForUser(string $ticketId, string $userId): ?array {
     foreach (clicketTicketsForUser($userId) as $record) {
-        if (hash_equals((string) ($record['ticket']['ticket_id'] ?? ''), $ticketId)) {
-            return $record;
+        foreach ($record['tickets'] ?? [$record['ticket']] as $ticket) {
+            if (hash_equals((string) ($ticket['ticket_id'] ?? ''), $ticketId)) {
+                $record['ticket'] = $ticket;
+                return $record;
+            }
         }
     }
 

@@ -60,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectedMethod = () => form.querySelector('input[name="payment_method"]:checked');
   const panelForMethod = (method) => {
     if (['visa', 'mastercard', 'jcb'].includes(method)) return 'card';
-    if (['gcash', 'maya'].includes(method)) return 'wallet';
     if (method === 'qrph') return 'qr';
     return '';
   };
@@ -109,11 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
     form.querySelectorAll('.payment-option').forEach((option) => {
       option.classList.toggle('is-selected', option.querySelector('input').checked);
     });
-    form.querySelectorAll('[data-wallet-qr]').forEach((qr) => {
-      qr.hidden = method && ['gcash', 'maya'].includes(method.value)
-        ? qr.dataset.walletQr !== method.value
-        : false;
-    });
     form.querySelectorAll('[data-payment-qr-image]').forEach((image) => {
       const shouldLoad = Boolean(method) && image.dataset.paymentQrMethod === method.value;
       if (shouldLoad && !image.getAttribute('src')) image.src = image.dataset.src || '';
@@ -139,18 +133,17 @@ document.addEventListener('DOMContentLoaded', () => {
       input.value = digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
     }
     if (input.name === 'card_cvv') input.value = input.value.replace(/\D/g, '').slice(0, 4);
-    if (input.name === 'wallet_mobile') input.value = input.value.replace(/\D/g, '').slice(0, 12);
     syncState();
   });
   form.addEventListener('beforeinput', (event) => {
-    if (!['card_number', 'card_expiry', 'card_cvv', 'wallet_mobile'].includes(event.target.name) || !event.data) return;
+    if (!['card_number', 'card_expiry', 'card_cvv'].includes(event.target.name) || !event.data) return;
     if (/\D/.test(event.data)) event.preventDefault();
   });
   form.addEventListener('paste', (event) => {
-    if (!['card_number', 'card_expiry', 'card_cvv', 'wallet_mobile'].includes(event.target.name)) return;
+    if (!['card_number', 'card_expiry', 'card_cvv'].includes(event.target.name)) return;
     event.preventDefault();
     const input = event.target;
-    const limits = { card_number: 19, card_expiry: 4, card_cvv: 4, wallet_mobile: 12 };
+    const limits = { card_number: 19, card_expiry: 4, card_cvv: 4 };
     const digits = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, limits[input.name]);
     if (input.name === 'card_number') input.value = digits.replace(/(.{4})/g, '$1 ').trim();
     else if (input.name === 'card_expiry') input.value = digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
