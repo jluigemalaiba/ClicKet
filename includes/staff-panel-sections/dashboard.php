@@ -7,7 +7,7 @@ $recentOrders = array_slice(array_reverse($payload['orders']), 0, 5);
 $recentPayments = array_slice(array_reverse($payload['payments']), 0, 5);
 $draftNewsCount = count(array_filter($payload['news'], static fn (array $article): bool => ($article['status'] ?? '') === 'Draft'));
 $publishedEvents = count(array_filter($payload['events'], static fn (array $event): bool => ($event['status'] ?? '') === 'Published'));
-$paidOrdersCount = count(array_filter($payload['orders'], static fn (array $order): bool => strtolower((string) ($order['payment_status'] ?? '')) === 'paid'));
+$paidOrdersCount = count(array_filter($payload['orders'], static fn (array $order): bool => in_array(strtolower((string) ($order['payment_status'] ?? '')), ['paid', 'payment verified'], true)));
 $paymentClearance = sp_percent($paidOrdersCount, max(1, $metrics['orders']));
 $eventPublishRate = sp_percent($publishedEvents, max(1, $metrics['activeEvents']));
 $ticketFillRate = sp_percent($metrics['ticketsSold'], max(1, $metrics['ticketsSold'] + $metrics['activeReservations'] + 25));

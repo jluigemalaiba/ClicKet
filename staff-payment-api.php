@@ -59,17 +59,17 @@ foreach ($orders as $index => $order) {
     $paymentStatus = strtolower((string) ($order['payment_status'] ?? ''));
     $orderStatus = strtolower((string) ($order['order_status'] ?? ''));
     if ($action === 'approve') {
-        if ($paymentStatus !== 'pending') {
-            http_response_code(409); echo json_encode(['success' => false, 'message' => 'Only pending payments can be approved.']); exit;
+        if (!in_array($paymentStatus, ['pending', 'pending payment', 'for verification'], true)) {
+            http_response_code(409); echo json_encode(['success' => false, 'message' => 'Only pending or submitted payments can be approved.']); exit;
         }
-        $order['payment_status'] = 'Paid'; $order['order_status'] = 'Confirmed';
+        $order['payment_status'] = 'Payment Verified'; $order['order_status'] = 'Payment Verified';
         $order['approved_by'] = $actor; $order['approved_at'] = date('c');
         $order = clicketHydrateOrderTickets($order);
     } elseif ($action === 'reject') {
-        if ($paymentStatus !== 'pending') {
-            http_response_code(409); echo json_encode(['success' => false, 'message' => 'Only pending payments can be rejected.']); exit;
+        if (!in_array($paymentStatus, ['pending', 'pending payment', 'for verification'], true)) {
+            http_response_code(409); echo json_encode(['success' => false, 'message' => 'Only pending or submitted payments can be rejected.']); exit;
         }
-        $order['payment_status'] = 'Failed'; $order['order_status'] = 'Payment Rejected';
+        $order['payment_status'] = 'Rejected'; $order['order_status'] = 'Rejected';
         $order['rejected_by'] = $actor; $order['rejected_at'] = date('c'); $order['rejection_reason'] = $reason;
     } elseif ($action === 'cancel') {
         if (in_array($orderStatus, ['cancelled', 'refunded'], true)) {
@@ -78,14 +78,14 @@ foreach ($orders as $index => $order) {
         $order['order_status'] = 'Cancelled'; $order['cancelled_by'] = $actor; $order['cancelled_at'] = date('c'); $order['cancellation_reason'] = $reason;
         foreach ((array) ($order['tickets'] ?? []) as &$ticket) $ticket['status'] = 'Cancelled'; unset($ticket);
     } elseif ($action === 'refund') {
-        if ($paymentStatus !== 'paid' || in_array($orderStatus, ['refunded', 'cancelled'], true)) {
+        if (!in_array($paymentStatus, ['paid', 'payment verified'], true) || in_array($orderStatus, ['refunded', 'cancelled'], true)) {
             http_response_code(409); echo json_encode(['success' => false, 'message' => 'Only active paid orders can be refunded.']); exit;
         }
         $order['payment_status'] = 'Refunded'; $order['order_status'] = 'Refunded';
         $order['refunded_by'] = $actor; $order['refunded_at'] = date('c'); $order['refund_reason'] = $reason;
         foreach ((array) ($order['tickets'] ?? []) as &$ticket) $ticket['status'] = 'Refunded'; unset($ticket);
     } else {
-        if ($paymentStatus !== 'paid' || !in_array($orderStatus, ['confirmed', 'completed'], true)) {
+        if (!in_array($paymentStatus, ['paid', 'payment verified'], true) || !in_array($orderStatus, ['confirmed', 'completed', 'payment verified'], true)) {
             http_response_code(409); echo json_encode(['success' => false, 'message' => 'Only confirmed paid orders can be reissued.']); exit;
         }
         $order['reissued_by'] = $actor; $order['reissued_at'] = date('c');

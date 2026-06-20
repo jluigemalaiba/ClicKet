@@ -71,7 +71,7 @@ $venueAccents = ['#e8162b', '#2563eb', '#0f766e', '#b45309', '#7c3aed', '#be185d
               $eventTitle = strtolower((string) ($event['title'] ?? ''));
               return ($eventKey !== '' && $orderEvent === $eventKey) || ($eventTitle !== '' && $orderTitle === $eventTitle);
           }));
-          $paidOrders = array_values(array_filter($eventOrders, static fn (array $order): bool => strtolower((string) ($order['payment_status'] ?? '')) === 'paid'));
+          $paidOrders = array_values(array_filter($eventOrders, static fn (array $order): bool => in_array(strtolower((string) ($order['payment_status'] ?? '')), ['paid', 'payment verified'], true)));
           $eventPerformance[] = [
               'title' => (string) ($event['title'] ?? 'Untitled event'),
               'date' => (string) ($event['date'] ?? 'Schedule pending'),

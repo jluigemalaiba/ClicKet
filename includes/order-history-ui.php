@@ -22,17 +22,24 @@ $orderHistory = $orderHistory ?? [];
       <?php foreach ($orderHistory as $order): ?>
         <?php
         $seats = is_array($order['seats'] ?? null) ? $order['seats'] : [];
+        $paymentMethod = strtolower((string) ($order['payment_method'] ?? ''));
+        $paymentStatus = strtolower((string) ($order['payment_status'] ?? ''));
+        $isDigitalPayment = in_array($paymentMethod, ['gcash', 'maya', 'qrph'], true);
+        $canUploadProof = $isDigitalPayment && in_array($paymentStatus, ['pending payment', 'rejected'], true);
+        $isForVerification = $isDigitalPayment && $paymentStatus === 'for verification';
+        $isVerified = $paymentStatus === 'payment verified';
+        $qr = is_array($order['payment_qr'] ?? null) ? $order['payment_qr'] : null;
         $seatSummary = array_map(
             fn(array $seat): string => trim(($seat['section'] ?? '') . ' R' . ($seat['row'] ?? '') . '-S' . ($seat['number'] ?? '')),
             $seats
         );
         ?>
-        <button class="order-card" type="button" data-order-id="<?= htmlspecialchars((string) ($order['order_id'] ?? '')) ?>" aria-haspopup="dialog">
+        <article class="order-card">
           <span class="order-card__accent" aria-hidden="true"></span>
           <span class="order-card__main">
             <span class="order-card__topline">
               <span class="order-card__id"><?= htmlspecialchars((string) ($order['order_id'] ?? 'Order')) ?></span>
-              <span class="order-status <?= clicketOrderStatusClass((string) ($order['order_status'] ?? 'Confirmed')) ?>"><?= htmlspecialchars((string) ($order['order_status'] ?? 'Confirmed')) ?></span>
+              <span class="order-status <?= clicketOrderStatusClass((string) ($order['order_status'] ?? 'Pending Payment')) ?>"><?= htmlspecialchars((string) ($order['order_status'] ?? 'Pending Payment')) ?></span>
             </span>
             <strong class="order-card__event"><?= htmlspecialchars((string) ($order['event_title'] ?? 'ClicKet Event')) ?></strong>
             <span class="order-card__schedule">
@@ -43,15 +50,52 @@ $orderHistory = $orderHistory ?? [];
           <span class="order-card__facts">
             <span><small>Tickets</small><strong><?= count($seats) ?></strong></span>
             <span><small>Seats</small><strong><?= htmlspecialchars(implode(', ', $seatSummary)) ?></strong></span>
-            <span><small>Payment</small><strong class="order-status <?= clicketOrderStatusClass((string) ($order['payment_status'] ?? 'Paid')) ?>"><?= htmlspecialchars((string) ($order['payment_status'] ?? 'Paid')) ?></strong></span>
+            <span><small>Payment</small><strong class="order-status <?= clicketOrderStatusClass((string) ($order['payment_status'] ?? 'Pending Payment')) ?>"><?= htmlspecialchars((string) ($order['payment_status'] ?? 'Pending Payment')) ?></strong></span>
             <span><small>Purchased</small><strong><?= htmlspecialchars(clicketOrderDate((string) ($order['booked_at'] ?? ''))) ?></strong></span>
           </span>
           <span class="order-card__total">
-            <small>Total paid</small>
+            <small><?= $isVerified ? 'Total paid' : 'Amount due' ?></small>
             <strong>PHP <?= number_format((int) ($order['total'] ?? 0)) ?></strong>
-            <span class="order-card__details-button">View details</span>
+            <button class="order-card__details-button" type="button" data-order-id="<?= htmlspecialchars((string) ($order['order_id'] ?? '')) ?>" aria-haspopup="dialog">View details</button>
           </span>
-        </button>
+          <?php if ($isDigitalPayment): ?>
+            <div class="order-payment-panel">
+              <div class="order-payment-panel__summary">
+                <div>
+                  <span>Payment method</span>
+                  <strong><?= htmlspecialchars((string) ($order['payment_method_label'] ?? 'Digital payment')) ?></strong>
+                  <small><?= htmlspecialchars((string) ($order['venue'] ?? '')) ?></small>
+                </div>
+                <?php if ($qr): ?>
+                  <div class="order-payment-qr">
+                    <?php if (!empty($qr['exists']) && !empty($qr['path'])): ?>
+                      <img src="<?= htmlspecialchars((string) $qr['path']) ?>" loading="lazy" decoding="async" alt="<?= htmlspecialchars((string) ($qr['venue_label'] ?? $order['venue'] ?? 'Venue')) ?> <?= htmlspecialchars((string) ($order['payment_method_label'] ?? 'payment')) ?> QR">
+                    <?php else: ?>
+                      <span>QR pending</span>
+                    <?php endif; ?>
+                  </div>
+                <?php endif; ?>
+              </div>
+              <?php if ($paymentStatus === 'rejected' && trim((string) ($order['rejection_reason'] ?? '')) !== ''): ?>
+                <p class="order-payment-panel__reason"><strong>Rejection reason:</strong> <?= htmlspecialchars((string) $order['rejection_reason']) ?></p>
+              <?php endif; ?>
+              <?php if ($canUploadProof): ?>
+                <form class="order-proof-form" method="post" action="payment-proof-upload.php" enctype="multipart/form-data">
+                  <input type="hidden" name="order_id" value="<?= htmlspecialchars((string) ($order['order_id'] ?? '')) ?>">
+                  <label>
+                    <span>Proof of payment</span>
+                    <input type="file" name="payment_proof" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" required>
+                  </label>
+                  <button type="submit"><?= $paymentStatus === 'rejected' ? 'Upload New Proof' : 'Upload Proof of Payment' ?></button>
+                </form>
+              <?php elseif ($isForVerification): ?>
+                <p class="order-payment-panel__state">Payment submitted. Organizer verification is in progress.</p>
+              <?php elseif ($isVerified): ?>
+                <p class="order-payment-panel__state is-verified">Payment Verified</p>
+              <?php endif; ?>
+            </div>
+          <?php endif; ?>
+        </article>
       <?php endforeach; ?>
     </div>
   <?php endif; ?>

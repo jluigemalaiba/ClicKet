@@ -58,9 +58,9 @@ function sp_status_class(mixed $status): string {
     $status = strtolower(trim((string) $status));
 
     return match ($status) {
-        'paid', 'published', 'confirmed', 'enabled', 'active', 'valid', 'open', 'approved', 'success' => 'is-success',
-        'pending', 'draft', 'review', 'held', 'processing', 'warning' => 'is-warning',
-        'failed', 'cancelled', 'canceled', 'void', 'blocked', 'expired', 'suspended' => 'is-danger',
+        'paid', 'payment verified', 'published', 'confirmed', 'enabled', 'active', 'valid', 'open', 'approved', 'success' => 'is-success',
+        'pending', 'pending payment', 'for verification', 'payment submitted', 'draft', 'review', 'held', 'processing', 'warning' => 'is-warning',
+        'failed', 'rejected', 'cancelled', 'canceled', 'void', 'blocked', 'expired', 'suspended' => 'is-danger',
         'refunded', 'archived', 'used', 'disabled' => 'is-muted',
         'info' => 'is-info',
         default => 'is-info',

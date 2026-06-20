@@ -109,6 +109,15 @@ document.addEventListener('DOMContentLoaded', () => {
     form.querySelectorAll('.payment-option').forEach((option) => {
       option.classList.toggle('is-selected', option.querySelector('input').checked);
     });
+    form.querySelectorAll('[data-wallet-qr]').forEach((qr) => {
+      qr.hidden = method && ['gcash', 'maya'].includes(method.value)
+        ? qr.dataset.walletQr !== method.value
+        : false;
+    });
+    form.querySelectorAll('[data-payment-qr-image]').forEach((image) => {
+      const shouldLoad = Boolean(method) && image.dataset.paymentQrMethod === method.value;
+      if (shouldLoad && !image.getAttribute('src')) image.src = image.dataset.src || '';
+    });
     if (hasMethod) methodError.classList.remove('is-visible');
     if (detailsAreValid()) detailsError.classList.remove('is-visible');
     if (terms.checked) {

@@ -1,7 +1,7 @@
 <?php
 $paymentReviewOrders = array_values(array_filter($payload['orders'], static function (array $order): bool {
     return (string) ($order['proof_of_payment'] ?? '') !== ''
-        || strtolower((string) ($order['payment_status'] ?? '')) === 'pending';
+        || in_array(strtolower((string) ($order['payment_status'] ?? '')), ['pending', 'pending payment', 'for verification', 'payment submitted'], true);
 }));
 $paymentReviewOrders = array_map(static function (array $order): array {
     $order['proof_url'] = clicketStaffOrderProofUrl($order);

@@ -592,9 +592,9 @@
   function setPaymentStatusClass(statusEl, status) {
     statusEl.classList.remove('is-success', 'is-danger', 'is-warning', 'is-muted', 'is-info');
     const normalized = String(status || '').toLowerCase();
-    if (normalized === 'paid' || normalized === 'confirmed') {
+    if (normalized === 'paid' || normalized === 'payment verified' || normalized === 'confirmed') {
       statusEl.classList.add('is-success');
-    } else if (normalized === 'failed' || normalized === 'cancelled' || normalized === 'canceled') {
+    } else if (normalized === 'failed' || normalized === 'rejected' || normalized === 'cancelled' || normalized === 'canceled') {
       statusEl.classList.add('is-danger');
     } else if (normalized === 'refunded') {
       statusEl.classList.add('is-muted');
@@ -691,7 +691,8 @@
     modal.classList.add('is-order-record');
     modalTitle.textContent = order.order_id || 'Order details';
     if (modalEyebrow) modalEyebrow.textContent = 'Order record';
-    const statusClass = String(order.payment_status || '').toLowerCase() === 'paid' ? 'is-success' : (String(order.payment_status || '').toLowerCase() === 'pending' ? 'is-warning' : 'is-muted');
+    const normalizedPaymentStatus = String(order.payment_status || '').toLowerCase();
+    const statusClass = ['paid', 'payment verified'].includes(normalizedPaymentStatus) ? 'is-success' : (['pending', 'pending payment', 'for verification'].includes(normalizedPaymentStatus) ? 'is-warning' : (normalizedPaymentStatus === 'rejected' ? 'is-danger' : 'is-muted'));
     const proof = order.proof_url ? `<img class="staff-modal-proof" src="${escapeHtml(order.proof_url)}" alt="Payment proof for ${escapeHtml(order.order_id)}">` : `<div class="staff-order-proof-empty"><span>Proof of payment</span><strong>${order.proof_of_payment ? 'Legacy proof is unavailable' : 'No screenshot uploaded'}</strong><small>${order.proof_of_payment ? escapeHtml(order.proof_of_payment) : 'This order has no attached payment image.'}</small></div>`;
     modalBody.innerHTML = `<div class="staff-order-modal staff-order-record"><header class="staff-order-record-head"><div><span>Order total</span><strong>PHP ${Number(order.total || 0).toLocaleString()}</strong><small>${escapeHtml(order.event_title || order.event || 'ClicKet event')}</small></div><div><span class="staff-status ${statusClass}">${escapeHtml(order.payment_status || 'Pending')}</span><small>${escapeHtml(order.order_status || 'Open')}</small></div></header><div class="staff-order-summary"><div><span>Buyer</span><strong>${escapeHtml(order.buyer_name || 'Guest')}</strong><small>${escapeHtml(order.buyer_email || 'No email')}</small></div><div><span>Event & venue</span><strong>${escapeHtml(order.event_title || order.event || '')}</strong><small>${escapeHtml(order.venue || '')}</small></div><div><span>Payment method</span><strong>${escapeHtml(order.payment_method_label || order.payment_method || '—')}</strong><small>${escapeHtml(order.payment_account || '')}</small></div><div><span>Reference number</span><strong>${escapeHtml(order.payment_reference || order.reference || '—')}</strong><small>${escapeHtml(order.booked_at || '')}</small></div></div><div class="staff-order-record-grid"><section class="staff-order-record-card"><div class="staff-order-record-card__head"><span>Payment proof</span><small>${escapeHtml(order.proof_of_payment || 'No file')}</small></div>${proof}</section><section class="staff-order-record-card"><div class="staff-order-record-card__head"><span>Selected seats</span><small>${Array.isArray(order.seats) ? order.seats.length : 0} ticket(s)</small></div><ul class="staff-order-seat-list">${orderRecordSeatList(order)}</ul></section></div><section class="staff-order-log-card"><div class="staff-order-record-card__head"><span>Payment logs</span><small>${orderRecordLogs(order).length} recorded event(s)</small></div><ul class="staff-order-log-list">${orderRecordLogList(order)}</ul></section></div>`;
     modal.hidden = false;

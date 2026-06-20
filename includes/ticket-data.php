@@ -28,7 +28,7 @@ function clicketTicketStatus(array $order): string {
         return 'Invalid';
     }
 
-    return $paymentStatus === 'paid' && in_array($orderStatus, ['confirmed', 'completed'], true)
+    return in_array($paymentStatus, ['paid', 'payment verified'], true) && in_array($orderStatus, ['confirmed', 'completed', 'payment verified'], true)
         ? 'Valid'
         : 'Pending';
 }
